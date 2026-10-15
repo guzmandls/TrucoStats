@@ -1,12 +1,7 @@
-import styles from './App.module.css'
+import { CounterScreen } from './features/counter/CounterScreen'
 
 function App() {
-  return (
-    <main className={styles.app}>
-      <h1>TrucoStats</h1>
-      <p>Contador de truco</p>
-    </main>
-  )
+  return <CounterScreen />
 }
 
 export default App

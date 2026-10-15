@@ -1,0 +1,20 @@
+.mark {
+  display: block;
+  width: 44px;
+  height: 44px;
+  color: currentColor;
+}
+
+.mark line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-width: 3;
+}
+
+.drawn {
+  stroke: currentColor;
+}
+
+.empty {
+  stroke: transparent;
+}

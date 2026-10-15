@@ -1,0 +1,118 @@
+.screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.targetBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--divider, #444);
+  background: var(--bar-bg, transparent);
+}
+
+.targetLabel {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.7;
+}
+
+.targetControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.targetValue {
+  min-width: 40px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.step {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.step:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.victory {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: gold;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.victoryText {
+  font-size: 15px;
+}
+
+.confirm {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 24px;
+}
+
+.card {
+  background: var(--card-bg, #fff);
+  color: var(--card-text, #1a1a1a);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 240px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 24px;
+}
+
+.cardScore {
+  margin: 0;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,104 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  padding: 12px 10px 16px;
+  gap: 10px;
+  color: var(--panel-color, inherit);
+}
+
+.left {
+  align-items: flex-start;
+  --panel-color: #2f6fed;
+}
+
+.right {
+  align-items: flex-end;
+  --panel-color: #d64545;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+}
+
+.right .header {
+  flex-direction: row-reverse;
+}
+
+.name {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--panel-color, inherit);
+}
+
+.score {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.marksArea {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.right .controls {
+  flex-direction: row-reverse;
+}
+
+.undo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid var(--panel-color, #999);
+  background: transparent;
+  color: inherit;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.undo:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.increment {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: none;
+  background: var(--panel-color, #444);
+  color: #fff;
+  font-size: 40px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.increment:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.reached {
+  outline: 3px solid gold;
+}
