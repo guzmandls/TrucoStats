@@ -65,6 +65,7 @@ El objetivo es ofrecer un contador sencillo, rápido y similar al conteo tradici
 - Cada segmento representará un punto.
 - Cada cuadrado completo con su diagonal representará cinco puntos.
 - El anotador podrá sumar puntos mediante botones o dibujando segmentos.
+- El orden predeterminado de los segmentos será: lado izquierdo, lado superior, lado derecho, lado inferior y diagonal (del vértice inferior izquierdo al superior derecho).
 - Podrá corregir errores utilizando botones Deshacer.
 - No será necesario registrar cada movimiento del contador en el historial de auditoría.
 
@@ -260,7 +261,6 @@ Antes de comenzar el desarrollo deberán definirse:
 - Administración de integrantes que abandonan un grupo.
 - Procedimiento para cambiar o transferir el administrador de un grupo.
 - Diseño visual definitivo de las pantallas.
-- Orden predeterminado para completar automáticamente los segmentos mediante los botones.
 - Comportamiento del reconocimiento de gestos ante trazos ambiguos o incorrectos.
 - Reglas de sincronización y resolución de conflictos entre dispositivos.
 - Aplicación del plazo de anulación de 15 minutos cuando la partida se finaliza sin conexión.

@@ -5,47 +5,85 @@
   height: 100svh;
   width: 100%;
   overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
 }
 
-.targetBar {
+/* ---------- Barra superior ---------- */
+
+.topBar {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.namesRow {
+  display: flex;
+}
+
+.teamHead {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.name {
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.score {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+
+.targetRow {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--divider, #444);
-  background: var(--bar-bg, transparent);
 }
 
 .targetLabel {
-  font-size: 14px;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0.7;
+  letter-spacing: 2px;
+  opacity: 0.6;
 }
 
 .targetControls {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .targetValue {
   min-width: 40px;
   text-align: center;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .step {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 1px solid currentColor;
+  border: 1px solid var(--paper);
   background: transparent;
-  color: inherit;
-  font-size: 20px;
+  color: var(--paper);
+  font-size: 18px;
+  line-height: 1;
   cursor: pointer;
 }
 
@@ -54,35 +92,139 @@
   cursor: default;
 }
 
-.victory {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+/* ---------- Barra inferior ---------- */
+
+.bottomBar {
+  position: relative;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 16px;
-  background: gold;
-  color: #1a1a1a;
+  padding: 14px 18px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.bottomBar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: var(--paper);
+}
+
+.undo {
+  position: relative;
+  z-index: 1;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--paper);
+  background: transparent;
+  color: var(--paper);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.undo:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.pill {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--paper);
+  background: var(--paper);
+}
+
+.pillButton {
+  min-width: 86px;
+  height: 64px;
+  border: none;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 26px;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.pillButton + .pillButton {
+  border-left: 1px solid var(--line-strong);
+}
+
+.pillButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* ---------- Aviso de victoria ---------- */
+
+.victory {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: var(--paper);
+  color: var(--ink);
+  border-top: 1px solid var(--line-strong);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.victoryTitle {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  opacity: 0.6;
+}
+
+.victoryQuestion {
+  font-size: 16px;
   font-weight: 600;
 }
 
-.victoryText {
-  font-size: 15px;
+.victoryActions {
+  display: flex;
+  gap: 12px;
 }
 
 .confirm {
-  padding: 10px 18px;
+  padding: 10px 24px;
   border: none;
-  border-radius: 8px;
-  background: #1a1a1a;
-  color: #fff;
-  font-size: 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 15px;
   font-weight: 600;
+  letter-spacing: 0.3px;
   cursor: pointer;
 }
+
+.decline {
+  padding: 10px 24px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+}
+
+/* ---------- Fin de partida ---------- */
 
 .overlay {
   position: absolute;
@@ -90,29 +232,43 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(28, 28, 28, 0.35);
   padding: 24px;
 }
 
 .card {
-  background: var(--card-bg, #fff);
-  color: var(--card-text, #1a1a1a);
-  border-radius: 16px;
-  padding: 28px 24px;
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: 18px;
+  padding: 32px 28px;
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  min-width: 240px;
+  gap: 14px;
+  min-width: 250px;
 }
 
 .cardTitle {
-  margin: 0;
   font-size: 24px;
+  font-weight: 600;
 }
 
 .cardScore {
-  margin: 0;
   font-size: 18px;
   font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+
+.newGame {
+  margin-top: 6px;
+  padding: 12px 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
 }

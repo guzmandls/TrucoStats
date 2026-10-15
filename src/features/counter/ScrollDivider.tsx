@@ -2,27 +2,24 @@ import { useRef, type PointerEvent, type RefObject } from 'react'
 import styles from './ScrollDivider.module.css'
 
 interface ScrollDividerProps {
-  leftRef: RefObject<HTMLDivElement | null>
-  rightRef: RefObject<HTMLDivElement | null>
+  drawingRef: RefObject<HTMLDivElement | null>
 }
 
 const MOVE_THRESHOLD = 6
 const DOUBLE_TAP_MS = 300
 
-export function ScrollDivider({ leftRef, rightRef }: ScrollDividerProps) {
+export function ScrollDivider({ drawingRef }: ScrollDividerProps) {
   const drag = useRef<{
     startY: number
-    leftStart: number
-    rightStart: number
+    startScroll: number
     moved: boolean
   } | null>(null)
   const lastTap = useRef(0)
 
   const scrollToLatest = () => {
-    for (const element of [leftRef.current, rightRef.current]) {
-      if (element) {
-        element.scrollTop = element.scrollHeight
-      }
+    const element = drawingRef.current
+    if (element) {
+      element.scrollTop = element.scrollHeight
     }
   }
 
@@ -30,8 +27,7 @@ export function ScrollDivider({ leftRef, rightRef }: ScrollDividerProps) {
     event.currentTarget.setPointerCapture(event.pointerId)
     drag.current = {
       startY: event.clientY,
-      leftStart: leftRef.current?.scrollTop ?? 0,
-      rightStart: rightRef.current?.scrollTop ?? 0,
+      startScroll: drawingRef.current?.scrollTop ?? 0,
       moved: false,
     }
   }
@@ -48,11 +44,8 @@ export function ScrollDivider({ leftRef, rightRef }: ScrollDividerProps) {
     if (!state.moved) {
       return
     }
-    if (leftRef.current) {
-      leftRef.current.scrollTop = state.leftStart + delta
-    }
-    if (rightRef.current) {
-      rightRef.current.scrollTop = state.rightStart + delta
+    if (drawingRef.current) {
+      drawingRef.current.scrollTop = state.startScroll + delta
     }
   }
 

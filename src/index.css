@@ -1,6 +1,17 @@
 :root {
+  --paper: #f7f4ea;
+  --ink: #1c1c1c;
+  --line: rgba(28, 28, 28, 0.1);
+  --line-strong: rgba(28, 28, 28, 0.45);
+  --row-height: 40px;
+  --symbol-block: calc(var(--row-height) * 3);
+
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  color-scheme: light dark;
+  font-size: 16px;
+  line-height: 1.4;
+  color-scheme: light;
+  color: var(--ink);
+  background: var(--paper);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -9,11 +20,23 @@
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+}
+
 body {
   margin: 0;
+  background: var(--paper);
 }
 
 h1,
+h2,
 p {
   margin: 0;
+}
+
+button {
+  font-family: inherit;
 }

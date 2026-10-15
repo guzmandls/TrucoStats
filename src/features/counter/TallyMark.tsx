@@ -1,11 +1,11 @@
 import styles from './TallyMark.module.css'
 
 const SEGMENTS: ReadonlyArray<readonly [number, number, number, number]> = [
+  [4, 4, 4, 36],
   [4, 4, 36, 4],
   [36, 4, 36, 36],
   [4, 36, 36, 36],
-  [4, 4, 4, 36],
-  [4, 4, 36, 36],
+  [4, 36, 36, 4],
 ]
 
 interface TallyMarkProps {

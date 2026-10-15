@@ -1,55 +1,43 @@
 import { type RefObject } from 'react'
+import { ScoreMarks } from './ScoreMarks'
 import { ScrollDivider } from './ScrollDivider'
-import { TeamPanel } from './TeamPanel'
 import { type CounterController } from './useCounter'
 import styles from './Counter.module.css'
 
 interface CounterProps {
   counter: CounterController
-  leftMarksRef: RefObject<HTMLDivElement | null>
-  rightMarksRef: RefObject<HTMLDivElement | null>
-  disabled?: boolean
+  drawingRef: RefObject<HTMLDivElement | null>
 }
 
-export function Counter({
-  counter,
-  leftMarksRef,
-  rightMarksRef,
-  disabled = false,
-}: CounterProps) {
+export function Counter({ counter, drawingRef }: CounterProps) {
+  const { target } = counter
+  const nos = counter.points('nos')
+  const ellos = counter.points('ellos')
+
+  const halfSymbols = Math.round(target / 2 / 5)
+  const halfway = halfSymbols > 0 && (nos > target / 2 || ellos > target / 2)
+  const spacerIndex = halfway ? halfSymbols : null
+
   return (
-    <div className={styles.counter}>
-      <TeamPanel
-        team="nos"
-        label="Nosotros"
-        buttonLabel="N"
-        side="left"
-        disabled={disabled}
-        marksRef={leftMarksRef}
-        points={counter.points('nos')}
-        reached={counter.hasReached('nos')}
-        canUndo={counter.canUndo('nos')}
-        onStart={() => counter.startIncrement('nos')}
-        onEnd={counter.finishIncrement}
-        onUndo={() => counter.undoTeam('nos')}
-      />
+    <div className={styles.drawing} ref={drawingRef}>
+      <div className={styles.inner}>
+        <div className={styles.column}>
+          <ScoreMarks points={nos} spacerIndex={spacerIndex} />
+        </div>
 
-      <ScrollDivider leftRef={leftMarksRef} rightRef={rightMarksRef} />
+        <ScrollDivider drawingRef={drawingRef} />
 
-      <TeamPanel
-        team="ellos"
-        label="Ellos"
-        buttonLabel="E"
-        side="right"
-        disabled={disabled}
-        marksRef={rightMarksRef}
-        points={counter.points('ellos')}
-        reached={counter.hasReached('ellos')}
-        canUndo={counter.canUndo('ellos')}
-        onStart={() => counter.startIncrement('ellos')}
-        onEnd={counter.finishIncrement}
-        onUndo={() => counter.undoTeam('ellos')}
-      />
+        <div className={styles.column}>
+          <ScoreMarks points={ellos} spacerIndex={spacerIndex} />
+        </div>
+
+        {halfway && (
+          <div
+            className={styles.halfLine}
+            style={{ top: `calc(var(--symbol-block) * ${halfSymbols})` }}
+          />
+        )}
+      </div>
     </div>
   )
 }

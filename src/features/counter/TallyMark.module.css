@@ -1,14 +1,14 @@
 .mark {
   display: block;
-  width: 44px;
-  height: 44px;
-  color: currentColor;
+  width: calc(var(--row-height) * 2);
+  height: calc(var(--row-height) * 2);
+  color: var(--ink);
 }
 
 .mark line {
   fill: none;
   stroke-linecap: round;
-  stroke-width: 3;
+  stroke-width: 2;
 }
 
 .drawn {

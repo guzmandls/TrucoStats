@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { HoldButton } from '../../components/HoldButton'
 import { Counter } from './Counter'
 import type { Team } from './counterLogic'
 import { MAX_TARGET, MIN_TARGET, TARGET_STEP, useCounter } from './useCounter'
@@ -11,46 +12,49 @@ const TEAM_LABELS: Record<Team, string> = {
 
 export function CounterScreen() {
   const counter = useCounter()
-  const leftMarksRef = useRef<HTMLDivElement>(null)
-  const rightMarksRef = useRef<HTMLDivElement>(null)
+  const drawingRef = useRef<HTMLDivElement>(null)
 
   const nosPoints = counter.points('nos')
   const ellosPoints = counter.points('ellos')
+  const winner = counter.winner
+  const awaitingConfirmation = winner !== null && !counter.finished
 
   useEffect(() => {
-    for (const element of [leftMarksRef.current, rightMarksRef.current]) {
-      if (element) {
-        element.scrollTop = element.scrollHeight
-      }
+    const element = drawingRef.current
+    if (element) {
+      element.scrollTop = element.scrollHeight
     }
   }, [nosPoints, ellosPoints])
 
   return (
     <div className={styles.screen}>
-      <TargetBar
+      <TopBar
         target={counter.target}
-        locked={counter.started}
+        started={counter.started}
         onChange={counter.setTarget}
+        nos={nosPoints}
+        ellos={ellosPoints}
       />
 
-      <Counter
-        counter={counter}
-        leftMarksRef={leftMarksRef}
-        rightMarksRef={rightMarksRef}
-        disabled={counter.finished}
-      />
+      <Counter counter={counter} drawingRef={drawingRef} />
 
-      {counter.winner && !counter.finished && (
+      {awaitingConfirmation && (
         <VictoryBanner
-          label={TEAM_LABELS[counter.winner]}
-          target={counter.target}
+          label={TEAM_LABELS[winner]}
           onConfirm={counter.confirm}
+          onDecline={() => counter.undoTeam(winner)}
         />
       )}
 
-      {counter.finished && counter.winner && (
+      <BottomBar
+        counter={counter}
+        disabled={counter.finished}
+        locked={awaitingConfirmation}
+      />
+
+      {counter.finished && winner && (
         <FinishedOverlay
-          label={TEAM_LABELS[counter.winner]}
+          label={TEAM_LABELS[winner]}
           nos={nosPoints}
           ellos={ellosPoints}
           onNewGame={counter.reset}
@@ -60,56 +64,134 @@ export function CounterScreen() {
   )
 }
 
-interface TargetBarProps {
+interface TopBarProps {
   target: number
-  locked: boolean
+  started: boolean
   onChange: (target: number) => void
+  nos: number
+  ellos: number
 }
 
-function TargetBar({ target, locked, onChange }: TargetBarProps) {
+function TopBar({ target, started, onChange, nos, ellos }: TopBarProps) {
   return (
-    <header className={styles.targetBar}>
-      <span className={styles.targetLabel}>Objetivo</span>
-      <div className={styles.targetControls}>
-        <button
-          type="button"
-          className={styles.step}
-          onClick={() => onChange(target - TARGET_STEP)}
-          disabled={locked || target <= MIN_TARGET}
-          aria-label="Bajar objetivo"
-        >
-          −
-        </button>
-        <span className={styles.targetValue}>{target}</span>
-        <button
-          type="button"
-          className={styles.step}
-          onClick={() => onChange(target + TARGET_STEP)}
-          disabled={locked || target >= MAX_TARGET}
-          aria-label="Subir objetivo"
-        >
-          +
-        </button>
+    <header className={styles.topBar}>
+      <div className={styles.namesRow}>
+        <div className={styles.teamHead}>
+          <h2 className={styles.name}>Nosotros</h2>
+          <span className={styles.score} data-testid="score-nos">
+            {nos}
+          </span>
+        </div>
+        <div className={styles.teamHead}>
+          <h2 className={styles.name}>Ellos</h2>
+          <span className={styles.score} data-testid="score-ellos">
+            {ellos}
+          </span>
+        </div>
       </div>
+
+      {!started && (
+        <div className={styles.targetRow}>
+          <span className={styles.targetLabel}>Objetivo</span>
+          <div className={styles.targetControls}>
+            <button
+              type="button"
+              className={styles.step}
+              onClick={() => onChange(target - TARGET_STEP)}
+              disabled={target <= MIN_TARGET}
+              aria-label="Bajar objetivo"
+            >
+              −
+            </button>
+            <span className={styles.targetValue}>{target}</span>
+            <button
+              type="button"
+              className={styles.step}
+              onClick={() => onChange(target + TARGET_STEP)}
+              disabled={target >= MAX_TARGET}
+              aria-label="Subir objetivo"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      )}
     </header>
+  )
+}
+
+interface BottomBarProps {
+  counter: ReturnType<typeof useCounter>
+  disabled: boolean
+  locked: boolean
+}
+
+function BottomBar({ counter, disabled, locked }: BottomBarProps) {
+  return (
+    <footer className={styles.bottomBar}>
+      <button
+        type="button"
+        className={styles.undo}
+        onClick={() => counter.undoTeam('nos')}
+        disabled={!counter.canUndo('nos') || disabled}
+        aria-label="Deshacer Nosotros"
+      >
+        ↶
+      </button>
+
+      <div className={styles.pill}>
+        <HoldButton
+          className={styles.pillButton}
+          onStart={() => counter.startIncrement('nos')}
+          onEnd={counter.finishIncrement}
+          disabled={counter.hasReached('nos') || disabled || locked}
+        >
+          N
+        </HoldButton>
+        <HoldButton
+          className={styles.pillButton}
+          onStart={() => counter.startIncrement('ellos')}
+          onEnd={counter.finishIncrement}
+          disabled={counter.hasReached('ellos') || disabled || locked}
+        >
+          E
+        </HoldButton>
+      </div>
+
+      <button
+        type="button"
+        className={styles.undo}
+        onClick={() => counter.undoTeam('ellos')}
+        disabled={!counter.canUndo('ellos') || disabled}
+        aria-label="Deshacer Ellos"
+      >
+        ↶
+      </button>
+    </footer>
   )
 }
 
 interface VictoryBannerProps {
   label: string
-  target: number
   onConfirm: () => void
+  onDecline: () => void
 }
 
-function VictoryBanner({ label, target, onConfirm }: VictoryBannerProps) {
+function VictoryBanner({ label, onConfirm, onDecline }: VictoryBannerProps) {
   return (
     <div className={styles.victory} role="alert">
-      <span className={styles.victoryText}>
-        {label} alcanzó {target} puntos
+      <span className={styles.victoryTitle}>Confirmar ganador</span>
+      <span className={styles.victoryQuestion}>
+        ¿El equipo ganador es “{label}”?
       </span>
-      <button type="button" className={styles.confirm} onClick={onConfirm}>
-        Confirmar final
-      </button>
+      <div className={styles.victoryActions}>
+        <button type="button" className={styles.confirm} onClick={onConfirm}>
+          Sí
+        </button>
+        <button type="button" className={styles.decline} onClick={onDecline}>
+          No
+        </button>
+      </div>
     </div>
   )
 }
@@ -134,7 +216,7 @@ function FinishedOverlay({
         <p className={styles.cardScore}>
           Nosotros {nos} — {ellos} Ellos
         </p>
-        <button type="button" className={styles.confirm} onClick={onNewGame}>
+        <button type="button" className={styles.newGame} onClick={onNewGame}>
           Nueva partida
         </button>
       </div>

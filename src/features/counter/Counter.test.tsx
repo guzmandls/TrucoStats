@@ -39,22 +39,44 @@ describe('CounterScreen', () => {
     expect(screen.getByText('35')).toBeInTheDocument()
   })
 
-  it('bloquea el cambio de objetivo tras iniciar la partida', () => {
+  it('oculta el objetivo tras iniciar la partida', () => {
     render(<CounterScreen />)
-    pressButton('N')
     expect(
       screen.getByRole('button', { name: /subir objetivo/i }),
-    ).toBeDisabled()
+    ).toBeInTheDocument()
+    pressButton('N')
+    expect(
+      screen.queryByRole('button', { name: /subir objetivo/i }),
+    ).not.toBeInTheDocument()
   })
 
-  it('muestra la opción de confirmar al alcanzar el objetivo', () => {
+  it('pide confirmar el ganador al alcanzar el objetivo', () => {
     render(<CounterScreen />)
     for (let i = 0; i < 30; i += 1) {
       pressButton('N')
     }
-    expect(
-      screen.getByRole('button', { name: /confirmar final/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/el equipo ganador es/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^sí$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^no$/i })).toBeInTheDocument()
+  })
+
+  it('no permite sumar al perdedor con el aviso de confirmación', () => {
+    render(<CounterScreen />)
+    for (let i = 0; i < 30; i += 1) {
+      pressButton('N')
+    }
+    pressButton('E')
+    expect(screen.getByTestId('score-ellos')).toHaveTextContent('0')
+  })
+
+  it('el botón No deshace el último punto y quita el aviso', () => {
+    render(<CounterScreen />)
+    for (let i = 0; i < 30; i += 1) {
+      pressButton('N')
+    }
+    fireEvent.click(screen.getByRole('button', { name: /^no$/i }))
+    expect(screen.getByTestId('score-nos')).toHaveTextContent('29')
+    expect(screen.queryByText(/el equipo ganador es/i)).not.toBeInTheDocument()
   })
 
   it('finaliza la partida y muestra al ganador', () => {
@@ -62,7 +84,7 @@ describe('CounterScreen', () => {
     for (let i = 0; i < 30; i += 1) {
       pressButton('N')
     }
-    fireEvent.click(screen.getByRole('button', { name: /confirmar final/i }))
+    fireEvent.click(screen.getByRole('button', { name: /^sí$/i }))
     expect(
       screen.getByRole('heading', { name: /ganó nosotros/i }),
     ).toBeInTheDocument()

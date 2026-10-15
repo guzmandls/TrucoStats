@@ -1,5 +1,7 @@
 .divider {
   position: relative;
+  flex: 0 0 auto;
+  align-self: stretch;
   width: 16px;
   background: transparent;
   cursor: ns-resize;
@@ -14,5 +16,5 @@
   left: 50%;
   width: 1px;
   transform: translateX(-50%);
-  background: var(--divider, #444);
+  background: var(--line-strong);
 }
