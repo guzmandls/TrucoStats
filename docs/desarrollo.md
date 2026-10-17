@@ -161,3 +161,33 @@ Conceptos y herramientas nuevos:
   reutiliza en varios archivos para mantener un mismo grosor.
 - Bandera de estado: dato simple (declined) que recuerda que se rechazó la
   confirmación del ganador.
+
+## Etapa 5 — Alineación a los renglones y objetivo
+
+Hecho:
+
+- Todo lo que se apoya sobre el papel respeta los renglones: símbolos, textos y
+  números quedan apoyados sobre la línea, con un pequeño margen, sin tocarla.
+- Los símbolos ahora descansan sobre el renglón (antes colgaban desde arriba).
+- La línea del medio de los palotes se recalculó a la nueva alineación.
+- El selector de objetivo se movió del encabezado negro al centro del papel:
+  "Objetivo:" a la izquierda y el número grande con los botones + y − en círculo
+  a la derecha.
+- El selector se centra verticalmente sobre los renglones y solo aparece antes
+  de iniciar la partida.
+- Los botones + y − son la excepción: se centran dentro de su renglón.
+- Se corrigió un hueco de la línea divisoria central en la parte de arriba.
+- La línea del marcador inferior (N | E) ahora comparte el grosor de la
+  divisoria central.
+- Documento de requisitos actualizado (alineación con los renglones).
+
+Estado: 41 pruebas en verde; lint, formato y build sin errores.
+
+Commits: b093a35
+
+Conceptos y herramientas nuevos:
+
+- ResizeObserver: avisa cuando un elemento cambia de tamaño, para recalcular
+  posiciones.
+- Encajar en una grilla (snap): calcular la posición como múltiplo de la altura
+  del renglón para que quede siempre sobre una línea.
