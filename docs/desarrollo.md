@@ -132,3 +132,32 @@ Conceptos y herramientas nuevos:
 - Subdominio workers.dev: dominio propio gratuito donde quedan las apps
   publicadas; se registra una sola vez por cuenta.
 - URL de producción: dirección https donde queda publicada la app.
+
+## Etapa 4 — Ajustes del contador
+
+Hecho:
+
+- Deshacer quita un punto a la vez; manteniendo presionado quita varios de a uno,
+  igual que los botones de sumar.
+- El "No" al confirmar mantiene el marcador alcanzado; para corregirlo se usa
+  Deshacer (antes retrocedía un punto solo).
+- Al confirmar el ganador se inicia una partida nueva, conservando el objetivo
+  elegido; todavía no pasa al historial.
+- Se quitó la pantalla "¡Ganó X!" posterior a la confirmación.
+- La línea divisoria central y la del marcador inferior comparten el mismo grosor.
+- La barra de desplazamiento ya no descentra el dibujo (se reserva su espacio).
+- Los símbolos empiezan media fila más abajo, sin pegarse al borde superior.
+- Documento de requisitos actualizado (deshacer y finalización de partidas).
+
+Estado: 41 pruebas en verde; lint, formato y build sin errores.
+
+Commits: 707b7ec
+
+Conceptos y herramientas nuevos:
+
+- scrollbar-gutter: reserva el espacio de la barra de desplazamiento para que el
+  contenido no se corra y quede centrado.
+- Variable CSS (custom property): valor con nombre, como --divider-width, que se
+  reutiliza en varios archivos para mantener un mismo grosor.
+- Bandera de estado: dato simple (declined) que recuerda que se rechazó la
+  confirmación del ganador.
