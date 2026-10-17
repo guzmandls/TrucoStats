@@ -196,3 +196,30 @@ Conceptos y herramientas nuevos:
   posiciones.
 - Encajar en una grilla (snap): calcular la posición como múltiplo de la altura
   del renglón para que quede siempre sobre una línea.
+
+## Etapa 6 — Historial local de partidas
+
+Hecho:
+
+- Al confirmar el ganador, la partida finalizada se guarda en el historial
+  (fecha, objetivo, puntajes y ganador).
+- El historial se guarda en el mismo almacenamiento local (IndexedDB), en un
+  almacén nuevo, sin tocar la partida en curso.
+- Pantalla de historial: se abre con un botón "Historial" en la barra superior;
+  lista las partidas de la más reciente a la más antigua y muestra el ganador.
+- Rechazar la confirmación ("No") no guarda ninguna partida.
+- Pruebas del almacenamiento, del hook y de la pantalla.
+
+Estado: 49 pruebas en verde; lint, formato y build sin errores.
+
+Commits: 7ecb0e9
+
+Conceptos y herramientas nuevos:
+
+- Almacén de objetos (object store): cada "tabla" dentro de IndexedDB.
+- Clave autoincremental (autoIncrement): el navegador le asigna un id único a
+  cada registro guardado.
+- Migración de la base (onupgradeneeded): al subir la versión de la base se
+  crean los almacenes nuevos sin perder los datos anteriores.
+- Diálogo (role="dialog"): ventana que se superpone a la pantalla; se identifica
+  para accesibilidad y pruebas.
