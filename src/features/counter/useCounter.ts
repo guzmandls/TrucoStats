@@ -16,7 +16,6 @@ import {
 import {
   GAME_VERSION,
   loadGame,
-  saveFinishedGame,
   saveGame,
   type PersistedGame,
 } from './gameStorage'
@@ -194,18 +193,8 @@ export function useCounter(defaultTarget: number = DEFAULT_TARGET) {
   }, [])
 
   const confirm = useCallback(() => {
-    const winner = winnerOf(state.counter, state.target, state.firstReached)
-    if (winner) {
-      void saveFinishedGame({
-        playedAt: Date.now(),
-        target: state.target,
-        nos: displayPoints(state.counter, 'nos'),
-        ellos: displayPoints(state.counter, 'ellos'),
-        winner,
-      })
-    }
     dispatch({ type: 'confirm' })
-  }, [state])
+  }, [])
 
   const decline = useCallback(() => {
     dispatch({ type: 'decline' })
