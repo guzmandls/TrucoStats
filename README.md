@@ -8,8 +8,8 @@ PWA para contar puntos de truco uruguayo, guardar partidas y consultar estadíst
 - CSS Modules
 - Vitest + Testing Library
 - Prettier + ESLint
-- PWA / offline con IndexedDB y Service Worker (pendiente)
-- Cloudflare Workers + D1 (pendiente)
+- PWA / offline con IndexedDB y Service Worker
+- Cloudflare Workers (hosting) y D1 (pendiente)
 
 ## Requisitos
 
@@ -25,3 +25,9 @@ PWA para contar puntos de truco uruguayo, guardar partidas y consultar estadíst
 - `npm run format` — formatea con Prettier
 - `npm test` — pruebas en modo watch
 - `npm run test:run` — ejecuta las pruebas una vez
+- `npm run deploy` — compila y publica en Cloudflare
+
+## Despliegue
+
+1. `npx wrangler login` — inicia sesión en Cloudflare (una sola vez).
+2. `npm run deploy` — compila y publica; devuelve la URL pública.
