@@ -20,7 +20,6 @@
   align-items: stretch;
   min-height: 100%;
   width: 100%;
-  padding-top: calc(var(--row-height) / 2);
 }
 
 .column {
@@ -30,6 +29,84 @@
   flex-direction: column;
   align-items: center;
   padding: 0 6px;
+}
+
+/* ---------- Selector de objetivo ---------- */
+
+.objective {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(var(--row-height) * 3);
+  display: flex;
+  pointer-events: none;
+}
+
+.objectiveLeft {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-right: 14px;
+}
+
+.objectiveRight {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+  gap: 10px;
+  padding-left: 14px;
+}
+
+.objectiveLabel {
+  height: var(--row-height);
+  display: flex;
+  align-items: flex-end;
+  padding-bottom: var(--row-gap);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.objectiveValue {
+  height: calc(var(--row-height) * 2);
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  font-size: calc(var(--row-height) * 2.4);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.objectiveSteps {
+  height: calc(var(--row-height) * 2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.objectiveStep {
+  width: 32px;
+  height: 32px;
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.objectiveStep:disabled {
+  opacity: 0.3;
+  cursor: default;
 }
 
 .halfLine {

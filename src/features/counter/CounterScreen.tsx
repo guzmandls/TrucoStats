@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { HoldButton } from '../../components/HoldButton'
 import { Counter } from './Counter'
 import type { Team } from './counterLogic'
-import { MAX_TARGET, MIN_TARGET, TARGET_STEP, useCounter } from './useCounter'
+import { useCounter } from './useCounter'
 import styles from './CounterScreen.module.css'
 
 const TEAM_LABELS: Record<Team, string> = {
@@ -27,13 +27,7 @@ export function CounterScreen() {
 
   return (
     <div className={styles.screen}>
-      <TopBar
-        target={counter.target}
-        started={counter.started}
-        onChange={counter.setTarget}
-        nos={nosPoints}
-        ellos={ellosPoints}
-      />
+      <TopBar nos={nosPoints} ellos={ellosPoints} />
 
       <Counter counter={counter} drawingRef={drawingRef} />
 
@@ -51,14 +45,11 @@ export function CounterScreen() {
 }
 
 interface TopBarProps {
-  target: number
-  started: boolean
-  onChange: (target: number) => void
   nos: number
   ellos: number
 }
 
-function TopBar({ target, started, onChange, nos, ellos }: TopBarProps) {
+function TopBar({ nos, ellos }: TopBarProps) {
   return (
     <header className={styles.topBar}>
       <div className={styles.namesRow}>
@@ -75,33 +66,6 @@ function TopBar({ target, started, onChange, nos, ellos }: TopBarProps) {
           </span>
         </div>
       </div>
-
-      {!started && (
-        <div className={styles.targetRow}>
-          <span className={styles.targetLabel}>Objetivo</span>
-          <div className={styles.targetControls}>
-            <button
-              type="button"
-              className={styles.step}
-              onClick={() => onChange(target - TARGET_STEP)}
-              disabled={target <= MIN_TARGET}
-              aria-label="Bajar objetivo"
-            >
-              −
-            </button>
-            <span className={styles.targetValue}>{target}</span>
-            <button
-              type="button"
-              className={styles.step}
-              onClick={() => onChange(target + TARGET_STEP)}
-              disabled={target >= MAX_TARGET}
-              aria-label="Subir objetivo"
-            >
-              +
-            </button>
-          </div>
-        </div>
-      )}
     </header>
   )
 }

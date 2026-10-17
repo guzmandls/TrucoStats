@@ -115,6 +115,13 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - En el extremo inferior derecho estará el botón Deshacer de Ellos.
 - Los controles inferiores permanecerán fijos y accesibles.
 
+**Alineación con los renglones**
+
+- La zona de dibujo simulará una hoja con renglones horizontales.
+- Los símbolos, los textos y los números se apoyarán sobre un renglón, dejando un pequeño margen visible sin tocar la línea.
+- El puntaje de victoria (objetivo) se mostrará centrado verticalmente sobre los renglones, antes de iniciar la partida.
+- Los botones de incremento y decremento del objetivo serán la excepción: se centrarán dentro de su renglón.
+
 **Desplazamiento del contador**
 
 - La línea divisoria central también funcionará como barra de desplazamiento vertical.

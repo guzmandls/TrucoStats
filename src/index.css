@@ -6,6 +6,7 @@
   --row-height: 40px;
   --symbol-block: calc(var(--row-height) * 3);
   --divider-width: 1px;
+  --row-gap: 6px;
 
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;

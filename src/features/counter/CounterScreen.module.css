@@ -47,51 +47,6 @@
   opacity: 0.7;
 }
 
-.targetRow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-}
-
-.targetLabel {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  opacity: 0.6;
-}
-
-.targetControls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.targetValue {
-  min-width: 40px;
-  text-align: center;
-  font-size: 22px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.step {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--paper);
-  background: transparent;
-  color: var(--paper);
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.step:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
-
 /* ---------- Barra inferior ---------- */
 
 .bottomBar {
@@ -148,7 +103,22 @@
   background: var(--paper);
 }
 
+.pill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--divider-width);
+  transform: translateX(calc(var(--divider-width) / -2));
+  background: var(--line-strong);
+  z-index: 2;
+  pointer-events: none;
+}
+
 .pillButton {
+  position: relative;
+  z-index: 1;
   min-width: 86px;
   height: 64px;
   border: none;
@@ -159,10 +129,6 @@
   cursor: pointer;
   touch-action: none;
   user-select: none;
-}
-
-.pillButton + .pillButton {
-  border-left: var(--divider-width) solid var(--line-strong);
 }
 
 .pillButton:disabled {

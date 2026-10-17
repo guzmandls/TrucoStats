@@ -7,7 +7,7 @@
 
 .block {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
   width: 100%;
   height: var(--symbol-block);
