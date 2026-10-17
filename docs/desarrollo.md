@@ -223,3 +223,34 @@ Conceptos y herramientas nuevos:
   crean los almacenes nuevos sin perder los datos anteriores.
 - Diálogo (role="dialog"): ventana que se superpone a la pantalla; se identifica
   para accesibilidad y pruebas.
+
+Nota: esta etapa se revierte en la Etapa 7, al concluir que un historial basado
+en "Nosotros" y "Ellos" no tiene sentido sin grupos e integrantes.
+
+## Etapa 7 — Corrección: el historial necesita integrantes
+
+Hecho:
+
+- Se quitó el historial local que guardaba las etiquetas "Nosotros" y "Ellos".
+  Esas etiquetas solo identifican cada lado durante la partida en curso y no
+  sirven para ninguna estadística.
+- Se mantiene el resto del contador y su persistencia. Para no romper la base de
+  datos de quienes ya la habían abierto, se subió la versión y se eliminó el
+  almacén viejo de partidas (que ya no se usa).
+- Requisitos actualizados: el historial se consulta entrando al grupo; cada
+  partida se identifica por sus integrantes (por ejemplo, "Juan y Pedro 30 – 21
+  Luis y Ana"); y grupos e integrantes deben implementarse antes que historial y
+  estadísticas.
+- Próximo paso: cuentas, grupos e integrantes.
+
+Estado: 41 pruebas en verde; lint, formato y build sin errores.
+
+Commits: f1d3bb9
+
+Conceptos y herramientas nuevos:
+
+- Eliminar un almacén en una migración (deleteObjectStore): al subir la versión
+  de la base se puede borrar un almacén que quedó en desuso, sin afectar al
+  resto de los datos.
+- Dato derivado vs. dato con significado: "ganó Nosotros" es un dato sin valor
+  fuera de la partida; lo que tiene valor es qué integrantes ganaron y perdieron.

@@ -49,6 +49,7 @@ El objetivo es ofrecer un contador sencillo, rápido y similar al conteo tradici
   - 3 vs. 3.
 - El creador seleccionará a los participantes de cada equipo entre los integrantes del grupo.
 - El creador y anotador deberá integrar el equipo "Nosotros".
+- Las etiquetas "Nosotros" y "Ellos" son provisorias: sirven únicamente para identificar cada lado durante la partida en curso y no tienen ningún significado estadístico.
 - Los puntajes de victoria predeterminados serán:
   - 1 vs. 1: 20 puntos.
   - 2 vs. 2: 30 puntos.
@@ -158,7 +159,7 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 
 ## 5. Historial de partidas
 
-Cada grupo dispondrá de un historial de partidas finalizadas válidas.
+Cada grupo dispondrá de un historial de partidas finalizadas válidas. El historial se consulta entrando al grupo correspondiente desde la pantalla principal, no como una pantalla suelta.
 
 Para cada partida se guardará:
 
@@ -169,6 +170,10 @@ Para cada partida se guardará:
 - Puntuación final de ambos equipos.
 - Equipo ganador.
 - Usuario que creó y finalizó la partida.
+
+Cada partida se identifica por los integrantes de cada equipo (por ejemplo, "Juan y Pedro 30 – 21 Luis y Ana"), nunca por las etiquetas "Nosotros" y "Ellos". Esas etiquetas solo existen mientras la partida está en curso.
+
+El historial y las estadísticas dependen de que existan grupos e integrantes: sin ellos no hay a quién atribuir cada partida. Por eso los grupos y los integrantes deben implementarse antes que el historial y las estadísticas.
 
 Las partidas anuladas estarán excluidas del historial general.
 
