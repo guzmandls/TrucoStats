@@ -109,8 +109,12 @@ Hecho:
 - Verificado localmente que el Worker sirve la app, el manifest y el service
   worker.
 - Script npm run deploy para compilar y publicar de una vez.
+- Se registró un subdominio workers.dev (paso único por cuenta).
+- La app quedó publicada en https://trucostats.guzmandls.workers.dev
+- Se fijó el account_id en wrangler.jsonc para evitar la detección automática
+  de la cuenta, que falló la primera vez.
 
-Commits: 9d81a9b
+Commits: 9d81a9b, 2accf5c
 
 Conceptos y herramientas nuevos:
 
@@ -124,4 +128,7 @@ Conceptos y herramientas nuevos:
 - SPA y fallback: en una app de una sola página, las rutas desconocidas
   devuelven la misma página para que la app maneje la navegación.
 - wrangler login / deploy: iniciar sesión en Cloudflare y publicar la app.
+- Cuenta y account_id: identificador de la cuenta de Cloudflare donde se publica.
+- Subdominio workers.dev: dominio propio gratuito donde quedan las apps
+  publicadas; se registra una sola vez por cuenta.
 - URL de producción: dirección https donde queda publicada la app.

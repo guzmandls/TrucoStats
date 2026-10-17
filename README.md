@@ -29,5 +29,7 @@ PWA para contar puntos de truco uruguayo, guardar partidas y consultar estadíst
 
 ## Despliegue
 
+Sitio publicado: https://trucostats.guzmandls.workers.dev
+
 1. `npx wrangler login` — inicia sesión en Cloudflare (una sola vez).
 2. `npm run deploy` — compila y publica; devuelve la URL pública.
