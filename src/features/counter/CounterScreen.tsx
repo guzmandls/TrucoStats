@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { HoldButton } from '../../components/HoldButton'
 import { Counter } from './Counter'
+import { HistoryScreen } from './HistoryScreen'
 import type { Team } from './counterLogic'
 import { useCounter } from './useCounter'
 import styles from './CounterScreen.module.css'
@@ -13,6 +14,7 @@ const TEAM_LABELS: Record<Team, string> = {
 export function CounterScreen() {
   const counter = useCounter()
   const drawingRef = useRef<HTMLDivElement>(null)
+  const [showHistory, setShowHistory] = useState(false)
 
   const nosPoints = counter.points('nos')
   const ellosPoints = counter.points('ellos')
@@ -27,7 +29,11 @@ export function CounterScreen() {
 
   return (
     <div className={styles.screen}>
-      <TopBar nos={nosPoints} ellos={ellosPoints} />
+      <TopBar
+        nos={nosPoints}
+        ellos={ellosPoints}
+        onOpenHistory={() => setShowHistory(true)}
+      />
 
       <Counter counter={counter} drawingRef={drawingRef} />
 
@@ -40,6 +46,8 @@ export function CounterScreen() {
       )}
 
       <BottomBar counter={counter} locked={counter.awaitingConfirmation} />
+
+      {showHistory && <HistoryScreen onClose={() => setShowHistory(false)} />}
     </div>
   )
 }
@@ -47,11 +55,19 @@ export function CounterScreen() {
 interface TopBarProps {
   nos: number
   ellos: number
+  onOpenHistory: () => void
 }
 
-function TopBar({ nos, ellos }: TopBarProps) {
+function TopBar({ nos, ellos, onOpenHistory }: TopBarProps) {
   return (
     <header className={styles.topBar}>
+      <button
+        type="button"
+        className={styles.historyButton}
+        onClick={onOpenHistory}
+      >
+        Historial
+      </button>
       <div className={styles.namesRow}>
         <div className={styles.teamHead}>
           <h2 className={styles.name}>Nosotros</h2>

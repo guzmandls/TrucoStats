@@ -91,4 +91,16 @@ describe('CounterScreen', () => {
       screen.getByRole('button', { name: /subir objetivo/i }),
     ).toBeInTheDocument()
   })
+
+  it('abre y cierra el historial', () => {
+    render(<CounterScreen />)
+    fireEvent.click(screen.getByRole('button', { name: /historial/i }))
+    expect(
+      screen.getByRole('dialog', { name: /historial/i }),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /volver/i }))
+    expect(
+      screen.queryByRole('dialog', { name: /historial/i }),
+    ).not.toBeInTheDocument()
+  })
 })
