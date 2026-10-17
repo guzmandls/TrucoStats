@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "trucostats",
+  "account_id": "05bb47daad6508fed7a3a1d1e08f6759",
   "compatibility_date": "2026-10-17",
   "assets": {
     "directory": "./dist",
