@@ -179,11 +179,16 @@ Hecho:
 - Se corrigió un hueco de la línea divisoria central en la parte de arriba.
 - La línea del marcador inferior (N | E) ahora comparte el grosor de la
   divisoria central.
+- El número del objetivo y los botones quedaron un renglón más arriba, y la
+  etiqueta "Objetivo:" más grande, con su parte inferior apoyada sobre el
+  renglón.
+- La línea del medio de los palotes bajó un renglón, para que el siguiente
+  símbolo quede a un renglón de distancia.
 - Documento de requisitos actualizado (alineación con los renglones).
 
 Estado: 41 pruebas en verde; lint, formato y build sin errores.
 
-Commits: b093a35
+Commits: b093a35, dd02521, 1c0d8d1
 
 Conceptos y herramientas nuevos:
 
