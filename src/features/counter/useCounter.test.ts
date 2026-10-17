@@ -20,7 +20,7 @@ describe('useCounter', () => {
     const { result } = renderHook(() => useCounter())
     expect(result.current.target).toBe(30)
     expect(result.current.started).toBe(false)
-    expect(result.current.finished).toBe(false)
+    expect(result.current.winner).toBeNull()
   })
 
   it('ajusta el objetivo a múltiplos de 5 dentro de 10..100', () => {
@@ -47,30 +47,48 @@ describe('useCounter', () => {
     expect(result.current.winner).toBe('ellos')
   })
 
-  it('confirmar finaliza y bloquea más cambios', () => {
+  it('confirmar inicia una partida nueva', () => {
     const { result } = renderHook(() => useCounter(10))
     addPoints(result, 'nos', 10)
     act(() => result.current.confirm())
-    expect(result.current.finished).toBe(true)
-    addPoints(result, 'ellos', 3)
+    expect(result.current.points('nos')).toBe(0)
     expect(result.current.points('ellos')).toBe(0)
+    expect(result.current.started).toBe(false)
+    expect(result.current.winner).toBeNull()
+  })
+
+  it('confirmar conserva el objetivo elegido', () => {
+    const { result } = renderHook(() => useCounter())
+    act(() => result.current.setTarget(50))
+    addPoints(result, 'nos', 50)
+    act(() => result.current.confirm())
+    expect(result.current.target).toBe(50)
   })
 
   it('no confirma si nadie alcanzó el objetivo', () => {
     const { result } = renderHook(() => useCounter(10))
     addPoints(result, 'nos', 3)
     act(() => result.current.confirm())
-    expect(result.current.finished).toBe(false)
+    expect(result.current.points('nos')).toBe(3)
+    expect(result.current.winner).toBeNull()
   })
 
-  it('reiniciar vuelve al estado inicial', () => {
+  it('rechazar mantiene el puntaje y oculta la confirmación', () => {
     const { result } = renderHook(() => useCounter(10))
     addPoints(result, 'nos', 10)
-    act(() => result.current.confirm())
-    act(() => result.current.reset())
-    expect(result.current.points('nos')).toBe(0)
-    expect(result.current.started).toBe(false)
-    expect(result.current.finished).toBe(false)
-    expect(result.current.target).toBe(30)
+    expect(result.current.awaitingConfirmation).toBe(true)
+    act(() => result.current.decline())
+    expect(result.current.points('nos')).toBe(10)
+    expect(result.current.awaitingConfirmation).toBe(false)
+  })
+
+  it('tras rechazar, deshacer y volver a llegar reactiva la confirmación', () => {
+    const { result } = renderHook(() => useCounter(10))
+    addPoints(result, 'nos', 10)
+    act(() => result.current.decline())
+    act(() => result.current.undoTeam('nos'))
+    expect(result.current.points('nos')).toBe(9)
+    addPoints(result, 'nos', 1)
+    expect(result.current.awaitingConfirmation).toBe(true)
   })
 })

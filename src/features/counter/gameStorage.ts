@@ -11,7 +11,7 @@ export interface PersistedGame {
   version: number
   target: number
   firstReached: Team | null
-  finished: boolean
+  declined?: boolean
   history: Record<Team, number[]>
 }
 
@@ -49,7 +49,6 @@ function isPersistedGame(value: unknown): value is PersistedGame {
   return (
     game.version === GAME_VERSION &&
     typeof game.target === 'number' &&
-    typeof game.finished === 'boolean' &&
     (game.firstReached === null || isTeam(game.firstReached)) &&
     typeof game.history === 'object' &&
     game.history !== null

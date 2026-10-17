@@ -17,7 +17,6 @@ export function CounterScreen() {
   const nosPoints = counter.points('nos')
   const ellosPoints = counter.points('ellos')
   const winner = counter.winner
-  const awaitingConfirmation = winner !== null && !counter.finished
 
   useEffect(() => {
     const element = drawingRef.current
@@ -38,28 +37,15 @@ export function CounterScreen() {
 
       <Counter counter={counter} drawingRef={drawingRef} />
 
-      {awaitingConfirmation && (
+      {counter.awaitingConfirmation && winner && (
         <VictoryBanner
           label={TEAM_LABELS[winner]}
           onConfirm={counter.confirm}
-          onDecline={() => counter.undoTeam(winner)}
+          onDecline={counter.decline}
         />
       )}
 
-      <BottomBar
-        counter={counter}
-        disabled={counter.finished}
-        locked={awaitingConfirmation}
-      />
-
-      {counter.finished && winner && (
-        <FinishedOverlay
-          label={TEAM_LABELS[winner]}
-          nos={nosPoints}
-          ellos={ellosPoints}
-          onNewGame={counter.reset}
-        />
-      )}
+      <BottomBar counter={counter} locked={counter.awaitingConfirmation} />
     </div>
   )
 }
@@ -122,29 +108,28 @@ function TopBar({ target, started, onChange, nos, ellos }: TopBarProps) {
 
 interface BottomBarProps {
   counter: ReturnType<typeof useCounter>
-  disabled: boolean
   locked: boolean
 }
 
-function BottomBar({ counter, disabled, locked }: BottomBarProps) {
+function BottomBar({ counter, locked }: BottomBarProps) {
   return (
     <footer className={styles.bottomBar}>
-      <button
-        type="button"
+      <HoldButton
         className={styles.undo}
-        onClick={() => counter.undoTeam('nos')}
-        disabled={!counter.canUndo('nos') || disabled}
-        aria-label="Deshacer Nosotros"
+        ariaLabel="Deshacer Nosotros"
+        onStart={() => counter.undoTeam('nos')}
+        onEnd={() => undefined}
+        disabled={!counter.canUndo('nos')}
       >
         ↶
-      </button>
+      </HoldButton>
 
       <div className={styles.pill}>
         <HoldButton
           className={styles.pillButton}
           onStart={() => counter.startIncrement('nos')}
           onEnd={counter.finishIncrement}
-          disabled={counter.hasReached('nos') || disabled || locked}
+          disabled={counter.hasReached('nos') || locked}
         >
           N
         </HoldButton>
@@ -152,21 +137,21 @@ function BottomBar({ counter, disabled, locked }: BottomBarProps) {
           className={styles.pillButton}
           onStart={() => counter.startIncrement('ellos')}
           onEnd={counter.finishIncrement}
-          disabled={counter.hasReached('ellos') || disabled || locked}
+          disabled={counter.hasReached('ellos') || locked}
         >
           E
         </HoldButton>
       </div>
 
-      <button
-        type="button"
+      <HoldButton
         className={styles.undo}
-        onClick={() => counter.undoTeam('ellos')}
-        disabled={!counter.canUndo('ellos') || disabled}
-        aria-label="Deshacer Ellos"
+        ariaLabel="Deshacer Ellos"
+        onStart={() => counter.undoTeam('ellos')}
+        onEnd={() => undefined}
+        disabled={!counter.canUndo('ellos')}
       >
         ↶
-      </button>
+      </HoldButton>
     </footer>
   )
 }
@@ -190,34 +175,6 @@ function VictoryBanner({ label, onConfirm, onDecline }: VictoryBannerProps) {
         </button>
         <button type="button" className={styles.decline} onClick={onDecline}>
           No
-        </button>
-      </div>
-    </div>
-  )
-}
-
-interface FinishedOverlayProps {
-  label: string
-  nos: number
-  ellos: number
-  onNewGame: () => void
-}
-
-function FinishedOverlay({
-  label,
-  nos,
-  ellos,
-  onNewGame,
-}: FinishedOverlayProps) {
-  return (
-    <div className={styles.overlay} role="dialog" aria-modal="true">
-      <div className={styles.card}>
-        <h2 className={styles.cardTitle}>¡Ganó {label}!</h2>
-        <p className={styles.cardScore}>
-          Nosotros {nos} — {ellos} Ellos
-        </p>
-        <button type="button" className={styles.newGame} onClick={onNewGame}>
-          Nueva partida
         </button>
       </div>
     </div>

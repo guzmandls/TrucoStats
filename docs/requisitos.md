@@ -98,9 +98,9 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 **Corrección de puntos**
 
 - Cada equipo tendrá su propio botón Deshacer.
-- Deshacer revertirá la última acción completa realizada sobre ese equipo.
-- Si una acción dibujó varios segmentos, se eliminarán todos los segmentos agregados por esa acción.
-- Si una pulsación prolongada agregó varios puntos, se revertirá toda esa pulsación.
+- Un toque de Deshacer quitará un punto del equipo correspondiente.
+- Mantener presionado Deshacer quitará puntos de a uno de forma continua.
+- No se podrá deshacer por debajo de cero.
 
 ### 4.4. Distribución visual del contador
 
@@ -130,6 +130,7 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - Alcanzar el puntaje de victoria no finalizará automáticamente la partida.
 - Al alcanzar ese puntaje aparecerá la opción de confirmar la finalización.
 - El anotador podrá corregir el marcador antes de confirmar.
+- Rechazar la confirmación ("No") mantendrá el marcador alcanzado; para corregirlo se usará Deshacer.
 - Solamente el anotador podrá confirmar la finalización.
 - Una vez confirmada, la partida pasará al historial de partidas jugadas.
 - El resultado se incorporará a las estadísticas.

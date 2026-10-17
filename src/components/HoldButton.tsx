@@ -11,6 +11,7 @@ interface HoldButtonProps {
   onEnd: () => void
   disabled?: boolean
   className?: string
+  ariaLabel?: string
   children: ReactNode
 }
 
@@ -24,6 +25,7 @@ export function HoldButton({
   onEnd,
   disabled = false,
   className,
+  ariaLabel,
   children,
 }: HoldButtonProps) {
   const holdTimeout = useRef<number | null>(null)
@@ -98,6 +100,7 @@ export function HoldButton({
       type="button"
       className={className}
       disabled={disabled}
+      aria-label={ariaLabel}
       onPointerDown={handlePointerDown}
       onPointerUp={stop}
       onPointerLeave={stop}

@@ -69,7 +69,7 @@ describe('contador - sumar puntos', () => {
 })
 
 describe('contador - deshacer', () => {
-  it('revierte la última acción completa', () => {
+  it('deshace un punto a la vez', () => {
     let state = createInitialState()
     state = commit(increment(state, 'nos', 30))
     state = increment(state, 'nos', 30)
@@ -79,7 +79,27 @@ describe('contador - deshacer', () => {
     expect(pointsOf(state, 'nos')).toBe(4)
 
     state = undo(state, 'nos')
-    expect(pointsOf(state, 'nos')).toBe(1)
+    expect(pointsOf(state, 'nos')).toBe(3)
+
+    state = undo(state, 'nos')
+    expect(pointsOf(state, 'nos')).toBe(2)
+  })
+
+  it('descuenta de a un punto una pulsación prolongada', () => {
+    let state = createInitialState()
+    state = increment(state, 'nos', 30)
+    state = increment(state, 'nos', 30)
+    state = increment(state, 'nos', 30)
+    state = commit(state)
+    expect(state.history.nos).toEqual([3])
+
+    state = undo(state, 'nos')
+    expect(state.history.nos).toEqual([2])
+
+    state = undo(state, 'nos')
+    state = undo(state, 'nos')
+    expect(state.history.nos).toEqual([])
+    expect(canUndo(state, 'nos')).toBe(false)
   })
 
   it('no hace nada si no hay acciones', () => {

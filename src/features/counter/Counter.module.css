@@ -2,6 +2,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable both-edges;
   background-color: var(--paper);
   background-image: repeating-linear-gradient(
     to bottom,
@@ -19,6 +20,7 @@
   align-items: stretch;
   min-height: 100%;
   width: 100%;
+  padding-top: calc(var(--row-height) / 2);
 }
 
 .column {
@@ -34,6 +36,6 @@
   position: absolute;
   left: 0;
   right: 0;
-  height: 1px;
+  height: var(--divider-width);
   background: var(--line-strong);
 }

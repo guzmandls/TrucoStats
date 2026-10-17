@@ -8,7 +8,7 @@ const emptyGame = {
   version: 1,
   target: 30,
   firstReached: null,
-  finished: false,
+  declined: false,
   history: { nos: [], ellos: [] },
 }
 
@@ -60,6 +60,21 @@ describe('useCounter - persistencia', () => {
     await waitFor(async () => {
       const game = await loadGame()
       expect(game?.history.nos).toEqual([1])
+    })
+  })
+
+  it('conserva el rechazo de la confirmación al recargar', async () => {
+    const { result } = renderHook(() => useCounter(10))
+    act(() => {
+      for (let i = 0; i < 10; i += 1) {
+        result.current.startIncrement('nos')
+      }
+      result.current.finishIncrement()
+    })
+    act(() => result.current.decline())
+
+    await waitFor(async () => {
+      expect((await loadGame())?.declined).toBe(true)
     })
   })
 })

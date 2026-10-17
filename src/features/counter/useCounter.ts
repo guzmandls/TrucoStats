@@ -29,7 +29,7 @@ interface GameState {
   counter: CounterState
   target: number
   firstReached: Team | null
-  finished: boolean
+  declined: boolean
 }
 
 type GameAction =
@@ -38,7 +38,7 @@ type GameAction =
   | { type: 'undo'; team: Team }
   | { type: 'setTarget'; target: number }
   | { type: 'confirm' }
-  | { type: 'reset' }
+  | { type: 'decline' }
   | { type: 'hydrate'; state: GameState }
 
 function clampTarget(target: number): number {
@@ -51,16 +51,13 @@ function withFirstReached(state: GameState, counter: CounterState): GameState {
     ...state,
     counter,
     firstReached: updateFirstReached(counter, state.target, state.firstReached),
+    declined: false,
   }
 }
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   if (action.type === 'hydrate') {
     return action.state
-  }
-
-  if (state.finished && action.type !== 'reset') {
-    return state
   }
 
   switch (action.type) {
@@ -82,9 +79,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (!winnerOf(state.counter, state.target, state.firstReached)) {
         return state
       }
-      return { ...state, finished: true }
-    case 'reset':
-      return createGameState(DEFAULT_TARGET)
+      return createGameState(state.target)
+    case 'decline':
+      if (!winnerOf(state.counter, state.target, state.firstReached)) {
+        return state
+      }
+      return { ...state, declined: true }
     default:
       return state
   }
@@ -95,7 +95,7 @@ function createGameState(target: number): GameState {
     counter: createInitialState(),
     target: clampTarget(target),
     firstReached: null,
-    finished: false,
+    declined: false,
   }
 }
 
@@ -110,7 +110,7 @@ function fromPersisted(game: PersistedGame): GameState {
     },
     target: clampTarget(game.target),
     firstReached: game.firstReached,
-    finished: game.finished,
+    declined: game.declined ?? false,
   }
 }
 
@@ -148,10 +148,10 @@ export function useCounter(defaultTarget: number = DEFAULT_TARGET) {
       version: GAME_VERSION,
       target: state.target,
       firstReached: state.firstReached,
-      finished: state.finished,
+      declined: state.declined,
       history: state.counter.history,
     }),
-    [state.target, state.firstReached, state.finished, state.counter.history],
+    [state.target, state.firstReached, state.declined, state.counter.history],
   )
 
   useEffect(() => {
@@ -196,15 +196,17 @@ export function useCounter(defaultTarget: number = DEFAULT_TARGET) {
     dispatch({ type: 'confirm' })
   }, [])
 
-  const reset = useCallback(() => {
-    dispatch({ type: 'reset' })
+  const decline = useCallback(() => {
+    dispatch({ type: 'decline' })
   }, [])
+
+  const winner = winnerOf(state.counter, state.target, state.firstReached)
 
   return {
     target: state.target,
     started: hasStarted(state.counter),
-    finished: state.finished,
-    winner: winnerOf(state.counter, state.target, state.firstReached),
+    winner,
+    awaitingConfirmation: winner !== null && !state.declined,
     points,
     canUndo: canUndoTeam,
     hasReached,
@@ -213,6 +215,6 @@ export function useCounter(defaultTarget: number = DEFAULT_TARGET) {
     undoTeam,
     setTarget,
     confirm,
-    reset,
+    decline,
   }
 }

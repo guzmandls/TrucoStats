@@ -77,8 +77,13 @@ export function undo(state: CounterState, team: Team): CounterState {
   if (actions.length === 0) {
     return committed
   }
+  const last = actions[actions.length - 1]
   const history = { ...committed.history }
-  history[team] = actions.slice(0, -1)
+  if (last > 1) {
+    history[team] = [...actions.slice(0, -1), last - 1]
+  } else {
+    history[team] = actions.slice(0, -1)
+  }
   return { history, pending: null }
 }
 

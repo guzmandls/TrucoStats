@@ -25,11 +25,11 @@ describe('CounterScreen', () => {
     expect(screen.getByTestId('score-ellos')).toHaveTextContent('2')
   })
 
-  it('deshace la última acción del equipo', () => {
+  it('deshace un punto del equipo', () => {
     render(<CounterScreen />)
     pressButton('N')
     pressButton('N')
-    fireEvent.click(screen.getByRole('button', { name: /deshacer nosotros/i }))
+    pressButton('Deshacer Nosotros')
     expect(screen.getByTestId('score-nos')).toHaveTextContent('1')
   })
 
@@ -69,27 +69,26 @@ describe('CounterScreen', () => {
     expect(screen.getByTestId('score-ellos')).toHaveTextContent('0')
   })
 
-  it('el botón No deshace el último punto y quita el aviso', () => {
+  it('el botón No mantiene el puntaje y quita el aviso', () => {
     render(<CounterScreen />)
     for (let i = 0; i < 30; i += 1) {
       pressButton('N')
     }
     fireEvent.click(screen.getByRole('button', { name: /^no$/i }))
-    expect(screen.getByTestId('score-nos')).toHaveTextContent('29')
+    expect(screen.getByTestId('score-nos')).toHaveTextContent('30')
     expect(screen.queryByText(/el equipo ganador es/i)).not.toBeInTheDocument()
   })
 
-  it('finaliza la partida y muestra al ganador', () => {
+  it('confirmar inicia una partida nueva', () => {
     render(<CounterScreen />)
     for (let i = 0; i < 30; i += 1) {
       pressButton('N')
     }
     fireEvent.click(screen.getByRole('button', { name: /^sí$/i }))
+    expect(screen.getByTestId('score-nos')).toHaveTextContent('0')
+    expect(screen.getByTestId('score-ellos')).toHaveTextContent('0')
     expect(
-      screen.getByRole('heading', { name: /ganó nosotros/i }),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: /nueva partida/i }),
+      screen.getByRole('button', { name: /subir objetivo/i }),
     ).toBeInTheDocument()
   })
 })

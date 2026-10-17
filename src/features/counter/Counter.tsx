@@ -34,7 +34,9 @@ export function Counter({ counter, drawingRef }: CounterProps) {
         {halfway && (
           <div
             className={styles.halfLine}
-            style={{ top: `calc(var(--symbol-block) * ${halfSymbols})` }}
+            style={{
+              top: `calc(var(--row-height) / 2 + var(--symbol-block) * ${halfSymbols})`,
+            }}
           />
         )}
       </div>
