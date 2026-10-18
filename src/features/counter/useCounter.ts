@@ -19,11 +19,27 @@ import {
   saveGame,
   type PersistedGame,
 } from './gameStorage'
+import { saveMatch } from '../matches/matchesStorage'
+import type { Match, MatchType, Modality, Participant } from '../matches/types'
 
 export const DEFAULT_TARGET = 30
 export const MIN_TARGET = 10
 export const MAX_TARGET = 100
 export const TARGET_STEP = 5
+
+export interface GameContext {
+  type: MatchType
+  groupId: string | null
+  teams: Record<Team, Participant[]>
+  modality: Modality | null
+}
+
+const defaultContext: GameContext = {
+  type: 'quick',
+  groupId: null,
+  teams: { nos: [], ellos: [] },
+  modality: null,
+}
 
 interface GameState {
   counter: CounterState
@@ -116,7 +132,10 @@ function fromPersisted(game: PersistedGame): GameState {
 
 export type CounterController = ReturnType<typeof useCounter>
 
-export function useCounter(defaultTarget: number = DEFAULT_TARGET) {
+export function useCounter(
+  defaultTarget: number = DEFAULT_TARGET,
+  context: GameContext = defaultContext,
+) {
   const [state, dispatch] = useReducer(gameReducer, undefined, () =>
     createGameState(defaultTarget),
   )
@@ -192,9 +211,31 @@ export function useCounter(defaultTarget: number = DEFAULT_TARGET) {
     dispatch({ type: 'setTarget', target })
   }, [])
 
-  const confirm = useCallback(() => {
+  const confirm = useCallback(async () => {
+    const winnerTeam = winnerOf(state.counter, state.target, state.firstReached)
+    if (winnerTeam) {
+      const pointsNos = points('nos')
+      const pointsEllos = points('ellos')
+      const match: Match = {
+        id:
+          typeof crypto !== 'undefined' &&
+          typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : Math.random().toString(36).slice(2),
+        type: context.type,
+        groupId: context.groupId,
+        modality: context.modality,
+        playedAt: new Date().toISOString(),
+        durationSeconds: null,
+        target: state.target,
+        winner: winnerTeam,
+        teams: context.teams,
+        scores: { nos: pointsNos, ellos: pointsEllos },
+      }
+      await saveMatch(match)
+    }
     dispatch({ type: 'confirm' })
-  }, [])
+  }, [context, points, state.counter, state.firstReached, state.target])
 
   const decline = useCallback(() => {
     dispatch({ type: 'decline' })
