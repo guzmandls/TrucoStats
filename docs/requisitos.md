@@ -23,6 +23,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Podrá consultar sus estadísticas individuales globales, sumando las partidas de los integrantes a los que está vinculado, en todos sus grupos.
 - El perfil personal será visible para los integrantes de los grupos en los que participa.
 - El sistema de registro y recuperación de cuentas está pendiente de definición.
+- Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
 ### 3.2. Integrantes
 
@@ -55,7 +56,12 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 
 ## 4. Gestión de partidas
 
-### 4.1. Creación
+Existen dos tipos de partida:
+
+- **Partida rápida**: se inicia desde la pantalla principal, sin elegir integrantes ni modalidad. Enfrenta "Nosotros" (el usuario) contra "Ellos". Cuenta solo para las estadísticas personales del usuario.
+- **Partida de grupo**: se inicia dentro de un grupo, eligiendo a los integrantes de cada equipo. Cuenta para el historial y las estadísticas del grupo.
+
+### 4.1. Creación de partida de grupo
 
 - Cualquier integrante podrá iniciar una partida dentro de su grupo.
 - Se admitirán las siguientes modalidades:
@@ -64,7 +70,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
   - 3 vs. 3.
 - El creador seleccionará a los participantes de cada equipo entre los integrantes del grupo.
 - El creador y anotador deberá integrar el equipo "Nosotros".
-- Las etiquetas "Nosotros" y "Ellos" son provisorias: sirven únicamente para identificar cada lado durante la partida en curso y no tienen ningún significado estadístico.
+- Las etiquetas "Nosotros" y "Ellos" son provisorias: sirven únicamente para identificar cada lado durante la partida en curso. La identidad de cada jugador son los integrantes; las etiquetas no tienen significado estadístico.
 - Los puntajes de victoria predeterminados serán:
   - 1 vs. 1: 20 puntos.
   - 2 vs. 2: 30 puntos.
@@ -184,24 +190,38 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - La duración se guarda junto con el resultado al finalizar la partida.
 - La duración se usa en las estadísticas (promedios, partidas más largas y más cortas).
 
+### 4.8. Partida rápida
+
+- Se inicia desde la pantalla principal, sin elegir integrantes.
+- No se elige modalidad; internamente se comporta como 1 vs. 1.
+- Enfrenta "Nosotros" (el usuario) contra "Ellos".
+- Gana el usuario si gana "Nosotros"; pierde si gana "Ellos".
+- Tiene timer y pausa, igual que la partida de grupo.
+- El puntaje de victoria es configurable, con un valor por defecto.
+- Se guarda en el historial personal de partidas rápidas.
+- No genera estadísticas de grupos, ni de rivales, ni de compañeros.
+
 ## 5. Historial de partidas
 
 Cada grupo dispondrá de un historial de partidas finalizadas válidas. El historial se consulta entrando al grupo correspondiente desde la pantalla principal, no como una pantalla suelta.
 
+Además, el usuario tendrá un historial personal de partidas rápidas, separado del de cada grupo.
+
 Para cada partida se guardará:
 
 - Fecha de la partida.
-- Grupo al que pertenece.
-- Modalidad y puntaje de victoria.
+- Tipo de partida (rápida o de grupo).
+- Grupo al que pertenece (solo en partidas de grupo).
+- Modalidad y puntaje de victoria (la modalidad solo en partidas de grupo).
 - Duración de la partida.
 - Participantes de cada equipo.
 - Puntuación final de ambos equipos.
 - Equipo ganador.
 - Usuario que creó y finalizó la partida.
 
-Cada partida se identifica por los integrantes de cada equipo (por ejemplo, "Juan y Pedro 30 – 21 Luis y Ana"), nunca por las etiquetas "Nosotros" y "Ellos". Esas etiquetas solo existen mientras la partida está en curso.
+Cada partida de grupo se identifica por los integrantes de cada equipo (por ejemplo, "Juan y Pedro 30 – 21 Luis y Ana"), nunca por las etiquetas "Nosotros" y "Ellos". Las partidas rápidas se identifican como "Partida rápida".
 
-El historial y las estadísticas dependen de que existan grupos e integrantes: sin ellos no hay a quién atribuir cada partida. Por eso los grupos y los integrantes deben implementarse antes que el historial y las estadísticas.
+El historial y las estadísticas de grupo dependen de que existan grupos e integrantes: sin ellos no hay a quién atribuir cada partida de grupo. Por eso los grupos y los integrantes deben implementarse antes que el historial y las estadísticas de grupo.
 
 Las partidas anuladas estarán excluidas del historial general.
 
@@ -212,6 +232,8 @@ El administrador dispondrá de un historial independiente de partidas anuladas.
 Las estadísticas se calcularán a partir de las partidas válidas, excluyendo las anuladas. Cada partida guarda su duración, que se usa en varios cálculos.
 
 Dentro de cada grupo habrá dos apartados (estadísticas grupales y estadísticas individuales) y una tabla de enfrentamientos. Los integrantes con cuenta vinculada tendrán además un perfil personal.
+
+El usuario tendrá estadísticas personales que combinan partidas rápidas y partidas de grupo, con un desglose entre ambas.
 
 ### 6.1. Estadísticas grupales
 
@@ -226,7 +248,7 @@ Resumen del grupo, visible para todos sus integrantes.
 - Integrante con peor porcentaje de victorias.
 - Integrante con más partidas jugadas.
 - Mejor pareja (los dos integrantes con mejor porcentaje de victorias juntos).
-- Cantidad de partidas por modalidad.
+- Cantidad de partidas por modalidad (solo partidas de grupo).
 
 ### 6.2. Estadísticas individuales del grupo
 
@@ -251,13 +273,15 @@ Tabla donde se consulta, para cada integrante contra cada uno del resto del grup
 
 ### 6.4. Perfil personal
 
-Los integrantes con cuenta vinculada tendrán un perfil con sus estadísticas personales totales, sumando todos los grupos en los que participan.
+Los usuarios tendrán un perfil con sus estadísticas personales: sus partidas rápidas más las de los integrantes a los que están vinculados, en todos sus grupos.
 
 - Cantidad total de partidas.
 - Victorias y derrotas.
 - Porcentaje de victorias.
 - Duración promedio.
 - Cantidad de grupos en los que participa.
+- Desglose de partidas: totales, rápidas y de grupo.
+- Partidas rápidas: cantidad, porcentaje de victorias y duración promedio.
 
 El perfil personal será visible para los integrantes de los grupos en los que participa.
 
@@ -267,6 +291,8 @@ El perfil personal será visible para los integrantes de los grupos en los que p
 - El porcentaje de victorias se calcula sobre las partidas jugadas.
 - Las comparaciones de "más/menos" y "mejor/peor" exigirán un mínimo de 3 partidas jugadas, para no basarse en porcentajes engañosos.
 - "Mejor compañero" y "peor compañero" solo aplican a partidas con equipos de más de un integrante (2 vs. 2 y 3 vs. 3).
+- En las partidas rápidas se cuenta una victoria si gana "Nosotros" y una derrota si gana "Ellos".
+- Las partidas rápidas no generan estadísticas de rivales ni de compañeros.
 - Los integrantes sin cuenta vinculada solo tienen estadísticas del grupo, no perfil personal.
 - Las partidas anuladas quedarán excluidas de todos los cálculos estadísticos.
 
@@ -321,6 +347,7 @@ Antes de comenzar el desarrollo deberán definirse:
 - Gestión de invitaciones y enlaces para unirse a grupos.
 - Administración de integrantes que abandonan un grupo.
 - Procedimiento para cambiar o transferir el administrador de un grupo.
+- Puntaje de victoria por defecto de la partida rápida.
 - Diseño visual definitivo de las pantallas.
 - Comportamiento del reconocimiento de gestos ante trazos ambiguos o incorrectos.
 - Reglas de sincronización y resolución de conflictos entre dispositivos.
