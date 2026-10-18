@@ -1,16 +1,14 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { HomeScreen } from './features/groups/HomeScreen'
 import { CounterScreen } from './features/counter/CounterScreen'
-
-function Home() {
-  return <CounterScreen />
-}
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="*" element={<Home />} />
+        <Route path="/" element={<HomeScreen />} />
+        <Route path="/partida" element={<CounterScreen />} />
+        <Route path="*" element={<HomeScreen />} />
       </Routes>
     </BrowserRouter>
   )
