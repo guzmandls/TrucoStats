@@ -1,9 +1,6 @@
+import { GAME_STORE, put, read, remove } from '../../lib/db'
 import type { Team } from './counterLogic'
 
-const DB_NAME = 'trucostats'
-const DB_VERSION = 3
-const STORE_NAME = 'game'
-const LEGACY_FINISHED_STORE = 'finishedGames'
 const GAME_KEY = 'current'
 
 export const GAME_VERSION = 1
@@ -14,31 +11,6 @@ export interface PersistedGame {
   firstReached: Team | null
   declined?: boolean
   history: Record<Team, number[]>
-}
-
-let dbPromise: Promise<IDBDatabase | null> | null = null
-
-function openDb(): Promise<IDBDatabase | null> {
-  if (typeof indexedDB === 'undefined') {
-    return Promise.resolve(null)
-  }
-  if (!dbPromise) {
-    dbPromise = new Promise((resolve) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION)
-      request.onupgradeneeded = () => {
-        const db = request.result
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME)
-        }
-        if (db.objectStoreNames.contains(LEGACY_FINISHED_STORE)) {
-          db.deleteObjectStore(LEGACY_FINISHED_STORE)
-        }
-      }
-      request.onsuccess = () => resolve(request.result)
-      request.onerror = () => resolve(null)
-    })
-  }
-  return dbPromise
 }
 
 function isTeam(value: unknown): value is Team {
@@ -60,47 +32,14 @@ function isPersistedGame(value: unknown): value is PersistedGame {
 }
 
 export async function loadGame(): Promise<PersistedGame | null> {
-  const db = await openDb()
-  if (!db) {
-    return null
-  }
-  return new Promise((resolve) => {
-    const request = db
-      .transaction(STORE_NAME, 'readonly')
-      .objectStore(STORE_NAME)
-      .get(GAME_KEY)
-    request.onsuccess = () => {
-      const value = request.result
-      resolve(isPersistedGame(value) ? value : null)
-    }
-    request.onerror = () => resolve(null)
-  })
+  const value = await read<unknown>(GAME_STORE, GAME_KEY)
+  return isPersistedGame(value) ? value : null
 }
 
-export async function saveGame(game: PersistedGame): Promise<void> {
-  const db = await openDb()
-  if (!db) {
-    return
-  }
-  return new Promise((resolve) => {
-    const transaction = db.transaction(STORE_NAME, 'readwrite')
-    transaction.objectStore(STORE_NAME).put(game, GAME_KEY)
-    transaction.oncomplete = () => resolve()
-    transaction.onerror = () => resolve()
-    transaction.onabort = () => resolve()
-  })
+export function saveGame(game: PersistedGame): Promise<void> {
+  return put(GAME_STORE, game, GAME_KEY)
 }
 
-export async function clearGame(): Promise<void> {
-  const db = await openDb()
-  if (!db) {
-    return
-  }
-  return new Promise((resolve) => {
-    const transaction = db.transaction(STORE_NAME, 'readwrite')
-    transaction.objectStore(STORE_NAME).delete(GAME_KEY)
-    transaction.oncomplete = () => resolve()
-    transaction.onerror = () => resolve()
-    transaction.onabort = () => resolve()
-  })
+export function clearGame(): Promise<void> {
+  return remove(GAME_STORE, GAME_KEY)
 }
