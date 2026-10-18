@@ -1,15 +1,38 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { clearGame, gameSlot } from '../counter/gameStorage'
+import type { GameContext } from '../counter/gameContext'
+import { clampTarget } from '../counter/useCounter'
+import type { Modality, Participant } from '../matches/types'
 import { loadGroups } from './groupsStorage'
 import type { Group } from './types'
 
 type TeamSide = 'nos' | 'ellos'
 
+const DEFAULT_TARGETS: Record<Modality, number> = {
+  '1v1': 20,
+  '2v2': 30,
+  '3v3': 40,
+}
+
+function modalityOf(count: number): Modality | null {
+  if (count === 1) {
+    return '1v1'
+  }
+  if (count === 2) {
+    return '2v2'
+  }
+  if (count === 3) {
+    return '3v3'
+  }
+  return null
+}
+
 export function StartGroupGameScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [group, setGroup] = useState<Group | null>(null)
-  const [target, setTarget] = useState(30)
+  const [targetOverride, setTargetOverride] = useState<number | null>(null)
   const [nos, setNos] = useState<string[]>([])
   const [ellos, setEllos] = useState<string[]>([])
 
@@ -34,6 +57,13 @@ export function StartGroupGameScreen() {
   const members = group?.members ?? []
   const selected = useMemo(() => new Set([...nos, ...ellos]), [nos, ellos])
 
+  const teamsAreValid =
+    nos.length > 0 && nos.length === ellos.length && nos.length <= 3
+  const modality = teamsAreValid ? modalityOf(nos.length) : null
+  const target =
+    targetOverride ??
+    (modality ? DEFAULT_TARGETS[modality] : DEFAULT_TARGETS['2v2'])
+
   if (!group) {
     return <div>Cargando...</div>
   }
@@ -51,19 +81,32 @@ export function StartGroupGameScreen() {
     }
   }
 
-  const start = () => {
-    if (nos.length === 0 || ellos.length === 0) {
+  const start = async () => {
+    if (!teamsAreValid || !modality) {
       return
     }
-    const state = {
-      type: 'group' as const,
+    const pick = (ids: string[]): Participant[] =>
+      ids.flatMap((memberId) => {
+        const member = members.find((m) => m.id === memberId)
+        return member ? [{ id: member.id, name: member.name }] : []
+      })
+    const gameContext: GameContext = {
+      type: 'group',
       groupId: group.id,
-      target,
-      nos,
-      ellos,
+      modality,
+      teams: { nos: pick(nos), ellos: pick(ellos) },
     }
-    navigate('/partida', { state })
+    await clearGame(gameSlot(gameContext))
+    navigate('/partida', { state: { gameContext, target } })
   }
+
+  const problem = teamsAreValid
+    ? null
+    : nos.length > 3 || ellos.length > 3
+      ? 'Cada equipo puede tener hasta 3 integrantes.'
+      : nos.length === 0 || ellos.length === 0
+        ? 'Elegí al menos un integrante en cada equipo.'
+        : 'Los dos equipos deben tener la misma cantidad de integrantes.'
 
   return (
     <div>
@@ -78,9 +121,9 @@ export function StartGroupGameScreen() {
             step={5}
             value={target}
             onChange={(event) => {
-              const v = Number(event.target.value)
-              if (!Number.isNaN(v)) {
-                setTarget(v)
+              const value = Number(event.target.value)
+              if (!Number.isNaN(value)) {
+                setTargetOverride(clampTarget(value))
               }
             }}
           />
@@ -110,11 +153,8 @@ export function StartGroupGameScreen() {
           )
         })}
       </ul>
-      <button
-        type="button"
-        onClick={start}
-        disabled={nos.length === 0 || ellos.length === 0}
-      >
+      {problem && <p role="alert">{problem}</p>}
+      <button type="button" onClick={start} disabled={!teamsAreValid}>
         Comenzar
       </button>
       <button type="button" onClick={() => navigate(`/grupo/${group.id}`)}>

@@ -1,17 +1,29 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useLocation } from 'react-router-dom'
 import { HoldButton } from '../../components/HoldButton'
 import { Counter } from './Counter'
-import type { Team } from './counterLogic'
-import { useCounter } from './useCounter'
+import { quickContext, type GameContext } from './gameContext'
+import { DEFAULT_TARGET, useCounter } from './useCounter'
 import styles from './CounterScreen.module.css'
 
-const TEAM_LABELS: Record<Team, string> = {
+const TEAM_LABELS: Record<'nos' | 'ellos', string> = {
   nos: 'Nosotros',
   ellos: 'Ellos',
 }
 
+interface CounterLocationState {
+  gameContext?: GameContext
+  target?: number
+}
+
 export function CounterScreen() {
-  const counter = useCounter()
+  const location = useLocation()
+  const nav = location.state as CounterLocationState | null
+  const initialContext = useMemo(
+    () => nav?.gameContext ?? quickContext(),
+    [nav],
+  )
+  const counter = useCounter(nav?.target ?? DEFAULT_TARGET, initialContext)
   const drawingRef = useRef<HTMLDivElement>(null)
 
   const nosPoints = counter.points('nos')
@@ -54,13 +66,13 @@ function TopBar({ nos, ellos }: TopBarProps) {
     <header className={styles.topBar}>
       <div className={styles.namesRow}>
         <div className={styles.teamHead}>
-          <h2 className={styles.name}>Nosotros</h2>
+          <h2 className={styles.name}>{TEAM_LABELS.nos}</h2>
           <span className={styles.score} data-testid="score-nos">
             {nos}
           </span>
         </div>
         <div className={styles.teamHead}>
-          <h2 className={styles.name}>Ellos</h2>
+          <h2 className={styles.name}>{TEAM_LABELS.ellos}</h2>
           <span className={styles.score} data-testid="score-ellos">
             {ellos}
           </span>
@@ -80,7 +92,7 @@ function BottomBar({ counter, locked }: BottomBarProps) {
     <footer className={styles.bottomBar}>
       <HoldButton
         className={styles.undo}
-        ariaLabel="Deshacer Nosotros"
+        ariaLabel={`Deshacer ${TEAM_LABELS.nos}`}
         onStart={() => counter.undoTeam('nos')}
         onEnd={() => undefined}
         disabled={!counter.canUndo('nos')}
@@ -109,7 +121,7 @@ function BottomBar({ counter, locked }: BottomBarProps) {
 
       <HoldButton
         className={styles.undo}
-        ariaLabel="Deshacer Ellos"
+        ariaLabel={`Deshacer ${TEAM_LABELS.ellos}`}
         onStart={() => counter.undoTeam('ellos')}
         onEnd={() => undefined}
         disabled={!counter.canUndo('ellos')}

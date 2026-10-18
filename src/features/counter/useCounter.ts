@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useReducer, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from 'react'
 import {
   canUndo,
   commit,
@@ -15,37 +22,29 @@ import {
 } from './counterLogic'
 import {
   GAME_VERSION,
+  contextOf,
+  gameSlot,
+  hasMoves,
   loadGame,
   saveGame,
+  type GameSlot,
   type PersistedGame,
 } from './gameStorage'
+import { quickContext, type GameContext } from './gameContext'
 import { saveMatch } from '../matches/matchesStorage'
-import type { Match, MatchType, Modality, Participant } from '../matches/types'
+import type { Match } from '../matches/types'
 
 export const DEFAULT_TARGET = 30
 export const MIN_TARGET = 10
 export const MAX_TARGET = 100
 export const TARGET_STEP = 5
 
-export interface GameContext {
-  type: MatchType
-  groupId: string | null
-  teams: Record<Team, Participant[]>
-  modality: Modality | null
-}
-
-const defaultContext: GameContext = {
-  type: 'quick',
-  groupId: null,
-  teams: { nos: [], ellos: [] },
-  modality: null,
-}
-
 interface GameState {
   counter: CounterState
   target: number
   firstReached: Team | null
   declined: boolean
+  context: GameContext
 }
 
 type GameAction =
@@ -57,7 +56,7 @@ type GameAction =
   | { type: 'decline' }
   | { type: 'hydrate'; state: GameState }
 
-function clampTarget(target: number): number {
+export function clampTarget(target: number): number {
   const stepped = Math.round(target / TARGET_STEP) * TARGET_STEP
   return Math.min(MAX_TARGET, Math.max(MIN_TARGET, stepped))
 }
@@ -95,7 +94,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (!winnerOf(state.counter, state.target, state.firstReached)) {
         return state
       }
-      return createGameState(state.target)
+      return createGameState(state.target, state.context)
     case 'decline':
       if (!winnerOf(state.counter, state.target, state.firstReached)) {
         return state
@@ -106,12 +105,16 @@ function gameReducer(state: GameState, action: GameAction): GameState {
   }
 }
 
-function createGameState(target: number): GameState {
+function createGameState(
+  target: number,
+  context: GameContext = quickContext(),
+): GameState {
   return {
     counter: createInitialState(),
     target: clampTarget(target),
     firstReached: null,
     declined: false,
+    context,
   }
 }
 
@@ -127,40 +130,62 @@ function fromPersisted(game: PersistedGame): GameState {
     target: clampTarget(game.target),
     firstReached: game.firstReached,
     declined: game.declined ?? false,
+    context: contextOf(game),
   }
+}
+
+function createId(): string {
+  if (
+    typeof crypto !== 'undefined' &&
+    typeof crypto.randomUUID === 'function'
+  ) {
+    return crypto.randomUUID()
+  }
+  return Math.random().toString(36).slice(2)
 }
 
 export type CounterController = ReturnType<typeof useCounter>
 
 export function useCounter(
   defaultTarget: number = DEFAULT_TARGET,
-  context: GameContext = defaultContext,
+  initialContext: GameContext = quickContext(),
 ) {
   const [state, dispatch] = useReducer(gameReducer, undefined, () =>
-    createGameState(defaultTarget),
+    createGameState(defaultTarget, initialContext),
   )
   const [hydrated, setHydrated] = useState(
     () => typeof indexedDB === 'undefined',
   )
+  const initialContextRef = useRef(initialContext)
+  const [slot] = useState<GameSlot>(() => gameSlot(initialContext))
 
   useEffect(() => {
     if (typeof indexedDB === 'undefined') {
       return
     }
     let active = true
-    void loadGame().then((game) => {
+    void loadGame(slot).then((game) => {
       if (!active) {
         return
       }
       if (game) {
-        dispatch({ type: 'hydrate', state: fromPersisted(game) })
+        const hydratedState = fromPersisted(game)
+        dispatch({
+          type: 'hydrate',
+          state: {
+            ...hydratedState,
+            context: hasMoves(game)
+              ? hydratedState.context
+              : initialContextRef.current,
+          },
+        })
       }
       setHydrated(true)
     })
     return () => {
       active = false
     }
-  }, [])
+  }, [slot])
 
   const persisted = useMemo<PersistedGame>(
     () => ({
@@ -169,16 +194,23 @@ export function useCounter(
       firstReached: state.firstReached,
       declined: state.declined,
       history: state.counter.history,
+      context: state.context,
     }),
-    [state.target, state.firstReached, state.declined, state.counter.history],
+    [
+      state.target,
+      state.firstReached,
+      state.declined,
+      state.counter.history,
+      state.context,
+    ],
   )
 
   useEffect(() => {
     if (!hydrated) {
       return
     }
-    void saveGame(persisted)
-  }, [hydrated, persisted])
+    void saveGame(slot, persisted)
+  }, [hydrated, persisted, slot])
 
   const points = useCallback(
     (team: Team) => displayPoints(state.counter, team),
@@ -211,31 +243,28 @@ export function useCounter(
     dispatch({ type: 'setTarget', target })
   }, [])
 
-  const confirm = useCallback(async () => {
+  const confirm = useCallback(() => {
     const winnerTeam = winnerOf(state.counter, state.target, state.firstReached)
     if (winnerTeam) {
-      const pointsNos = points('nos')
-      const pointsEllos = points('ellos')
       const match: Match = {
-        id:
-          typeof crypto !== 'undefined' &&
-          typeof crypto.randomUUID === 'function'
-            ? crypto.randomUUID()
-            : Math.random().toString(36).slice(2),
-        type: context.type,
-        groupId: context.groupId,
-        modality: context.modality,
+        id: createId(),
+        type: state.context.type,
+        groupId: state.context.groupId,
+        modality: state.context.modality,
         playedAt: new Date().toISOString(),
         durationSeconds: null,
         target: state.target,
         winner: winnerTeam,
-        teams: context.teams,
-        scores: { nos: pointsNos, ellos: pointsEllos },
+        teams: state.context.teams,
+        scores: {
+          nos: points('nos'),
+          ellos: points('ellos'),
+        },
       }
-      await saveMatch(match)
+      void saveMatch(match)
     }
     dispatch({ type: 'confirm' })
-  }, [context, points, state.counter, state.firstReached, state.target])
+  }, [points, state.context, state.counter, state.firstReached, state.target])
 
   const decline = useCallback(() => {
     dispatch({ type: 'decline' })
@@ -245,6 +274,7 @@ export function useCounter(
 
   return {
     target: state.target,
+    context: state.context,
     started: hasStarted(state.counter),
     winner,
     awaitingConfirmation: winner !== null && !state.declined,
