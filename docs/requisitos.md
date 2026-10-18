@@ -50,9 +50,10 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 ### 3.4. Pantalla principal
 
 - La pantalla inicial mostrará los grupos a los que pertenece el usuario, sea como administrador o vinculado a un integrante.
+- La pantalla inicial permitirá iniciar una partida rápida, sin grupo ni integrantes.
 - Los grupos se presentarán mediante tarjetas (cards).
 - Al seleccionar un grupo, se accederá a sus partidas, integrantes, historial y estadísticas.
-- Existirá un perfil personal con las estadísticas globales de los integrantes con cuenta vinculada.
+- Existirá un perfil personal con las estadísticas del usuario.
 
 ## 4. Gestión de partidas
 
