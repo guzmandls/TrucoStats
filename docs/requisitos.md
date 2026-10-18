@@ -12,31 +12,46 @@ El objetivo es ofrecer un contador sencillo, rápido y similar al conteo tradici
 - La interfaz estará diseñada principalmente para teléfonos móviles.
 - Se priorizarán la facilidad de uso, la rapidez y la prevención de errores.
 
-## 3. Usuarios y grupos
+## 3. Usuarios, integrantes y grupos
+
+La app está pensada para grupos de amigos donde no todos usan el contador. Por eso la pieza central es el **integrante**, que puede existir con o sin cuenta.
 
 ### 3.1. Usuarios
 
-- Cada usuario tendrá una cuenta única en TrucoStats.
-- Podrá pertenecer a múltiples grupos.
-- Podrá consultar sus estadísticas individuales globales, considerando todas las partidas válidas de todos sus grupos.
-- Las estadísticas globales serán privadas y visibles únicamente para su propietario.
+- Un usuario es una persona con cuenta única en TrucoStats (registro e inicio de sesión).
+- Podrá estar vinculado a integrantes en uno o varios grupos.
+- Podrá consultar sus estadísticas individuales globales, sumando las partidas de los integrantes a los que está vinculado, en todos sus grupos.
+- El perfil personal será visible para los integrantes de los grupos en los que participa.
 - El sistema de registro y recuperación de cuentas está pendiente de definición.
 
-### 3.2. Grupos
+### 3.2. Integrantes
+
+- Cada grupo tendrá una lista de integrantes.
+- Cada integrante tendrá un nombre y, opcionalmente, una cuenta de usuario vinculada.
+- Un integrante sin cuenta vinculada es igualmente válido: acumula partidas y estadísticas dentro de su grupo.
+- Un integrante sin cuenta no tiene estadísticas individuales globales, porque no tiene una identidad por fuera del grupo.
+- Al ingresar a un grupo, un usuario elegirá a cuál de los integrantes existentes corresponde.
+- El vínculo entre cuenta e integrante es auto-declarado y no verificado; el administrador podrá corregirlo.
+- Desvincular una cuenta no modifica las partidas ya registradas; solo afecta a los vínculos futuros.
+
+### 3.3. Grupos
 
 - Cualquier usuario podrá crear un grupo.
-- El creador será automáticamente su administrador.
+- El creador será automáticamente su administrador y un integrante del grupo.
+- Al crear el grupo, el creador definirá la cantidad de integrantes y el nombre de cada uno.
 - Los integrantes podrán invitar a otras personas mediante un enlace compartible, por ejemplo, por WhatsApp.
 - Cada grupo tendrá sus propios integrantes, partidas, historial y estadísticas.
 - Los integrantes podrán consultar las estadísticas correspondientes a su grupo.
+- El administrador podrá administrar el grupo: editar a los integrantes (agregar, renombrar y dar de baja) y vincular o desvincular cuentas.
+- Dar de baja a un integrante con partidas jugadas lo ocultará de la lista sin borrar sus partidas ni sus estadísticas.
 - El administrador tendrá acceso a las funciones de administración y al historial de partidas anuladas.
 
-### 3.3. Pantalla principal
+### 3.4. Pantalla principal
 
-- La pantalla inicial mostrará los grupos a los que pertenece el usuario.
+- La pantalla inicial mostrará los grupos a los que pertenece el usuario, sea como administrador o vinculado a un integrante.
 - Los grupos se presentarán mediante tarjetas (cards).
 - Al seleccionar un grupo, se accederá a sus partidas, integrantes, historial y estadísticas.
-- Existirá un apartado independiente de estadísticas individuales globales.
+- Existirá un perfil personal con las estadísticas globales de los integrantes con cuenta vinculada.
 
 ## 4. Gestión de partidas
 
@@ -157,6 +172,18 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - Se registrará quién anuló cada partida, cuándo y el motivo.
 - Las partidas finalizadas no podrán eliminarse físicamente mediante las funciones normales de la aplicación.
 
+### 4.7. Duración de la partida
+
+- Cada partida tendrá un timer que mide su duración.
+- El timer comienza al iniciar la partida y termina al confirmar la finalización.
+- El tiempo se mostrará en pantalla durante la partida.
+- La partida podrá pausarse; mientras esté pausada, el timer se detendrá y aparecerá un aviso "Partida pausada".
+- Mientras la partida esté pausada no se podrá sumar ni restar puntos, hasta reanudarla.
+- El tiempo en pausa no contará para la duración.
+- Solamente el anotador podrá pausar y reanudar.
+- La duración se guarda junto con el resultado al finalizar la partida.
+- La duración se usa en las estadísticas (promedios, partidas más largas y más cortas).
+
 ## 5. Historial de partidas
 
 Cada grupo dispondrá de un historial de partidas finalizadas válidas. El historial se consulta entrando al grupo correspondiente desde la pantalla principal, no como una pantalla suelta.
@@ -166,6 +193,7 @@ Para cada partida se guardará:
 - Fecha de la partida.
 - Grupo al que pertenece.
 - Modalidad y puntaje de victoria.
+- Duración de la partida.
 - Participantes de cada equipo.
 - Puntuación final de ambos equipos.
 - Equipo ganador.
@@ -181,45 +209,65 @@ El administrador dispondrá de un historial independiente de partidas anuladas.
 
 ## 6. Estadísticas
 
-Las estadísticas se calcularán a partir de las partidas válidas, excluyendo las anuladas.
+Las estadísticas se calcularán a partir de las partidas válidas, excluyendo las anuladas. Cada partida guarda su duración, que se usa en varios cálculos.
 
-### 6.1. Estadísticas individuales globales
+Dentro de cada grupo habrá dos apartados (estadísticas grupales y estadísticas individuales) y una tabla de enfrentamientos. Los integrantes con cuenta vinculada tendrán además un perfil personal.
 
-Cada usuario podrá consultar sus estadísticas considerando todas sus partidas, independientemente del grupo.
+### 6.1. Estadísticas grupales
 
-- Partidas jugadas.
+Resumen del grupo, visible para todos sus integrantes.
+
+- Cantidad total de partidas jugadas.
+- Duración promedio de las partidas.
+- Partida más larga y partida más corta.
+- Integrante con más victorias.
+- Integrante con mejor porcentaje de victorias.
+- Integrante con más derrotas.
+- Integrante con peor porcentaje de victorias.
+- Integrante con más partidas jugadas.
+- Mejor pareja (los dos integrantes con mejor porcentaje de victorias juntos).
+- Cantidad de partidas por modalidad.
+
+### 6.2. Estadísticas individuales del grupo
+
+Para cada integrante del grupo, sus números dentro de ese grupo.
+
+- Cantidad de partidas jugadas.
 - Victorias y derrotas.
 - Porcentaje de victorias.
+- Duración promedio de sus partidas.
+- Integrante al que más le gana.
+- Integrante contra el que más pierde.
+- Mejor compañero (mayor porcentaje de victorias juntos).
+- Peor compañero (menor porcentaje de victorias juntos).
+- Racha más larga de victorias y de derrotas.
 
-Estas estadísticas serán privadas.
+### 6.3. Enfrentamientos
 
-### 6.2. Estadísticas generales del grupo
+Tabla donde se consulta, para cada integrante contra cada uno del resto del grupo:
 
-Serán visibles para todos los integrantes del grupo.
+- Cantidad de partidas jugadas entre ambos.
+- Porcentaje de victorias de cada uno contra el otro.
+
+### 6.4. Perfil personal
+
+Los integrantes con cuenta vinculada tendrán un perfil con sus estadísticas personales totales, sumando todos los grupos en los que participan.
 
 - Cantidad total de partidas.
-- Ranking de jugadores.
-- Victorias y derrotas de cada integrante.
-- Porcentaje de victorias.
-- Estadísticas de parejas de jugadores.
-- Porcentaje de victorias cuando dos jugadores integran el mismo equipo.
-- Historial y estadísticas de enfrentamientos entre integrantes.
-
-### 6.3. Estadísticas individuales por grupo
-
-Cada integrante podrá consultar sus resultados dentro de un grupo específico.
-
-- Partidas jugadas.
 - Victorias y derrotas.
 - Porcentaje de victorias.
-- Resultados con diferentes compañeros de equipo.
-- Resultados contra diferentes rivales.
+- Duración promedio.
+- Cantidad de grupos en los que participa.
 
-### 6.4. Criterios de cálculo y privacidad
+El perfil personal será visible para los integrantes de los grupos en los que participa.
+
+### 6.5. Criterios de cálculo y privacidad
 
 - En partidas por equipos, cada victoria contará como una victoria individual de cada integrante del equipo ganador frente a cada integrante del equipo perdedor.
-- Las estadísticas individuales globales solamente podrán ser consultadas por su propietario.
-- Las estadísticas del grupo serán visibles para sus integrantes.
+- El porcentaje de victorias se calcula sobre las partidas jugadas.
+- Las comparaciones de "más/menos" y "mejor/peor" exigirán un mínimo de 3 partidas jugadas, para no basarse en porcentajes engañosos.
+- "Mejor compañero" y "peor compañero" solo aplican a partidas con equipos de más de un integrante (2 vs. 2 y 3 vs. 3).
+- Los integrantes sin cuenta vinculada solo tienen estadísticas del grupo, no perfil personal.
 - Las partidas anuladas quedarán excluidas de todos los cálculos estadísticos.
 
 ## 7. Funcionamiento sin Internet
@@ -249,7 +297,7 @@ Cada partida tendrá un único anotador responsable para evitar modificaciones s
 - El registro de auditoría identificará al responsable y la fecha de las acciones relevantes.
 - Los usuarios no podrán modificar directamente los resultados almacenados en la base de datos.
 - Los datos de cada grupo solamente estarán disponibles para sus integrantes, salvo las funciones de administración que requieran permisos especiales.
-- Las estadísticas globales de cada usuario serán privadas.
+- Las estadísticas globales (perfil personal) serán visibles para los integrantes de los grupos en los que participa el usuario.
 
 ## 9. Tecnologías previstas
 
