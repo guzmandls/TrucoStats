@@ -402,7 +402,27 @@ El desarrollo ya está en marcha (contador, partida de grupo, historial local, e
 - Aplicación del plazo de anulación de 15 minutos cuando la partida se finaliza sin conexión.
 - Comportamiento ante pérdida de datos locales o cambio de dispositivo.
 - Sistema de copias de seguridad y recuperación.
-- Alcance de la primera versión funcional (MVP).
+
+### Alcance de la primera versión (MVP)
+
+Objetivo: que un grupo de amigos comparta partidas y estadísticas desde distintos celulares.
+
+Entra:
+
+- Contador offline con botones, partida rápida y partida de grupo (ya implementado).
+- Historial y estadísticas de grupo, y perfil personal local (ya implementado).
+- Publicación en Cloudflare (ya implementado).
+- Backend mínimo (Cloudflare Workers + D1) para guardar y compartir grupos y partidas entre dispositivos.
+- Sincronización de las partidas guardadas sin conexión al recuperar la conectividad.
+- Cuentas simples (registro e inicio de sesión) y vínculo usuario ↔ integrante.
+
+Queda para después:
+
+- Dibujo asistido con gestos (los botones alcanzan en el MVP).
+- Anulación de partidas e historial de anuladas.
+- Invitaciones por enlace compartible.
+- Perfil personal visible para otros integrantes.
+- Copias de seguridad y recuperación de cuentas.
 
 ## 11. Consistencia visual
 
