@@ -495,3 +495,37 @@ Conceptos y herramientas nuevos:
 - Índice: atajo que acelera las búsquedas frecuentes (partidas de un grupo).
 - Local vs. remoto: `--local` usa una copia en tu PC para probar sin riesgo;
   `--remote` actúa sobre la base real.
+
+## Etapa 16 — API de grupos con código de invitación
+
+Hecho:
+
+- `POST /api/grupos`: crea un grupo con sus integrantes y devuelve el grupo y su
+  **código de invitación** (32 caracteres aleatorios).
+- `GET /api/grupos/<código>`: devuelve el grupo con sus integrantes activos.
+  Con el id del grupo no se puede entrar: hace falta el código.
+- Validación de lo que envía la app (nombre, integrantes, administrador) con
+  errores claros: 400 si algo es inválido, 409 si el grupo ya existe, 405 si el
+  método no corresponde.
+- Migración `0002_codigo_de_invitacion.sql`: agrega `invite_code` a `groups`.
+- Tests con una base de datos simulada (`worker/testDb.ts`, SQLite de Node), sin
+  depender de Cloudflare. Probado además con `wrangler dev` y `curl`.
+
+Conceptos y herramientas nuevos:
+
+- Método HTTP: `GET` pide datos, `POST` envía datos para crear algo. La misma
+  ruta puede responder distinto según el método.
+- Código de estado: número con el resultado (200 ok, 201 creado, 400 pedido
+  inválido, 404 no existe, 405 método no permitido, 409 conflicto).
+- Validar en el servidor: la app puede equivocarse o ser manipulada; el backend
+  nunca confía en lo que recibe.
+- Código de invitación como contraseña del grupo: 128 bits aleatorios no se
+  pueden adivinar. Es simple y alcanza hasta que existan las cuentas.
+- Id elegido por la app: la app crea el id del grupo, así un grupo creado sin
+  conexión conserva el mismo id al sincronizarse después.
+- Lote atómico (`batch`): guarda el grupo y todos sus integrantes juntos; si
+  algo falla, no queda nada a medias.
+- Dependencia de desarrollo (`@cloudflare/workers-types`): solo agrega tipos de
+  TypeScript para `D1Database` y similares; no se incluye en la app publicada.
+- Prueba de integración: probar la API con peticiones reales (`curl`) además de
+  los tests automáticos.
