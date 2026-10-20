@@ -7,7 +7,7 @@ import {
   within,
 } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { GameContext } from '../counter/gameContext'
 import {
   GAME_VERSION,
@@ -107,6 +107,15 @@ function renderGroup() {
       </Routes>
     </MemoryRouter>,
   )
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+async function openInvite() {
+  fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Invitar' }))
 }
 
 describe('GroupScreen', () => {
@@ -275,6 +284,56 @@ describe('GroupScreen', () => {
       'href',
       `/grupo/${group.id}/participantes`,
     )
+  })
+
+  it('muestra el enlace de invitación si el grupo ya está en el servidor', async () => {
+    await saveGroup({ ...group, inviteCode: 'abc123' })
+    renderGroup()
+
+    await openInvite()
+
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
+      'Invitar al grupo',
+    )
+    expect(screen.getByLabelText('Enlace de invitación')).toHaveValue(
+      `${window.location.origin}/unirse/abc123`,
+    )
+  })
+
+  it('registra el grupo en el servidor al invitar si todavía no estaba', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ inviteCode: 'nuevo99' }), {
+          status: 201,
+        }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    renderGroup()
+
+    await openInvite()
+
+    expect(await screen.findByLabelText('Enlace de invitación')).toHaveValue(
+      `${window.location.origin}/unirse/nuevo99`,
+    )
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect((await loadGroups())[0].inviteCode).toBe('nuevo99')
+  })
+
+  it('avisa que hace falta conexión si no se puede registrar el grupo', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.reject(new TypeError('sin red'))),
+    )
+    renderGroup()
+
+    await openInvite()
+
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
+      'Necesitas conexión a Internet',
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Entendido' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect((await loadGroups())[0].inviteCode).toBeUndefined()
   })
 
   it('pide confirmación antes de salir del grupo', async () => {

@@ -23,6 +23,7 @@ function isGroup(value: unknown): value is Group {
     typeof group.name === 'string' &&
     typeof group.adminMemberId === 'string' &&
     typeof group.createdAt === 'string' &&
+    (group.inviteCode === undefined || typeof group.inviteCode === 'string') &&
     Array.isArray(group.members) &&
     group.members.every(isMember)
   )
@@ -35,6 +36,20 @@ export async function loadGroups(): Promise<Group[]> {
 
 export function saveGroup(group: Group): Promise<void> {
   return put(GROUPS_STORE, group)
+}
+
+// Guarda el código de invitación sobre la versión más reciente del grupo.
+export async function setGroupInviteCode(
+  groupId: string,
+  inviteCode: string,
+): Promise<Group | null> {
+  const current = (await loadGroups()).find((group) => group.id === groupId)
+  if (!current) {
+    return null
+  }
+  const updated: Group = { ...current, inviteCode }
+  await saveGroup(updated)
+  return updated
 }
 
 export function deleteGroup(id: string): Promise<void> {

@@ -10,4 +10,6 @@ export interface Group {
   members: Member[]
   adminMemberId: string
   createdAt: string
+  /** Código secreto para invitar; existe una vez que el grupo está en el servidor. */
+  inviteCode?: string
 }

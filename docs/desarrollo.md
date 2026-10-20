@@ -556,3 +556,35 @@ Conceptos y herramientas nuevos:
   que los jugadores pertenezcan al grupo), no solo el formato.
 - Consulta con unión (`JOIN`): trae en una sola consulta los jugadores de todas
   las partidas del grupo, en lugar de una consulta por partida.
+
+## Etapa 18 — La app envía el grupo al servidor (5a)
+
+Hecho:
+
+- Al crear un grupo, la app lo guarda primero en el celular y luego intenta
+  registrarlo en el servidor en segundo plano. Si funciona, guarda el código de
+  invitación en el grupo. Sin conexión no pasa nada: el grupo ya está guardado.
+- Nueva opción **Invitar** en el menú del grupo: si el grupo todavía no está en
+  el servidor, lo registra; después muestra un diálogo con el enlace y los
+  botones Compartir (menú de compartir del teléfono) y Copiar enlace.
+- Cada integrante debe tener nombre al crear el grupo (el servidor los exige).
+- En desarrollo, las rutas `/api` de la app se redirigen al Worker local
+  (`vite.config.ts`), así se prueba todo junto.
+- Componentes compartidos nuevos: `Dialog` (base de los diálogos) e icono de
+  compartir.
+- Probado de punta a punta con Chrome: se creó un grupo desde la pantalla y el
+  servidor lo devolvió con su código.
+
+Conceptos y herramientas nuevos:
+
+- Offline-first en la práctica: lo local manda; el servidor es una copia que se
+  actualiza cuando hay conexión. Si falla, se reintenta cuando la persona lo
+  necesita (al invitar).
+- Cliente de API (`src/lib/api.ts`): un único lugar que hace los pedidos al
+  backend, con límite de tiempo (8 s) y errores uniformes.
+- Proxy de desarrollo: Vite reenvía `/api` al Worker, así la app y el backend
+  parecen un solo sitio, igual que en producción.
+- Web Share API (`navigator.share`): abre el menú de compartir del sistema
+  (WhatsApp, etc.); si no existe, queda el botón de copiar.
+- Fallar sin romper: lo que depende de la red se atrapa (`catch`) y se
+  comunica con un mensaje claro, en lugar de dejar la app trabada.

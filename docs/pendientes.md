@@ -23,6 +23,15 @@ No son requisitos nuevos: son notas para no olvidarlas.
   hay cuentas ni perfil. Cuando existan, debe aparecer ahí el nombre del usuario
   que crea el grupo.
 
+## Sincronización
+
+- Si un grupo se registró en el servidor pero la app no llegó a guardar el código
+  de invitación (por ejemplo, se cerró justo en ese momento), al invitar el
+  servidor responde que el grupo ya existe (409) y no hay forma de recuperar el
+  código. Cuando existan las cuentas, el administrador podrá pedirlo de nuevo.
+- El primer integrante se guarda en el servidor con el nombre "Administrador".
+  Debe usar el nombre de quien crea el grupo cuando existan las cuentas.
+
 ## Modelo de datos
 
 - Al salir del grupo siendo el único integrante, se borra el grupo pero **no** sus

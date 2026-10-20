@@ -14,7 +14,8 @@ import {
   TextInput,
 } from '../../components/ui'
 import type { Group, Member } from './types'
-import { saveGroup } from './groupsStorage'
+import { registerGroup } from './groupsApi'
+import { saveGroup, setGroupInviteCode } from './groupsStorage'
 import { addMembership } from './membership'
 import styles from './CreateGroupScreen.module.css'
 
@@ -85,6 +86,11 @@ export function CreateGroupScreen() {
     }
     await saveGroup(group)
     addMembership(group.id)
+    // Sin conexión no pasa nada: el grupo ya está guardado en el celular y se
+    // registra en el servidor la próxima vez que se invite a alguien.
+    void registerGroup(group)
+      .then((inviteCode) => setGroupInviteCode(group.id, inviteCode))
+      .catch(() => undefined)
     navigate('/')
   }
 
@@ -142,6 +148,8 @@ export function CreateGroupScreen() {
                       handleMemberNameChange(index, event.target.value)
                     }
                     readOnly={index === 0}
+                    required
+                    maxLength={20}
                   />
                 </label>
               ))}

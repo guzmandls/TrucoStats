@@ -1,6 +1,12 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { deleteGroup, leaveGroup, loadGroups, saveGroup } from './groupsStorage'
+import {
+  deleteGroup,
+  leaveGroup,
+  loadGroups,
+  saveGroup,
+  setGroupInviteCode,
+} from './groupsStorage'
 import type { Group } from './types'
 
 const group: Group = {
@@ -22,6 +28,19 @@ describe('groupsStorage', () => {
   })
 
   it('devuelve una lista vacía cuando no hay grupos', async () => {
+    expect(await loadGroups()).toEqual([])
+  })
+
+  it('guarda el código de invitación sin perder el resto del grupo', async () => {
+    await saveGroup(group)
+    const updated = await setGroupInviteCode('g1', 'abc123')
+
+    expect(updated).toEqual({ ...group, inviteCode: 'abc123' })
+    expect(await loadGroups()).toEqual([{ ...group, inviteCode: 'abc123' }])
+  })
+
+  it('no inventa un grupo al guardar el código de uno que no existe', async () => {
+    expect(await setGroupInviteCode('nada', 'abc123')).toBeNull()
     expect(await loadGroups()).toEqual([])
   })
 

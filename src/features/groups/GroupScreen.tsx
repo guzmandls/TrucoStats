@@ -5,10 +5,13 @@ import {
   BackIcon,
   ChartIcon,
   PeopleIcon,
+  ShareIcon,
 } from '../../components/Icons'
 import {
   ButtonLink,
+  Button,
   ConfirmDialog,
+  Dialog,
   EmptyNote,
   HeaderIconButton,
   HeaderMenu,
@@ -27,7 +30,10 @@ import {
   type PersistedGame,
 } from '../counter/gameStorage'
 import { matchMeta, participantNames } from '../matches/format'
-import { leaveGroup } from './groupsStorage'
+import { ApiError } from '../../lib/api'
+import { registerGroup } from './groupsApi'
+import { InviteDialog } from './InviteDialog'
+import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints } from '../matches/points'
 import { removeMembership } from './membership'
 import { useGroup } from './useGroup'
@@ -36,13 +42,15 @@ import styles from './GroupScreen.module.css'
 export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { group, matches } = useGroup(id)
+  const { group, matches, setGroup } = useGroup(id)
   const userId =
     typeof localStorage !== 'undefined'
       ? localStorage.getItem('trucostats:profileId')
       : null
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
+  const [inviting, setInviting] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
   const [pointsDelta, setPointsDelta] = useState<string | null>(null)
   const myPoints = useMemo(() => {
     if (!group || !matches || !userId) {
@@ -102,6 +110,28 @@ export function GroupScreen() {
   const score = inProgress ? gameScore(inProgress) : null
   const willDelete = group.members.length === 1
 
+  // Si el grupo todavía no está en el servidor, se registra antes de invitar.
+  const handleInvite = async () => {
+    if (group.inviteCode) {
+      setInviting(true)
+      return
+    }
+    try {
+      const inviteCode = await registerGroup(group)
+      const updated = await setGroupInviteCode(group.id, inviteCode)
+      if (updated) {
+        setGroup(updated)
+      }
+      setInviting(true)
+    } catch (error) {
+      setInviteError(
+        error instanceof ApiError
+          ? error.message
+          : 'Necesitas conexión a Internet para invitar a otras personas.',
+      )
+    }
+  }
+
   const handleLeave = async () => {
     await leaveGroup(group)
     removeMembership(group.id)
@@ -135,6 +165,11 @@ export function GroupScreen() {
                 label: 'Participantes',
                 to: `/grupo/${group.id}/participantes`,
                 icon: <PeopleIcon />,
+              },
+              {
+                label: 'Invitar',
+                onClick: handleInvite,
+                icon: <ShareIcon />,
               },
               {
                 label: 'Salir del grupo',
@@ -236,6 +271,17 @@ export function GroupScreen() {
           </ButtonLink>
         )}
       </ScreenFooter>
+      {inviting && group.inviteCode && (
+        <InviteDialog
+          group={{ ...group, inviteCode: group.inviteCode }}
+          onClose={() => setInviting(false)}
+        />
+      )}
+      {inviteError && (
+        <Dialog title={inviteError} onClose={() => setInviteError(null)}>
+          <Button onClick={() => setInviteError(null)}>Entendido</Button>
+        </Dialog>
+      )}
       {confirmingLeave && (
         <ConfirmDialog
           title={
