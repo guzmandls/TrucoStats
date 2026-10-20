@@ -36,3 +36,6 @@ TrucoStats es una PWA para contar puntos de truco uruguayo, guardar partidas y c
 ## Git (el desarrollador quiere aprender)
 - Antes de cambiar de rama, hacer push, abrir un pull request, mergear o similar, indicar los comandos exactos y explicar por qué se usan.
 - Ejecutarlos solo si el desarrollador lo autoriza explícitamente.
+- No agregar líneas `Co-Authored-By` ni otra atribución de IA en commits ni en pull requests.
+- Una rama por funcionalidad. Tras mergear un pull request: actualizar `main` (`git checkout main`, `git pull`), borrar la rama en origin (`git push origin --delete <rama>`) y en local (`git branch -d <rama>`), y limpiar referencias con `git fetch --prune`. No dejar ramas obsoletas.
+- No borrar una rama antes de mergear su pull request.
