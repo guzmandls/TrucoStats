@@ -1,3 +1,7 @@
+# TrucoStats — Requisitos
+
+## 1. Descripción general
+
 Inicialmente estará destinada a un grupo de aproximadamente 15 amigos, pero se diseñará para que otros grupos puedan utilizarla en el futuro.
 
 El objetivo es ofrecer un contador sencillo, rápido y similar al conteo tradicional en papel, incorporando historial y estadísticas.
@@ -305,10 +309,10 @@ Se presenta como una grilla simétrica: el eje de filas muestra los nombres y el
 Cada integrante acumula puntos (Pts) dentro de cada grupo, según los resultados de las partidas de grupo. Los puntos se calculan a partir de las partidas ya guardadas, procesándolas en orden cronológico (del más antigua al más reciente), porque la ganancia y la pérdida de cada partida dependen del puntaje acumulado en ese momento.
 
 - Una partida vale, como base, el objetivo de la partida (a 40 puntos, 40; a 30 puntos, 30; a 20 puntos, 20).
-- La diferencia de puntos de la partida ajusta el movimiento: golear (por ejemplo 40 a 0) mueve el máximo y ganar ajustado (por ejemplo 40 a 39) mueve menos. El factor va de 0,8 (partida ajustada) a 1,0 (goleada).
-- La diferencia de puntaje acumulado entre los dos equipos ajusta el movimiento: si el ganador tiene muchos más puntos que el perdedor, gana menos puntos (y, simétricamente, el perdedor resta menos); si el ganador tiene menos puntos, gana más. Este ajuste va de 0,6 a 1,3.
-- Ayuda por puntaje bajo: cuanto menos puntos tiene un integrante, más fácil le resulta sumar. En 0 puntos sus victorias valen el doble (x2) y a partir de 200 puntos valen x1, disminuyendo gradualmente en el medio.
-- Las derrotas son menos negativas que las victorias: un integrante con poco puntaje resta muy poco (cerca de x0,1 en 0 puntos), subiendo gradualmente hasta x1 a partir de 200 puntos.
+- La diferencia de puntos de la partida ajusta el movimiento: golear (por ejemplo 40 a 0) mueve el máximo y ganar ajustado (por ejemplo 40 a 39) mueve menos. El factor va de 0,75 (partida ajustada) a 1,0 (goleada).
+- La diferencia de puntaje acumulado entre los dos equipos (promedio de cada equipo) ajusta el movimiento: si el ganador tiene muchos más puntos que el perdedor, gana menos puntos (y, simétricamente, el perdedor resta menos); si el ganador tiene menos puntos, gana más. Este ajuste va de 0,6 a 1,4.
+- Ayuda por puntaje bajo: cuanto menos puntos tiene un integrante, más fácil le resulta sumar. En 0 puntos sus victorias valen x1,8 y a partir de 200 puntos valen x1, disminuyendo gradualmente en el medio.
+- Las derrotas son menos negativas que las victorias: un integrante con poco puntaje resta poco (x0,25 en 0 puntos), subiendo gradualmente (más rápido al principio) hasta x1 a partir de 200 puntos.
 - Ningún integrante puede quedar con puntaje negativo: el total nunca baja de 0.
 
 Los Pts solo se calculan para partidas de grupo, porque las partidas rápidas no tienen integrantes asociados.
@@ -327,7 +331,9 @@ Los usuarios tendrán un perfil con sus estadísticas personales: sus partidas r
 
 El perfil personal será visible para los integrantes de los grupos en los que participa.
 
-### 6.5. Criterios de cálculo y privacidad
+Estado actual: mientras no exista el vínculo usuario ↔ integrante, el perfil suma todas las partidas guardadas en el dispositivo.
+
+### 6.6. Criterios de cálculo y privacidad
 
 - En partidas por equipos, cada victoria contará como una victoria individual de cada integrante del equipo ganador frente a cada integrante del equipo perdedor.
 - El porcentaje de victorias se calcula sobre las partidas jugadas.
@@ -383,7 +389,7 @@ Se utilizarán inicialmente planes gratuitos y se priorizarán tecnologías con 
 
 ## 10. Cuestiones pendientes
 
-Antes de comenzar el desarrollo deberán definirse:
+El desarrollo ya está en marcha (contador, partida de grupo, historial local, estadísticas y publicación en Cloudflare). Siguen sin definirse:
 
 - Sistema definitivo de registro, inicio de sesión y recuperación de cuentas.
 - Gestión de invitaciones y enlaces para unirse a grupos.
