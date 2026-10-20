@@ -30,8 +30,10 @@ TrucoStats es una PWA para contar puntos de truco uruguayo, guardar partidas y c
 - `docs/desarrollo.md` es el diario de aprendizaje del proyecto: etapas hechas y conceptos nuevos con su porqué (qué es, para qué se usa, por qué se eligió).
 - Actualizar `docs/desarrollo.md` al terminar cada tarea, sin pedir autorización.
 - Mantenerlo conciso, sencillo y legible: ideas cortas, sin jerga innecesaria.
-- Los requisitos (`docs/requisitos.md`) cambian seguido: proponer los cambios y esperar aprobación antes de escribirlos.
-- Si el código y los requisitos se contradicen, el código actual es la referencia; avisar y proponer actualizar los requisitos.
+- Los requisitos (`docs/requisitos.md`) cambian seguido. Lo que el desarrollador pide tiene más jerarquía que lo escrito en los requisitos.
+- Si un pedido del desarrollador difiere de los requisitos, actualizar `docs/requisitos.md` para reflejarlo, sin pedir permiso, y avisar qué se cambió.
+- Los cambios que proponga la IA por iniciativa propia (reglas nuevas, funcionalidades no pedidas) se proponen y esperan aprobación antes de escribirse.
+- Si el código y los requisitos se contradicen, el código actual es la referencia; actualizar los requisitos y avisar.
 
 ## Git (el desarrollador quiere aprender)
 - Antes de cambiar de rama, hacer push, abrir un pull request, mergear o similar, indicar los comandos exactos y explicar por qué se usan.
