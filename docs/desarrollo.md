@@ -254,3 +254,111 @@ Conceptos y herramientas nuevos:
   resto de los datos.
 - Dato derivado vs. dato con significado: "ganó Nosotros" es un dato sin valor
   fuera de la partida; lo que tiene valor es qué integrantes ganaron y perdieron.
+
+## Etapa 8 — Grupos, integrantes y navegación
+
+Hecho:
+
+- Modelo de datos: `Group` (con sus `Member`) y `Match` (partida con equipos,
+  puntajes, ganador y duración), en `src/features/groups/types.ts` y
+  `src/features/matches/types.ts`.
+- Dos almacenes nuevos en IndexedDB: `groups` y `matches`. La base subió a la
+  versión 4 para crearlos sin perder datos.
+- Navegación entre pantallas con react-router-dom.
+- Pantalla principal con la lista de grupos y accesos a partida rápida y a crear
+  grupo; pantalla para crear grupo; pantalla de un grupo.
+- La lista de grupos del dispositivo ("pertenencia") se guarda en localStorage.
+
+Commits: 139944d, 27605e0, bd259bd, adf4a8f, 9885c99, 416818f
+
+Conceptos y herramientas nuevos:
+
+- Modelo de datos: la forma de la información (qué es un grupo, qué es una
+  partida). Se define primero para que todas las pantallas hablen igual.
+- Router y rutas: asocian una dirección (`/grupo/3`) con una pantalla. En una
+  SPA no se recarga la página: cambia solo lo que se ve.
+- Parámetro de ruta (`:id`): parte variable de la dirección, para abrir el grupo
+  que corresponda.
+- keyPath: campo del objeto que IndexedDB usa como identificador (aquí, `id`).
+- localStorage vs. IndexedDB: localStorage sirve para datos chicos y simples (una
+  lista de ids); IndexedDB, para objetos más grandes y consultas.
+- Pantalla vs. lógica: la lógica (almacenamiento, cálculos) vive en archivos
+  aparte de las pantallas, para probarla sin dibujar nada.
+
+## Etapa 9 — Partida de grupo
+
+Hecho:
+
+- Pantalla para configurar la partida de grupo: modalidad (1v1, 2v2, 3v3) e
+  integrantes de cada equipo.
+- El contador recibe un "contexto" (partida rápida o de grupo con sus equipos).
+- Al confirmar el ganador se guarda un `Match` completo con sus integrantes.
+
+Commits: 6737db2, 5c0e1f9, 10b99d5, 207fac4
+
+Conceptos y herramientas nuevos:
+
+- Contexto de partida: datos que el contador necesita saber antes de empezar
+  (tipo, grupo, equipos). Un mismo contador sirve para ambos tipos de partida.
+- Custom hook (`useCounter`): función propia que junta estado y acciones del
+  contador, para que la pantalla solo se ocupe de dibujar.
+
+## Etapa 10 — Ranuras, historial de grupo y objetivo por modalidad
+
+Hecho:
+
+- Partida en curso por "ranura" (slot): una para la partida rápida y una por cada
+  grupo. Se puede tener varias en curso a la vez sin pisarse.
+- Historial de partidas dentro de cada grupo.
+- El objetivo predeterminado depende de la modalidad.
+
+Commits: 5a99878
+
+Conceptos y herramientas nuevos:
+
+- Ranura (slot): clave que identifica dónde se guarda cada partida en curso
+  (`quick`, `group:<id>`). Antes había una sola y se sobrescribía.
+- Migración de datos: al cambiar cómo se guarda algo, se convierte lo guardado
+  antes al formato nuevo para no perderlo.
+
+## Etapa 11 — Estadísticas, timer, perfil y sistema de diseño
+
+Hecho:
+
+- Timer de partida con pausa; la duración se guarda en el `Match`. Pausada, no se
+  puede sumar ni restar.
+- Estadísticas del grupo (podio, rankings, parejas y tríos, enfrentamientos),
+  estadísticas por integrante y perfil personal.
+- Sistema de puntos (Pts) calculado recorriendo las partidas en orden
+  cronológico.
+- Fotos de integrante (se reducen a 256 px y se guardan dentro del navegador) y
+  avatar por defecto con color propio.
+- Sistema de diseño compartido: componentes en `src/components/ui.tsx` y tokens
+  (colores, grosores, espaciados) en `src/index.css`. Las reglas están en
+  `requisitos.md` §11 y §12.
+- Cambios respecto a la Etapa 4: Deshacer de un toque quita el movimiento
+  completo (mantener quita de a un punto), y "No" al confirmar descuenta el punto
+  que llegó al objetivo.
+- Pruebas de flujo completo (`flow.test.tsx`), timer, estadísticas y pantallas.
+- Se creó `docs/pendientes.md` para anotar deuda técnica.
+
+Commits: bacc7b7
+
+Conceptos y herramientas nuevos:
+
+- Tiempo por tramos: el timer guarda los segundos de los tramos cerrados y el
+  inicio del tramo activo; así la pausa no cuenta y no hace falta un reloj
+  corriendo siempre.
+- Función pura de estadísticas: recibe las partidas y devuelve los números. Si
+  cambia una regla, se corrige y se prueba en un solo lugar.
+- Dato calculado vs. guardado: los Pts no se guardan; se recalculan desde las
+  partidas, así siempre coinciden con el historial.
+- Canvas: lienzo del navegador; sirve para achicar las fotos antes de guardarlas.
+- Data URL: imagen convertida a texto, para guardarla junto al resto de los
+  datos.
+- Tokens de diseño: valores con nombre (colores, grosores, espaciados) que se
+  reutilizan en todos los estilos para que la app se vea coherente.
+- Componentes compartidos: piezas de interfaz reutilizadas en todas las
+  pantallas, en vez de repetir estilos en cada una.
+- Deuda técnica: cosas que se dejan para después a propósito; se anotan para no
+  olvidarlas.
