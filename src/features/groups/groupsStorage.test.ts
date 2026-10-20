@@ -1,6 +1,6 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
+import { deleteGroup, leaveGroup, loadGroups, saveGroup } from './groupsStorage'
 import type { Group } from './types'
 
 const group: Group = {
@@ -51,6 +51,27 @@ describe('groupsStorage', () => {
 
   it('ignora registros con forma inválida', async () => {
     await saveGroup({ id: 'invalido' } as never)
+    expect(await loadGroups()).toEqual([])
+  })
+
+  it('transfiere la administración al salir si quedan otros integrantes', async () => {
+    await saveGroup(group)
+    const result = await leaveGroup(group)
+    expect(result).toBe('left')
+    const [saved] = await loadGroups()
+    expect(saved.adminMemberId).toBe('m2')
+    expect(saved.members).toEqual(group.members)
+  })
+
+  it('borra el grupo al salir si el admin es el único integrante', async () => {
+    const solo: Group = {
+      ...group,
+      members: [{ id: 'm1', name: 'Juan' }],
+      adminMemberId: 'm1',
+    }
+    await saveGroup(solo)
+    const result = await leaveGroup(solo)
+    expect(result).toBe('deleted')
     expect(await loadGroups()).toEqual([])
   })
 })

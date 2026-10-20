@@ -1,9 +1,30 @@
 import { useEffect, useMemo, useRef } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import {
+  BackIcon,
+  GroupPlusIcon,
+  PauseIcon,
+  PersonIcon,
+  PlayIcon,
+  UndoIcon,
+} from '../../components/Icons'
+import {
+  ConfirmDialog,
+  HeaderIconButton,
+  HeaderMenu,
+  PageHeader,
+} from '../../components/ui'
 import { HoldButton } from '../../components/HoldButton'
 import { Counter } from './Counter'
 import { quickContext, type GameContext } from './gameContext'
-import { DEFAULT_TARGET, useCounter } from './useCounter'
+import { formatClock } from './gameTimer'
+import {
+  DEFAULT_TARGET,
+  MAX_TARGET,
+  TARGET_STEP,
+  useCounter,
+  type CounterController,
+} from './useCounter'
 import styles from './CounterScreen.module.css'
 
 const TEAM_LABELS: Record<'nos' | 'ellos', string> = {
@@ -18,6 +39,7 @@ interface CounterLocationState {
 
 export function CounterScreen() {
   const location = useLocation()
+  const navigate = useNavigate()
   const nav = location.state as CounterLocationState | null
   const initialContext = useMemo(
     () => nav?.gameContext ?? quickContext(),
@@ -30,6 +52,17 @@ export function CounterScreen() {
   const ellosPoints = counter.points('ellos')
   const winner = counter.winner
 
+  const handleBack = () => {
+    if (
+      typeof window.history.state?.idx === 'number' &&
+      window.history.state.idx > 0
+    ) {
+      navigate(-1)
+    } else {
+      navigate('/')
+    }
+  }
+
   useEffect(() => {
     const element = drawingRef.current
     if (element) {
@@ -39,46 +72,130 @@ export function CounterScreen() {
 
   return (
     <div className={styles.screen}>
-      <TopBar nos={nosPoints} ellos={ellosPoints} />
+      <PageHeader
+        center={<TimerButton counter={counter} />}
+        leading={
+          <HeaderIconButton label="Volver" onClick={handleBack}>
+            <BackIcon />
+          </HeaderIconButton>
+        }
+        trailing={
+          <HeaderMenu
+            label="Menú"
+            items={[
+              {
+                label: 'Crear grupo',
+                to: '/crear-grupo',
+                icon: <GroupPlusIcon />,
+              },
+              { label: 'Ver perfil', to: '/perfil', icon: <PersonIcon /> },
+            ]}
+            extra={<TargetRow counter={counter} />}
+          />
+        }
+      />
 
-      <Counter counter={counter} drawingRef={drawingRef} />
-
-      {counter.awaitingConfirmation && winner && (
-        <VictoryBanner
-          label={TEAM_LABELS[winner]}
-          onConfirm={counter.confirm}
-          onDecline={counter.decline}
-        />
-      )}
-
-      <BottomBar counter={counter} locked={counter.awaitingConfirmation} />
-    </div>
-  )
-}
-
-interface TopBarProps {
-  nos: number
-  ellos: number
-}
-
-function TopBar({ nos, ellos }: TopBarProps) {
-  return (
-    <header className={styles.topBar}>
       <div className={styles.namesRow}>
         <div className={styles.teamHead}>
           <h2 className={styles.name}>{TEAM_LABELS.nos}</h2>
           <span className={styles.score} data-testid="score-nos">
-            {nos}
+            {nosPoints}
           </span>
         </div>
         <div className={styles.teamHead}>
           <h2 className={styles.name}>{TEAM_LABELS.ellos}</h2>
           <span className={styles.score} data-testid="score-ellos">
-            {ellos}
+            {ellosPoints}
           </span>
         </div>
       </div>
-    </header>
+
+      <Counter counter={counter} drawingRef={drawingRef} />
+
+      {counter.paused && (
+        <div className={styles.pauseOverlay} role="status">
+          <div className={styles.pauseCard}>
+            <PauseIcon size={28} />
+            <p className={styles.pauseText}>Partida pausada</p>
+            <button
+              type="button"
+              className={styles.pauseResume}
+              onClick={counter.togglePause}
+            >
+              Reanudar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {counter.awaitingConfirmation && winner && (
+        <ConfirmDialog
+          title={`¿El equipo ganador es “${TEAM_LABELS[winner]}”?`}
+          onConfirm={() => {
+            const destination =
+              counter.context.type === 'group' && counter.context.groupId
+                ? `/grupo/${counter.context.groupId}`
+                : '/'
+            counter.confirm()
+            navigate(destination)
+          }}
+          onCancel={counter.decline}
+        />
+      )}
+
+      <BottomBar
+        counter={counter}
+        locked={counter.awaitingConfirmation || counter.paused}
+      />
+    </div>
+  )
+}
+
+function TimerButton({ counter }: { counter: CounterController }) {
+  return (
+    <button
+      type="button"
+      className={styles.timer}
+      onClick={counter.togglePause}
+      aria-label={counter.paused ? 'Reanudar partida' : 'Pausar partida'}
+      aria-pressed={counter.paused}
+    >
+      {counter.paused ? <PlayIcon size={22} /> : <PauseIcon size={22} />}
+      <span className={styles.timerValue} data-testid="timer-value">
+        {formatClock(counter.elapsed)}
+      </span>
+    </button>
+  )
+}
+
+function TargetRow({ counter }: { counter: CounterController }) {
+  return (
+    <div className={styles.targetRow}>
+      <span className={styles.targetLabel}>Puntuación máxima</span>
+      <div className={styles.targetControls}>
+        <button
+          type="button"
+          className={styles.targetStep}
+          onClick={() => counter.setTarget(counter.target - TARGET_STEP)}
+          disabled={counter.target <= counter.minTarget}
+          aria-label="Bajar puntuación máxima"
+        >
+          −
+        </button>
+        <span className={styles.targetValue} data-testid="objective-value">
+          {counter.target}
+        </span>
+        <button
+          type="button"
+          className={styles.targetStep}
+          onClick={() => counter.setTarget(counter.target + TARGET_STEP)}
+          disabled={counter.target >= MAX_TARGET}
+          aria-label="Subir puntuación máxima"
+        >
+          +
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -97,7 +214,7 @@ function BottomBar({ counter, locked }: BottomBarProps) {
         onEnd={() => undefined}
         disabled={!counter.canUndo('nos')}
       >
-        ↶
+        <UndoIcon />
       </HoldButton>
 
       <div className={styles.pill}>
@@ -126,33 +243,8 @@ function BottomBar({ counter, locked }: BottomBarProps) {
         onEnd={() => undefined}
         disabled={!counter.canUndo('ellos')}
       >
-        ↶
+        <UndoIcon />
       </HoldButton>
     </footer>
-  )
-}
-
-interface VictoryBannerProps {
-  label: string
-  onConfirm: () => void
-  onDecline: () => void
-}
-
-function VictoryBanner({ label, onConfirm, onDecline }: VictoryBannerProps) {
-  return (
-    <div className={styles.victory} role="alert">
-      <span className={styles.victoryTitle}>Confirmar ganador</span>
-      <span className={styles.victoryQuestion}>
-        ¿El equipo ganador es “{label}”?
-      </span>
-      <div className={styles.victoryActions}>
-        <button type="button" className={styles.confirm} onClick={onConfirm}>
-          Sí
-        </button>
-        <button type="button" className={styles.decline} onClick={onDecline}>
-          No
-        </button>
-      </div>
-    </div>
   )
 }

@@ -29,6 +29,8 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 
 - Cada grupo tendrá una lista de integrantes.
 - Cada integrante tendrá un nombre y, opcionalmente, una cuenta de usuario vinculada.
+- Cada integrante podrá tener una foto de perfil. Si no la tiene, se mostrará una foto por defecto (una silueta sobre un fondo de color derivado del integrante, distinto dentro del grupo).
+- La foto de perfil se podrá elegir, cambiar o quitar desde la ficha del integrante dentro del grupo.
 - Un integrante sin cuenta vinculada es igualmente válido: acumula partidas y estadísticas dentro de su grupo.
 - Un integrante sin cuenta no tiene estadísticas individuales globales, porque no tiene una identidad por fuera del grupo.
 - Al ingresar a un grupo, un usuario elegirá a cuál de los integrantes existentes corresponde.
@@ -46,20 +48,29 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - El administrador podrá administrar el grupo: editar a los integrantes (agregar, renombrar y dar de baja) y vincular o desvincular cuentas.
 - Dar de baja a un integrante con partidas jugadas lo ocultará de la lista sin borrar sus partidas ni sus estadísticas.
 - El administrador tendrá acceso a las funciones de administración y al historial de partidas anuladas.
+- Mientras no exista el sistema de cuentas, el dispositivo tendrá una lista local de pertenencia: los grupos que aparecen en la pantalla inicial.
+- Un usuario podrá salir de un grupo; al hacerlo, el grupo deja de aparecer en su pantalla inicial (se quita de su lista de pertenencia).
+- Salir de un grupo no descuenta las partidas ya jugadas: las partidas jugadas por el usuario siguen contando en su perfil personal aunque el grupo se elimine.
+- Si el usuario que sale es el administrador y quedan otros integrantes, la administración pasa a otro integrante y el grupo se conserva con sus partidas y estadísticas. El integrante que representaba al usuario queda en el grupo (desvinculado) para que sus estadísticas sigan mostrándose.
+- Si el usuario que sale es el administrador y era el único integrante, el grupo se elimina completo (historial y estadísticas de grupo), tras un aviso que advierte que se borrarán esas estadísticas. Las partidas ya jugadas se conservan para el perfil personal.
 
 ### 3.4. Pantalla principal
 
-- La pantalla inicial mostrará los grupos a los que pertenece el usuario, sea como administrador o vinculado a un integrante.
+- La pantalla inicial mostrará los grupos de la lista de pertenencia del dispositivo; al salir de un grupo, este deja de mostrarse.
 - La pantalla inicial permitirá iniciar una partida rápida, sin grupo ni integrantes.
+- La pantalla de un grupo ofrecerá la opción de salir del grupo.
 - Los grupos se presentarán mediante tarjetas (cards).
-- Al seleccionar un grupo, se accederá a sus partidas, integrantes, historial y estadísticas.
+- Al seleccionar un grupo, se accederá a su historial de partidas. Las estadísticas y los participantes se consultan con botones de icono del sector superior, que llevan a sus propias pantallas.
+- La pantalla de estadísticas del grupo permitirá alternar entre estadísticas grupales, individuales y enfrentamientos. El sector superior se separa de las pestañas por una línea horizontal, y la pestaña activa se distingue solo por la inversión de colores.
+- Los enfrentamientos se muestran como una grilla simétrica: cada fila y cada columna corresponde a un integrante y cada celda, al resultado entre ambos.
+- La pantalla de participantes mostrará la lista de integrantes en renglones destacados con su foto y su nombre; al tocar uno se accede a sus estadísticas individuales dentro del grupo.
 - Existirá un perfil personal con las estadísticas del usuario.
 
 ## 4. Gestión de partidas
 
 Existen dos tipos de partida:
 
-- **Partida rápida**: se inicia desde la pantalla principal, sin elegir integrantes ni modalidad. Enfrenta "Nosotros" (el usuario) contra "Ellos". Cuenta solo para las estadísticas personales del usuario.
+- **Partida rápida**: se inicia desde la pantalla principal, sin elegir integrantes ni modalidad. Enfrenta "Nosotros" (el usuario) contra "Ellos". Cuenta solo para las estadísticas personales del usuario y no genera historial.
 - **Partida de grupo**: se inicia dentro de un grupo, eligiendo a los integrantes de cada equipo. Cuenta para el historial y las estadísticas del grupo.
 
 ### 4.1. Creación de partida de grupo
@@ -72,11 +83,9 @@ Existen dos tipos de partida:
 - El creador seleccionará a los participantes de cada equipo entre los integrantes del grupo.
 - El creador y anotador deberá integrar el equipo "Nosotros".
 - Las etiquetas "Nosotros" y "Ellos" son provisorias: sirven únicamente para identificar cada lado durante la partida en curso. La identidad de cada jugador son los integrantes; las etiquetas no tienen significado estadístico.
-- Los puntajes de victoria predeterminados serán:
-  - 1 vs. 1: 20 puntos.
-  - 2 vs. 2: 30 puntos.
-  - 3 vs. 3: 40 puntos.
-- El puntaje de victoria podrá modificarse antes de iniciar la partida.
+- El puntaje de victoria predeterminado se elegirá según la modalidad (1 vs. 1, 2 vs. 2 o 3 vs. 3).
+- El puntaje de victoria podrá modificarse antes de iniciar la partida y también durante la partida en curso, desde el sector superior del contador.
+- El puntaje de victoria nunca podrá fijarse en un valor ya alcanzado por algún equipo: para bajarlo primero habrá que corregir el marcador con Deshacer.
 - Se admitirán puntajes entre 10 y 100, en intervalos de 5.
 - El creador será el único anotador autorizado.
 - Los demás integrantes podrán visualizar la partida en curso cuando tengan conexión, pero no modificarla.
@@ -121,8 +130,8 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 **Corrección de puntos**
 
 - Cada equipo tendrá su propio botón Deshacer.
-- Un toque de Deshacer quitará un punto del equipo correspondiente.
-- Mantener presionado Deshacer quitará puntos de a uno de forma continua.
+- Un toque de Deshacer quitará el último movimiento completo: todos los puntos sumados de una vez.
+- Mantener presionado Deshacer quitará movimientos de a uno de forma continua.
 - No se podrá deshacer por debajo de cero.
 
 ### 4.4. Distribución visual del contador
@@ -131,6 +140,7 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - La mitad izquierda corresponderá a "Nosotros".
 - La mitad derecha corresponderá a "Ellos".
 - Los nombres de los equipos aparecerán en la parte superior.
+- En el sector superior estará el botón Volver y un botón de menú (hamburguesa) con las mismas opciones que la pantalla principal, más la opción de cambiar el puntaje de victoria.
 - Debajo de cada nombre se encontrará la zona de dibujo correspondiente.
 - Los símbolos se dispondrán de arriba hacia abajo, manteniendo un diseño uniforme.
 - En la parte inferior central estarán los botones "N" y "E", uno debajo de cada mitad.
@@ -142,8 +152,12 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 
 - La zona de dibujo simulará una hoja con renglones horizontales.
 - Los símbolos, los textos y los números se apoyarán sobre un renglón, dejando un pequeño margen visible sin tocar la línea.
-- El puntaje de victoria (objetivo) se mostrará centrado verticalmente sobre los renglones, antes de iniciar la partida.
-- Los botones de incremento y decremento del objetivo serán la excepción: se centrarán dentro de su renglón.
+
+**Cambio del puntaje de victoria**
+
+- El puntaje de victoria no se muestra dentro de la zona de dibujo: se cambia desde el sector superior.
+- La opción del menú muestra el puntaje actual entre dos botones "−" y "+", que lo ajustan de 5 en 5.
+- El botón "−" se deshabilita cuando el puntaje ya no puede bajar sin quedar en un valor alcanzado.
 
 **Desplazamiento del contador**
 
@@ -158,9 +172,9 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 ### 4.5. Finalización de partidas
 
 - Alcanzar el puntaje de victoria no finalizará automáticamente la partida.
-- Al alcanzar ese puntaje aparecerá la opción de confirmar la finalización.
+- Al alcanzar ese puntaje aparecerá la opción de confirmar la finalización, como un diálogo modal superpuesto (el mismo componente que usa la confirmación de cancelar la creación de un grupo), no como una franja dentro de la pantalla.
 - El anotador podrá corregir el marcador antes de confirmar.
-- Rechazar la confirmación ("No") mantendrá el marcador alcanzado; para corregirlo se usará Deshacer.
+- Rechazar la confirmación ("No") descontará el punto que alcanzó el puntaje de victoria, para poder continuar la partida; después se podrá corregir con Deshacer, que quita el movimiento completo.
 - Solamente el anotador podrá confirmar la finalización.
 - Una vez confirmada, la partida pasará al historial de partidas jugadas.
 - El resultado se incorporará a las estadísticas.
@@ -198,7 +212,7 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - Enfrenta "Nosotros" (el usuario) contra "Ellos".
 - Gana el usuario si gana "Nosotros"; pierde si gana "Ellos".
 - Tiene timer y pausa, igual que la partida de grupo.
-- El puntaje de victoria es configurable, con un valor por defecto.
+- El puntaje de victoria es configurable, con un valor por defecto, igual que en la partida de grupo (desde el sector superior del contador).
 - Se guarda en el historial personal de partidas rápidas.
 - No genera estadísticas de grupos, ni de rivales, ni de compañeros.
 
@@ -206,7 +220,7 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 
 Cada grupo dispondrá de un historial de partidas finalizadas válidas. El historial se consulta entrando al grupo correspondiente desde la pantalla principal, no como una pantalla suelta.
 
-Además, el usuario tendrá un historial personal de partidas rápidas, separado del de cada grupo.
+Las partidas rápidas no generan historial: se juegan de forma rápida y solo cuentan para las estadísticas personales del usuario.
 
 Para cada partida se guardará:
 
@@ -220,7 +234,7 @@ Para cada partida se guardará:
 - Equipo ganador.
 - Usuario que creó y finalizó la partida.
 
-Cada partida de grupo se identifica por los integrantes de cada equipo (por ejemplo, "Juan y Pedro 30 – 21 Luis y Ana"), nunca por las etiquetas "Nosotros" y "Ellos". Las partidas rápidas se identifican como "Partida rápida".
+Cada partida de grupo se identifica por los integrantes de cada equipo (por ejemplo, "Juan y Pedro 30 – 21 Luis y Ana"), nunca por las etiquetas "Nosotros" y "Ellos".
 
 El historial y las estadísticas de grupo dependen de que existan grupos e integrantes: sin ellos no hay a quién atribuir cada partida de grupo. Por eso los grupos y los integrantes deben implementarse antes que el historial y las estadísticas de grupo.
 
@@ -249,7 +263,15 @@ Resumen del grupo, visible para todos sus integrantes.
 - Integrante con peor porcentaje de victorias.
 - Integrante con más partidas jugadas.
 - Mejor pareja (los dos integrantes con mejor porcentaje de victorias juntos).
-- Cantidad de partidas por modalidad (solo partidas de grupo).
+- Mejor trío (los tres integrantes con mejor porcentaje de victorias juntos).
+- Peor pareja (los dos integrantes con peor porcentaje de victorias juntos).
+- Peor trío (los tres integrantes con peor porcentaje de victorias juntos).
+
+Una pareja se cuenta cuando dos integrantes jugaron en el mismo equipo, aunque ese equipo tuviera tres integrantes. Un trío se cuenta cuando los tres integrantes jugaron juntos en el mismo equipo.
+
+Las comparaciones entre integrantes se presentan de forma visual (podio olímpico, barras y rankings), no solo como listas de datos.
+
+El podio muestra hasta tres integrantes ordenados por puntos (ver §6.4), desempatando por porcentaje de victorias y luego por cantidad de victorias. Dos integrantes comparten el mismo puesto cuando tienen los mismos puntos, el mismo porcentaje de victorias **y** la misma cantidad de victorias; en ese caso se muestran los tres bloques con el mismo número de puesto. Cada bloque del podio muestra los puntos, el porcentaje de victorias y la cantidad de partidas jugadas.
 
 ### 6.2. Estadísticas individuales del grupo
 
@@ -265,6 +287,10 @@ Para cada integrante del grupo, sus números dentro de ese grupo.
 - Peor compañero (menor porcentaje de victorias juntos).
 - Racha más larga de victorias y de derrotas.
 
+El porcentaje de victorias se representa con un anillo circular lleno según el porcentaje, con un color interpolado de forma continua (rojo en los valores bajos, ámbar en los medios y verde en los altos) y el número visible en el centro.
+
+En la pestaña individual se comparan los integrantes mediante un ranking ordenado por porcentaje de victorias; al tocar el nombre de un integrante se accede a su ficha individual con el detalle de estos datos.
+
 ### 6.3. Enfrentamientos
 
 Tabla donde se consulta, para cada integrante contra cada uno del resto del grupo:
@@ -272,7 +298,22 @@ Tabla donde se consulta, para cada integrante contra cada uno del resto del grup
 - Cantidad de partidas jugadas entre ambos.
 - Porcentaje de victorias de cada uno contra el otro.
 
-### 6.4. Perfil personal
+Se presenta como una grilla simétrica: el eje de filas muestra los nombres y el eje de columnas, las fotos de perfil; cada celda, el resultado entre ambos.
+
+### 6.4. Sistema de puntos (Pts)
+
+Cada integrante acumula puntos (Pts) dentro de cada grupo, según los resultados de las partidas de grupo. Los puntos se calculan a partir de las partidas ya guardadas, procesándolas en orden cronológico (del más antigua al más reciente), porque la ganancia y la pérdida de cada partida dependen del puntaje acumulado en ese momento.
+
+- Una partida vale, como base, el objetivo de la partida (a 40 puntos, 40; a 30 puntos, 30; a 20 puntos, 20).
+- La diferencia de puntos de la partida ajusta el movimiento: golear (por ejemplo 40 a 0) mueve el máximo y ganar ajustado (por ejemplo 40 a 39) mueve menos. El factor va de 0,8 (partida ajustada) a 1,0 (goleada).
+- La diferencia de puntaje acumulado entre los dos equipos ajusta el movimiento: si el ganador tiene muchos más puntos que el perdedor, gana menos puntos (y, simétricamente, el perdedor resta menos); si el ganador tiene menos puntos, gana más. Este ajuste va de 0,6 a 1,3.
+- Ayuda por puntaje bajo: cuanto menos puntos tiene un integrante, más fácil le resulta sumar. En 0 puntos sus victorias valen el doble (x2) y a partir de 200 puntos valen x1, disminuyendo gradualmente en el medio.
+- Las derrotas son menos negativas que las victorias: un integrante con poco puntaje resta muy poco (cerca de x0,1 en 0 puntos), subiendo gradualmente hasta x1 a partir de 200 puntos.
+- Ningún integrante puede quedar con puntaje negativo: el total nunca baja de 0.
+
+Los Pts solo se calculan para partidas de grupo, porque las partidas rápidas no tienen integrantes asociados.
+
+### 6.5. Perfil personal
 
 Los usuarios tendrán un perfil con sus estadísticas personales: sus partidas rápidas más las de los integrantes a los que están vinculados, en todos sus grupos.
 
@@ -356,6 +397,68 @@ Antes de comenzar el desarrollo deberán definirse:
 - Comportamiento ante pérdida de datos locales o cambio de dispositivo.
 - Sistema de copias de seguridad y recuperación.
 - Alcance de la primera versión funcional (MVP).
+
+## 11. Consistencia visual
+
+Todas las pantallas se diseñarán con el sistema de interfaz compartido, para que el espaciado y la composición sean idénticos en toda la app:
+
+- Toda pantalla se construye con los componentes compartidos (`src/components/ui.tsx`): `Screen`, `PageHeader`, `ScreenContent`, `ScreenFooter`, `Panel`, `Rows`, `Button`, `TextInput`, etc.
+- El bloque `ScreenContent` define el ancho máximo, el espaciado lateral y la distancia entre la barra superior negra y el primer elemento del contenido. Ese espaciado es único para toda la app: no se repite ni se ajusta en cada pantalla.
+- Los colores, radios, tamaños de toque y espaciados provienen de los tokens de `src/index.css`. No se definen valores locales que contradigan a los compartidos.
+- Las particularidades de una pantalla (por ejemplo, la zona de dibujo del contador) no alteran el espaciado base de las demás.
+- Si una pantalla necesita un elemento de interfaz nuevo, primero se agrega al sistema compartido y recién después se usa en esa pantalla.
+
+---
+
+## 12. Reglas de diseño
+
+Reglas visuales transversales a toda la app. Se aplican siempre, incluso si una pantalla puntual "se vería bien" de otro modo. Ante conflicto, estas reglas tienen prioridad.
+
+### 12.1. Jerarquía y coherencia de líneas
+
+El grosor de toda línea divisoria proviene de los tokens de `src/index.css` y respeta **siempre** una escala de tres niveles ordenada por jerarquía. El grosor debe ordenarse igual que la jerarquía: una línea de menor jerarquía nunca puede ser más gruesa que una de mayor jerarquía, sin importar el color.
+
+| Nivel | Jerarquía | Grosor | Token | Uso |
+| --- | --- | --- | --- | --- |
+| 1 | Máxima | 3px | `--rule-width` | Separación entre zonas mayores: barra superior negra ↔ contenido, eje de encabezados ↔ cuerpo de la grilla. Sobre negro se dibuja en crema (`--paper`); sobre crema, en tinta (`--ink`). |
+| 2 | Media | 2px | `--border-width` | Separación entre secciones sobre crema, bordes de paneles, tarimas y campos. |
+| 3 | Mínima | 1px | `--hairline-width` | Divisiones dentro de una misma sección: filas, subdivisores, celdas de la grilla. Sobre crema en tinta tenue (`--line-thin`), sobre negro en crema tenue (`--line-paper`). |
+
+- Ninguna división de nivel 3 (filas, celdas) puede ser más gruesa que una de nivel 2, ni una de nivel 2 más gruesa que una de nivel 1.
+- Los grosores no se escriben con valores literales en los `*.module.css`: se usan siempre los tokens.
+
+### 12.2. Áreas negras contiguas
+
+Dos elementos con fondo negro (botones, celdas, encabezados) nunca se muestran uno al lado del otro sin una línea crema de separación entre ellos. El borde negro seguido de negro se ve mal; siempre hay una división visible.
+
+### 12.3. Uso de tarjetas
+
+Las tarjetas (`Panel`, `PanelLink`) se usan **exclusivamente** en la pantalla principal para presentar grupos. En el resto de la app el contenido se estructura con secciones full-bleed (`Section`), no con tarjetas flotantes.
+
+### 12.4. Elementos flotantes
+
+Los elementos no "flotan" con separaciones arbitrarias ni centrados sueltos. Las grillas ocupan el ancho de la pantalla y se anclan a los bordes de la sección.
+
+### 12.5. Prioridad de correcciones
+
+Estas reglas recogen correcciones ya hechas en el pasado. Una corrección visual indicada por el responsable del proyecto se aplica en toda la app (no solo en la pantalla señalada) y se documenta aquí para no repetir el error.
+
+### 12.6. Escala de espaciado
+
+Todos los `padding`, `gap` y `margin` de bloques provienen de una escala de múltiplos de 4px definida como tokens en `src/index.css`. No se escriben valores literales de espaciado en los `*.module.css`.
+
+| Token | Valor |
+| --- | --- |
+| `--space-1` | 4px |
+| `--space-2` | 8px |
+| `--space-3` | 12px |
+| `--space-4` | 16px |
+| `--space-5` | 20px |
+| `--space-6` | 24px |
+| `--space-8` | 32px |
+
+- Se permite usar valores fuera de la escala únicamente para micro-ajustes tipográficos (por ejemplo, la separación de 2px entre un número y su etiqueta), nunca para el espaciado de layout.
+- Los `margin: 0`, `padding: 0` y `gap: 0` (resets) no se tokenizan.
 
 ---
 

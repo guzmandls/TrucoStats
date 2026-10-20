@@ -10,6 +10,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { GameContext } from '../counter/gameContext'
 import {
+  GAME_VERSION,
   QUICK_SLOT,
   clearGame,
   groupSlot,
@@ -20,6 +21,7 @@ import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { GroupScreen } from './GroupScreen'
 import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
+import { clearMembership, loadMembership } from './membership'
 import type { Group } from './types'
 
 const group: Group = {
@@ -52,7 +54,7 @@ const groupContext: GameContext = {
 }
 
 const emptyGame: PersistedGame = {
-  version: 1,
+  version: GAME_VERSION,
   target: 30,
   firstReached: null,
   declined: false,
@@ -118,6 +120,7 @@ describe('GroupScreen', () => {
     await clearGame(QUICK_SLOT)
     await clearGame(groupSlot('g1'))
     await clearGame(groupSlot('g2'))
+    clearMembership()
     await saveGroup(group)
   })
 
@@ -192,8 +195,15 @@ describe('GroupScreen', () => {
 
     const history = await screen.findByTestId('historial')
     expect(
-      within(history).getByText('Juan y Pedro 30 – 21 Luis y Ana'),
+      within(history).getByText((_, element) => {
+        return (
+          element?.textContent?.replace(/\s+/g, ' ').trim() ===
+          'Juan - Pedro vs Luis - Ana'
+        )
+      }),
     ).toBeInTheDocument()
+    expect(within(history).getByText('30')).toBeInTheDocument()
+    expect(within(history).getByText('21')).toBeInTheDocument()
     expect(within(history).getByText(/2v2 · 30 puntos/)).toBeInTheDocument()
   })
 
@@ -216,12 +226,10 @@ describe('GroupScreen', () => {
 
     const history = await screen.findByTestId('historial')
     const titles = within(history)
-      .getAllByRole('listitem')
-      .map((item) => item.firstElementChild?.textContent)
-    expect(titles).toEqual([
-      'Juan y Pedro 30 – 21 Luis y Ana',
-      'Juan y Pedro 30 – 15 Luis y Ana',
-    ])
+      .getAllByTestId('partida')
+      .map((row) => row.textContent ?? '')
+    expect(titles[0]).toContain('30–21')
+    expect(titles[1]).toContain('30–15')
   })
 
   it('no muestra partidas de otros grupos ni partidas rápidas', async () => {
@@ -233,7 +241,7 @@ describe('GroupScreen', () => {
     renderGroup()
 
     const history = await screen.findByTestId('historial')
-    expect(within(history).getAllByRole('listitem')).toHaveLength(1)
+    expect(within(history).getAllByTestId('partida')).toHaveLength(1)
     expect(screen.queryByText(/Partida rápida/)).not.toBeInTheDocument()
   })
 
@@ -242,5 +250,88 @@ describe('GroupScreen', () => {
     expect(
       await screen.findByText('Todavía no hay partidas'),
     ).toBeInTheDocument()
+  })
+
+  it('vuelve al inicio con el botón de la barra', async () => {
+    renderGroup()
+    fireEvent.click(await screen.findByRole('button', { name: 'Volver' }))
+    expect(await screen.findByText('inicio')).toBeInTheDocument()
+  })
+
+  it('muestra el nombre del grupo en la barra', async () => {
+    renderGroup()
+    expect(
+      await screen.findByRole('heading', { level: 1, name: group.name }),
+    ).toBeInTheDocument()
+  })
+
+  it('enlaza a las estadísticas y a los participantes del grupo', async () => {
+    renderGroup()
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    expect(
+      await screen.findByRole('link', { name: 'Estadísticas' }),
+    ).toHaveAttribute('href', `/grupo/${group.id}/estadisticas`)
+    expect(screen.getByRole('link', { name: 'Participantes' })).toHaveAttribute(
+      'href',
+      `/grupo/${group.id}/participantes`,
+    )
+  })
+
+  it('pide confirmación antes de salir del grupo', async () => {
+    renderGroup()
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Salir del grupo' }),
+    )
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
+      `¿Quieres salir del grupo “Los del truco”?`,
+    )
+  })
+
+  it('transfiere la administración al salir si quedan integrantes', async () => {
+    renderGroup()
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Salir del grupo' }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Salir' }))
+
+    expect(await screen.findByText('inicio')).toBeInTheDocument()
+    const [saved] = await loadGroups()
+    expect(saved.adminMemberId).toBe('m2')
+  })
+
+  it('advierte y borra el grupo al salir si es el único integrante', async () => {
+    await deleteGroup('g1')
+    await saveGroup({
+      ...group,
+      members: [{ id: 'm1', name: 'Juan' }],
+      adminMemberId: 'm1',
+    })
+    renderGroup()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Salir del grupo' }),
+    )
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
+      /Se borrarán las estadísticas del grupo/,
+    )
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Salir' }))
+    expect(await screen.findByText('inicio')).toBeInTheDocument()
+    expect(await loadGroups()).toEqual([])
+  })
+
+  it('quita el grupo de la pertenencia al salir', async () => {
+    renderGroup()
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Salir del grupo' }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Salir' }))
+
+    await screen.findByText('inicio')
+    expect(loadMembership()).not.toContain('g1')
   })
 })

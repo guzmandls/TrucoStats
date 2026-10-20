@@ -48,6 +48,7 @@ function renderScreen() {
       <Routes>
         <Route path="/partida-grupo/:id" element={<StartGroupGameScreen />} />
         <Route path="/partida" element={<NavStateProbe />} />
+        <Route path="/grupo/:id" element={<div>pantalla del grupo</div>} />
         <Route path="/" element={<div>inicio</div>} />
       </Routes>
     </MemoryRouter>,
@@ -55,7 +56,9 @@ function renderScreen() {
 }
 
 function row(memberName: string): HTMLElement {
-  return screen.getByText(memberName).closest('li') as HTMLElement
+  return screen
+    .getByText(memberName)
+    .closest('[data-testid="integrante"]') as HTMLElement
 }
 
 function addTo(memberName: string, side: 'Nosotros' | 'Ellos') {
@@ -66,13 +69,25 @@ function addTo(memberName: string, side: 'Nosotros' | 'Ellos') {
   )
 }
 
-function targetInput(): HTMLInputElement {
-  return screen.getByLabelText('Objetivo') as HTMLInputElement
+function objectiveGroup(): HTMLElement {
+  return screen.getByRole('group', { name: 'Objetivo' })
+}
+
+function objectiveValue(): string {
+  return within(objectiveGroup()).getByText(/^\d+$/).textContent ?? ''
+}
+
+function raiseObjective(times = 1) {
+  for (let i = 0; i < times; i += 1) {
+    fireEvent.click(
+      within(objectiveGroup()).getByRole('button', { name: 'Subir objetivo' }),
+    )
+  }
 }
 
 async function renderLoaded() {
   renderScreen()
-  await screen.findByRole('heading', { name: /Iniciar partida/ })
+  await screen.findByText('Juan')
 }
 
 describe('StartGroupGameScreen', () => {
@@ -84,7 +99,7 @@ describe('StartGroupGameScreen', () => {
 
   it('muestra el objetivo por defecto de 2v2 antes de elegir equipos', async () => {
     await renderLoaded()
-    expect(targetInput()).toHaveValue(30)
+    expect(objectiveValue()).toBe('30')
     expect(screen.getByRole('button', { name: 'Comenzar' })).toBeDisabled()
   })
 
@@ -92,7 +107,7 @@ describe('StartGroupGameScreen', () => {
     await renderLoaded()
     addTo('Juan', 'Nosotros')
     addTo('Pedro', 'Ellos')
-    expect(targetInput()).toHaveValue(20)
+    expect(objectiveValue()).toBe('20')
     expect(screen.getByRole('button', { name: 'Comenzar' })).toBeEnabled()
   })
 
@@ -104,16 +119,27 @@ describe('StartGroupGameScreen', () => {
     addTo('Ana', 'Ellos')
     addTo('Sofía', 'Ellos')
     addTo('Diego', 'Ellos')
-    expect(targetInput()).toHaveValue(40)
+    expect(objectiveValue()).toBe('40')
     expect(screen.getByRole('button', { name: 'Comenzar' })).toBeEnabled()
   })
 
   it('conserva el objetivo modificado por el usuario', async () => {
     await renderLoaded()
-    fireEvent.change(targetInput(), { target: { value: '25' } })
+    raiseObjective()
     addTo('Juan', 'Nosotros')
     addTo('Pedro', 'Ellos')
-    expect(targetInput()).toHaveValue(25)
+    expect(objectiveValue()).toBe('35')
+  })
+
+  it('vuelve al grupo con el botón de la barra', async () => {
+    await renderLoaded()
+    fireEvent.click(screen.getByRole('button', { name: 'Volver' }))
+    expect(await screen.findByText('pantalla del grupo')).toBeInTheDocument()
+  })
+
+  it('coloca el contenido en el bloque de contenido compartido', async () => {
+    await renderLoaded()
+    expect(screen.getByRole('main')).toContainElement(objectiveGroup())
   })
 
   it('bloquea Comenzar si los equipos tienen distinta cantidad', async () => {
@@ -147,8 +173,24 @@ describe('StartGroupGameScreen', () => {
     await renderLoaded()
     addTo('Juan', 'Nosotros')
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Elegí al menos un integrante en cada equipo.',
+      'Elige al menos un integrante en cada equipo.',
     )
+  })
+
+  it('mueve a un integrante al otro equipo al tocar el lado contrario', async () => {
+    await renderLoaded()
+    addTo('Juan', 'Nosotros')
+    expect(
+      within(row('Juan')).getByRole('button', { name: 'Quitar de Nosotros' }),
+    ).toBeInTheDocument()
+
+    addTo('Juan', 'Ellos')
+    expect(
+      within(row('Juan')).getByRole('button', { name: 'Quitar de Ellos' }),
+    ).toBeInTheDocument()
+    expect(
+      within(row('Juan')).getByRole('button', { name: 'Agregar a Nosotros' }),
+    ).toBeInTheDocument()
   })
 
   it('navega al contador con los integrantes, la modalidad y el objetivo', async () => {

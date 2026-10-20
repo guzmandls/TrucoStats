@@ -17,8 +17,8 @@ interface HoldButtonProps {
 
 const HOLD_DELAY = 300
 const MAX_INTERVAL = 150
-const MIN_INTERVAL = 45
-const ACCELERATION = 15
+const MIN_INTERVAL = 50
+const ACCELERATION = 4
 
 export function HoldButton({
   onStart,

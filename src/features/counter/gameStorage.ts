@@ -1,10 +1,11 @@
 import { GAME_STORE, put, read, remove } from '../../lib/db'
 import type { Team } from './counterLogic'
 import { isGameContext, quickContext, type GameContext } from './gameContext'
+import type { TimerState } from './gameTimer'
 
 const LEGACY_GAME_KEY = 'current'
 
-export const GAME_VERSION = 1
+export const GAME_VERSION = 2
 
 export interface PersistedGame {
   version: number
@@ -13,6 +14,7 @@ export interface PersistedGame {
   declined?: boolean
   history: Record<Team, number[]>
   context?: GameContext
+  timer?: TimerState
 }
 
 export type GameSlot = string
@@ -21,6 +23,17 @@ export const QUICK_SLOT: GameSlot = 'quick'
 
 function isTeam(value: unknown): value is Team {
   return value === 'nos' || value === 'ellos'
+}
+
+function isTimerState(value: unknown): value is TimerState {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+  const timer = value as Record<string, unknown>
+  return (
+    typeof timer.baseSeconds === 'number' &&
+    (timer.startedAt === null || typeof timer.startedAt === 'number')
+  )
 }
 
 function isPersistedGame(value: unknown): value is PersistedGame {
@@ -34,7 +47,8 @@ function isPersistedGame(value: unknown): value is PersistedGame {
     (game.firstReached === null || isTeam(game.firstReached)) &&
     typeof game.history === 'object' &&
     game.history !== null &&
-    (game.context === undefined || isGameContext(game.context))
+    (game.context === undefined || isGameContext(game.context)) &&
+    (game.timer === undefined || isTimerState(game.timer))
   )
 }
 

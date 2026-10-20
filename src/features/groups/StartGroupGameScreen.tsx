@@ -1,13 +1,28 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
+import { BackIcon } from '../../components/Icons'
+import {
+  Button,
+  HeaderIconButton,
+  PageHeader,
+  Rows,
+  Screen,
+  ScreenContent,
+  ScreenFooter,
+  Section,
+  Stepper,
+} from '../../components/ui'
 import { clearGame, gameSlot } from '../counter/gameStorage'
 import type { GameContext } from '../counter/gameContext'
-import { clampTarget } from '../counter/useCounter'
+import { MIN_TARGET, MAX_TARGET, clampTarget } from '../counter/useCounter'
 import type { Modality, Participant } from '../matches/types'
 import { loadGroups } from './groupsStorage'
 import type { Group } from './types'
+import styles from './StartGroupGameScreen.module.css'
 
 type TeamSide = 'nos' | 'ellos'
+
+const TARGET_STEP = 5
 
 const DEFAULT_TARGETS: Record<Modality, number> = {
   '1v1': 20,
@@ -55,7 +70,6 @@ export function StartGroupGameScreen() {
   }, [id, navigate])
 
   const members = group?.members ?? []
-  const selected = useMemo(() => new Set([...nos, ...ellos]), [nos, ellos])
 
   const teamsAreValid =
     nos.length > 0 && nos.length === ellos.length && nos.length <= 3
@@ -65,18 +79,37 @@ export function StartGroupGameScreen() {
     (modality ? DEFAULT_TARGETS[modality] : DEFAULT_TARGETS['2v2'])
 
   if (!group) {
-    return <div>Cargando...</div>
+    return (
+      <Screen>
+        <PageHeader
+          title="Iniciar partida"
+          leading={
+            <HeaderIconButton label="Volver" onClick={() => navigate('/')}>
+              <BackIcon />
+            </HeaderIconButton>
+          }
+        />
+        <ScreenContent>{null}</ScreenContent>
+      </Screen>
+    )
   }
 
   const toggleMember = (memberId: string, side: TeamSide) => {
-    if (selected.has(memberId)) {
-      setNos((prev) => prev.filter((m) => m !== memberId))
-      setEllos((prev) => prev.filter((m) => m !== memberId))
+    const inSide =
+      side === 'nos' ? nos.includes(memberId) : ellos.includes(memberId)
+    if (inSide) {
+      if (side === 'nos') {
+        setNos((prev) => prev.filter((m) => m !== memberId))
+      } else {
+        setEllos((prev) => prev.filter((m) => m !== memberId))
+      }
       return
     }
     if (side === 'nos') {
+      setEllos((prev) => prev.filter((m) => m !== memberId))
       setNos((prev) => [...prev, memberId])
     } else {
+      setNos((prev) => prev.filter((m) => m !== memberId))
       setEllos((prev) => [...prev, memberId])
     }
   }
@@ -105,61 +138,96 @@ export function StartGroupGameScreen() {
     : nos.length > 3 || ellos.length > 3
       ? 'Cada equipo puede tener hasta 3 integrantes.'
       : nos.length === 0 || ellos.length === 0
-        ? 'Elegí al menos un integrante en cada equipo.'
+        ? 'Elige al menos un integrante en cada equipo.'
         : 'Los dos equipos deben tener la misma cantidad de integrantes.'
 
+  const setTarget = (value: number) => {
+    setTargetOverride(clampTarget(value))
+  }
+
   return (
-    <div>
-      <h1>Iniciar partida - {group.name}</h1>
-      <div>
-        <label>
-          Objetivo
-          <input
-            type="number"
-            min={10}
-            max={100}
-            step={5}
-            value={target}
-            onChange={(event) => {
-              const value = Number(event.target.value)
-              if (!Number.isNaN(value)) {
-                setTargetOverride(clampTarget(value))
-              }
-            }}
-          />
-        </label>
-      </div>
-      <h2>Integrantes</h2>
-      <ul>
-        {members.map((member) => {
-          const inNos = nos.includes(member.id)
-          const inEllos = ellos.includes(member.id)
-          return (
-            <li key={member.id}>
-              <span>{member.name}</span>
-              <button
-                type="button"
-                onClick={() => toggleMember(member.id, 'nos')}
-              >
-                {inNos ? 'Quitar de Nosotros' : 'Agregar a Nosotros'}
-              </button>
-              <button
-                type="button"
-                onClick={() => toggleMember(member.id, 'ellos')}
-              >
-                {inEllos ? 'Quitar de Ellos' : 'Agregar a Ellos'}
-              </button>
-            </li>
-          )
-        })}
-      </ul>
-      {problem && <p role="alert">{problem}</p>}
-      <button type="button" onClick={start} disabled={!teamsAreValid}>
-        Comenzar
-      </button>
-      <button type="button" onClick={() => navigate(`/grupo/${group.id}`)}>
-        Volver
-      </button>
-    </div>
+    <Screen>
+      <PageHeader
+        title="Iniciar partida"
+        leading={
+          <HeaderIconButton
+            label="Volver"
+            onClick={() => navigate(`/grupo/${group.id}`)}
+          >
+            <BackIcon />
+          </HeaderIconButton>
+        }
+      />
+      <ScreenContent flush>
+        <div className={styles.top}>
+          {problem && (
+            <p className={styles.alert} role="alert">
+              {problem}
+            </p>
+          )}
+        </div>
+
+        <Section title="Objetivo">
+          <div
+            className={styles.targetBlock}
+            role="group"
+            aria-label="Objetivo"
+          >
+            <Stepper
+              value={target}
+              min={MIN_TARGET}
+              max={MAX_TARGET}
+              decreaseLabel="Bajar objetivo"
+              increaseLabel="Subir objetivo"
+              onDecrease={() => setTarget(target - TARGET_STEP)}
+              onIncrease={() => setTarget(target + TARGET_STEP)}
+            />
+          </div>
+        </Section>
+
+        <Section title="Equipos">
+          <Rows>
+            {members.map((member) => {
+              const inNos = nos.includes(member.id)
+              const inEllos = ellos.includes(member.id)
+              return (
+                <div key={member.id} data-testid="integrante">
+                  <div className={styles.memberRow}>
+                    <span className={styles.memberName}>{member.name}</span>
+                    <span className={styles.memberActions}>
+                      <button
+                        type="button"
+                        className={inNos ? styles.sideOn : styles.side}
+                        aria-label={
+                          inNos ? 'Quitar de Nosotros' : 'Agregar a Nosotros'
+                        }
+                        onClick={() => toggleMember(member.id, 'nos')}
+                      >
+                        N
+                      </button>
+                      <button
+                        type="button"
+                        className={inEllos ? styles.sideOn : styles.side}
+                        aria-label={
+                          inEllos ? 'Quitar de Ellos' : 'Agregar a Ellos'
+                        }
+                        onClick={() => toggleMember(member.id, 'ellos')}
+                      >
+                        E
+                      </button>
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </Rows>
+        </Section>
+      </ScreenContent>
+      <ScreenFooter>
+        <Button variant="inverse" onClick={start} disabled={!teamsAreValid}>
+          Comenzar
+        </Button>
+      </ScreenFooter>
+    </Screen>
   )
 }

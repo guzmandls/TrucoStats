@@ -3,10 +3,29 @@
   --ink: #1c1c1c;
   --line: rgba(28, 28, 28, 0.1);
   --line-strong: rgba(28, 28, 28, 0.45);
+  --line-thin: rgba(28, 28, 28, 0.18);
+  --line-paper: rgba(247, 244, 234, 0.18);
+  --grid-line-paper: rgba(247, 244, 234, 0.3);
+  --panel: #dedacd;
+  --panel-deep: #cfcabb;
+  --radius: 14px;
+  --radius-pill: 999px;
+  --tap-height: 52px;
   --row-height: 40px;
   --symbol-block: calc(var(--row-height) * 3);
   --divider-width: 1px;
+  --rule-width: 3px;
+  --border-width: 2px;
+  --hairline-width: 1px;
   --row-gap: 6px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
 
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;

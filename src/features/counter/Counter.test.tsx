@@ -66,21 +66,43 @@ describe('CounterScreen', () => {
     expect(screen.getByTestId('score-nos')).toHaveTextContent('1')
   })
 
-  it('permite cambiar el objetivo antes de empezar', () => {
+  it('abre el menú con las mismas opciones que el inicio', () => {
     renderCounter()
-    fireEvent.click(screen.getByRole('button', { name: /subir objetivo/i }))
-    expect(screen.getByText('35')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
+    expect(
+      screen.getByRole('link', { name: 'Crear grupo' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ver perfil' })).toBeInTheDocument()
   })
 
-  it('oculta el objetivo tras iniciar la partida', () => {
+  it('permite cambiar la puntuación máxima antes de empezar', () => {
     renderCounter()
-    expect(
-      screen.getByRole('button', { name: /subir objetivo/i }),
-    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Subir puntuación máxima' }),
+    )
+    expect(screen.getByTestId('objective-value')).toHaveTextContent('35')
+  })
+
+  it('permite cambiar la puntuación máxima con la partida empezada', () => {
+    renderCounter()
     pressButton('N')
+    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Subir puntuación máxima' }),
+    )
+    expect(screen.getByTestId('objective-value')).toHaveTextContent('35')
+  })
+
+  it('no permite bajar la puntuación máxima por debajo del puntaje logrado', () => {
+    renderCounter()
+    for (let i = 0; i < 25; i += 1) {
+      pressButton('N')
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
     expect(
-      screen.queryByRole('button', { name: /subir objetivo/i }),
-    ).not.toBeInTheDocument()
+      screen.getByRole('button', { name: 'Bajar puntuación máxima' }),
+    ).toBeDisabled()
   })
 
   it('pide confirmar el ganador al alcanzar el objetivo', () => {
@@ -102,13 +124,13 @@ describe('CounterScreen', () => {
     expect(screen.getByTestId('score-ellos')).toHaveTextContent('0')
   })
 
-  it('el botón No mantiene el puntaje y quita el aviso', () => {
+  it('el botón No descuenta el punto de la victoria y quita el aviso', () => {
     renderCounter()
     for (let i = 0; i < 30; i += 1) {
       pressButton('N')
     }
     fireEvent.click(screen.getByRole('button', { name: /^no$/i }))
-    expect(screen.getByTestId('score-nos')).toHaveTextContent('30')
+    expect(screen.getByTestId('score-nos')).toHaveTextContent('29')
     expect(screen.queryByText(/el equipo ganador es/i)).not.toBeInTheDocument()
   })
 
@@ -120,9 +142,6 @@ describe('CounterScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: /^sí$/i }))
     expect(screen.getByTestId('score-nos')).toHaveTextContent('0')
     expect(screen.getByTestId('score-ellos')).toHaveTextContent('0')
-    expect(
-      screen.getByRole('button', { name: /subir objetivo/i }),
-    ).toBeInTheDocument()
   })
 })
 

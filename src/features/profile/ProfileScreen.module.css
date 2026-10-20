@@ -1,0 +1,26 @@
+.empty {
+  margin: 0;
+  padding: var(--space-6) var(--space-4);
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-5) var(--space-4);
+}
+
+.heroFigures {
+  flex: 1;
+  display: flex;
+}
+
+.heroFigures > * {
+  flex: 1;
+}
+
+.heroFigures > * + * {
+  border-left: var(--hairline-width) solid var(--line-thin);
+}

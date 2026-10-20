@@ -77,6 +77,17 @@ export function undo(state: CounterState, team: Team): CounterState {
   if (actions.length === 0) {
     return committed
   }
+  const history = { ...committed.history }
+  history[team] = actions.slice(0, -1)
+  return { history, pending: null }
+}
+
+export function removeLastPoint(state: CounterState, team: Team): CounterState {
+  const committed = commit(state)
+  const actions = committed.history[team]
+  if (actions.length === 0) {
+    return committed
+  }
   const last = actions[actions.length - 1]
   const history = { ...committed.history }
   if (last > 1) {
@@ -103,13 +114,32 @@ export function updateFirstReached(
   if (current && !hasReachedTarget(state, current, target)) {
     return null
   }
+  const nosReached = hasReachedTarget(state, 'nos', target)
+  const ellosReached = hasReachedTarget(state, 'ellos', target)
+  if (nosReached && ellosReached) {
+    const pn = displayPoints(state, 'nos')
+    const pe = displayPoints(state, 'ellos')
+    if (pn === pe) {
+      return null
+    }
+    if (current && current === (pn > pe ? 'nos' : 'ellos')) {
+      return current
+    }
+    return pn > pe ? 'nos' : 'ellos'
+  }
   if (!current) {
-    if (hasReachedTarget(state, 'nos', target)) {
+    if (nosReached && !ellosReached) {
       return 'nos'
     }
-    if (hasReachedTarget(state, 'ellos', target)) {
+    if (ellosReached && !nosReached) {
       return 'ellos'
     }
+  }
+  if (current && nosReached && !ellosReached) {
+    return 'nos'
+  }
+  if (current && ellosReached && !nosReached) {
+    return 'ellos'
   }
   return current
 }
@@ -117,17 +147,21 @@ export function updateFirstReached(
 export function winnerOf(
   state: CounterState,
   target: number,
-  firstReached: Team | null,
 ): Team | null {
   const nosReached = hasReachedTarget(state, 'nos', target)
   const ellosReached = hasReachedTarget(state, 'ellos', target)
   if (nosReached && ellosReached) {
-    return firstReached
+    const pn = displayPoints(state, 'nos')
+    const pe = displayPoints(state, 'ellos')
+    if (pn === pe) {
+      return null
+    }
+    return pn > pe ? 'nos' : 'ellos'
   }
-  if (nosReached) {
+  if (nosReached && !ellosReached) {
     return 'nos'
   }
-  if (ellosReached) {
+  if (ellosReached && !nosReached) {
     return 'ellos'
   }
   return null

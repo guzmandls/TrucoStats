@@ -8,6 +8,7 @@ import {
   hasStarted,
   increment,
   pointsOf,
+  removeLastPoint,
   undo,
   updateFirstReached,
   winnerOf,
@@ -69,9 +70,11 @@ describe('contador - sumar puntos', () => {
 })
 
 describe('contador - deshacer', () => {
-  it('deshace un punto a la vez', () => {
+  it('deshace el último movimiento completo', () => {
     let state = createInitialState()
     state = commit(increment(state, 'nos', 30))
+    expect(pointsOf(state, 'nos')).toBe(1)
+
     state = increment(state, 'nos', 30)
     state = increment(state, 'nos', 30)
     state = increment(state, 'nos', 30)
@@ -79,13 +82,14 @@ describe('contador - deshacer', () => {
     expect(pointsOf(state, 'nos')).toBe(4)
 
     state = undo(state, 'nos')
-    expect(pointsOf(state, 'nos')).toBe(3)
+    expect(pointsOf(state, 'nos')).toBe(1)
 
     state = undo(state, 'nos')
-    expect(pointsOf(state, 'nos')).toBe(2)
+    expect(pointsOf(state, 'nos')).toBe(0)
+    expect(canUndo(state, 'nos')).toBe(false)
   })
 
-  it('descuenta de a un punto una pulsación prolongada', () => {
+  it('deshace una pulsación prolongada completa', () => {
     let state = createInitialState()
     state = increment(state, 'nos', 30)
     state = increment(state, 'nos', 30)
@@ -93,10 +97,6 @@ describe('contador - deshacer', () => {
     state = commit(state)
     expect(state.history.nos).toEqual([3])
 
-    state = undo(state, 'nos')
-    expect(state.history.nos).toEqual([2])
-
-    state = undo(state, 'nos')
     state = undo(state, 'nos')
     expect(state.history.nos).toEqual([])
     expect(canUndo(state, 'nos')).toBe(false)
@@ -114,6 +114,33 @@ describe('contador - deshacer', () => {
     state = undo(state, 'nos')
     expect(pointsOf(state, 'nos')).toBe(0)
     expect(pointsOf(state, 'ellos')).toBe(1)
+  })
+})
+
+describe('contador - quitar un punto', () => {
+  it('descuenta un punto del último movimiento', () => {
+    let state = createInitialState()
+    state = commit(increment(state, 'nos', 30))
+    state = increment(state, 'nos', 30)
+    state = increment(state, 'nos', 30)
+    state = commit(state)
+    expect(state.history.nos).toEqual([1, 2])
+    expect(pointsOf(state, 'nos')).toBe(3)
+
+    state = removeLastPoint(state, 'nos')
+    expect(state.history.nos).toEqual([1, 1])
+    expect(pointsOf(state, 'nos')).toBe(2)
+  })
+
+  it('quita el movimiento cuando valía un solo punto', () => {
+    let state = commit(increment(createInitialState(), 'nos', 30))
+    state = removeLastPoint(state, 'nos')
+    expect(state.history.nos).toEqual([])
+  })
+
+  it('no hace nada si no hay movimientos', () => {
+    const state = createInitialState()
+    expect(removeLastPoint(state, 'nos')).toEqual(state)
   })
 })
 
@@ -140,12 +167,12 @@ describe('contador - ganador', () => {
   it('sin alcanzar el objetivo no hay ganador', () => {
     let state = createInitialState()
     state = commit(increment(state, 'nos', 30))
-    expect(winnerOf(state, 30, null)).toBeNull()
+    expect(winnerOf(state, 30)).toBeNull()
   })
 
   it('el equipo que alcanza el objetivo es el ganador', () => {
     const state = reach('ellos', 30)
-    expect(winnerOf(state, 30, null)).toBe('ellos')
+    expect(winnerOf(state, 30)).toBe('ellos')
   })
 
   it('registra al primero en alcanzar el objetivo', () => {

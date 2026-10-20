@@ -31,8 +31,19 @@ import {
   type PersistedGame,
 } from './gameStorage'
 import { quickContext, type GameContext } from './gameContext'
+import { removeLastPoint } from './counterLogic'
+import {
+  createTimer,
+  elapsedSeconds,
+  isPaused,
+  pauseTimer as pauseTimerState,
+  resumeTimer as resumeTimerState,
+  type TimerState,
+} from './gameTimer'
 import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
+import { computePointsDelta } from '../matches/points'
+import { loadMatchesByGroupId } from '../matches/matchesStorage'
 
 export const DEFAULT_TARGET = 30
 export const MIN_TARGET = 10
@@ -45,6 +56,7 @@ interface GameState {
   firstReached: Team | null
   declined: boolean
   context: GameContext
+  timer: TimerState
 }
 
 type GameAction =
@@ -54,11 +66,22 @@ type GameAction =
   | { type: 'setTarget'; target: number }
   | { type: 'confirm' }
   | { type: 'decline' }
+  | { type: 'pauseTimer'; now: number }
+  | { type: 'resumeTimer'; now: number }
   | { type: 'hydrate'; state: GameState }
 
-export function clampTarget(target: number): number {
+export function clampTarget(target: number, min: number = MIN_TARGET): number {
   const stepped = Math.round(target / TARGET_STEP) * TARGET_STEP
-  return Math.min(MAX_TARGET, Math.max(MIN_TARGET, stepped))
+  return Math.min(MAX_TARGET, Math.max(min, stepped))
+}
+
+export function minTargetFor(counter: CounterState): number {
+  const highest = Math.max(
+    displayPoints(counter, 'nos'),
+    displayPoints(counter, 'ellos'),
+  )
+  const needed = Math.ceil((highest + 1) / TARGET_STEP) * TARGET_STEP
+  return Math.min(MAX_TARGET, Math.max(MIN_TARGET, needed))
 }
 
 function withFirstReached(state: GameState, counter: CounterState): GameState {
@@ -75,6 +98,17 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     return action.state
   }
 
+  if (action.type === 'pauseTimer') {
+    return { ...state, timer: pauseTimerState(state.timer, action.now) }
+  }
+  if (action.type === 'resumeTimer') {
+    return { ...state, timer: resumeTimerState(state.timer, action.now) }
+  }
+
+  if (isPaused(state.timer) && action.type !== 'setTarget') {
+    return state
+  }
+
   switch (action.type) {
     case 'increment':
       return withFirstReached(
@@ -85,21 +119,41 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       return withFirstReached(state, commit(state.counter))
     case 'undo':
       return withFirstReached(state, undo(state.counter, action.team))
-    case 'setTarget':
-      if (hasStarted(state.counter)) {
-        return state
+    case 'setTarget': {
+      const target = clampTarget(action.target, minTargetFor(state.counter))
+      return {
+        ...state,
+        target,
+        firstReached: updateFirstReached(
+          state.counter,
+          target,
+          state.firstReached,
+        ),
+        declined: false,
       }
-      return { ...state, target: clampTarget(action.target) }
+    }
     case 'confirm':
-      if (!winnerOf(state.counter, state.target, state.firstReached)) {
+      if (!winnerOf(state.counter, state.target)) {
         return state
       }
       return createGameState(state.target, state.context)
-    case 'decline':
-      if (!winnerOf(state.counter, state.target, state.firstReached)) {
+    case 'decline': {
+      const winner = winnerOf(state.counter, state.target)
+      if (!winner) {
         return state
       }
-      return { ...state, declined: true }
+      const counter = removeLastPoint(state.counter, winner)
+      return {
+        ...state,
+        counter,
+        firstReached: updateFirstReached(
+          counter,
+          state.target,
+          state.firstReached,
+        ),
+        declined: true,
+      }
+    }
     default:
       return state
   }
@@ -115,6 +169,7 @@ function createGameState(
     firstReached: null,
     declined: false,
     context,
+    timer: createTimer(Date.now()),
   }
 }
 
@@ -131,6 +186,7 @@ function fromPersisted(game: PersistedGame): GameState {
     firstReached: game.firstReached,
     declined: game.declined ?? false,
     context: contextOf(game),
+    timer: game.timer ?? createTimer(Date.now()),
   }
 }
 
@@ -195,6 +251,7 @@ export function useCounter(
       declined: state.declined,
       history: state.counter.history,
       context: state.context,
+      timer: state.timer,
     }),
     [
       state.target,
@@ -202,6 +259,7 @@ export function useCounter(
       state.declined,
       state.counter.history,
       state.context,
+      state.timer,
     ],
   )
 
@@ -244,7 +302,7 @@ export function useCounter(
   }, [])
 
   const confirm = useCallback(() => {
-    const winnerTeam = winnerOf(state.counter, state.target, state.firstReached)
+    const winnerTeam = winnerOf(state.counter, state.target)
     if (winnerTeam) {
       const match: Match = {
         id: createId(),
@@ -252,7 +310,7 @@ export function useCounter(
         groupId: state.context.groupId,
         modality: state.context.modality,
         playedAt: new Date().toISOString(),
-        durationSeconds: null,
+        durationSeconds: elapsedSeconds(state.timer, Date.now()),
         target: state.target,
         winner: winnerTeam,
         teams: state.context.teams,
@@ -262,18 +320,75 @@ export function useCounter(
         },
       }
       void saveMatch(match)
+      if (state.context.groupId) {
+        void (async () => {
+          const existing = await loadMatchesByGroupId(state.context.groupId!)
+          const ids = new Set<string>()
+          for (const m of existing) {
+            for (const side of ['nos', 'ellos'] as Team[]) {
+              for (const p of m.teams[side]) {
+                ids.add(p.id)
+              }
+            }
+          }
+          for (const side of ['nos', 'ellos'] as Team[]) {
+            for (const p of state.context.teams[side]) {
+              ids.add(p.id)
+            }
+          }
+          const delta = computePointsDelta(Array.from(ids), existing, match)
+          const changes = Array.from(delta.entries())
+            .filter(([, d]) => d !== 0)
+            .map(([id, d]) => `${id}:${(d as number) > 0 ? '+' : ''}${d as number}`)
+          if (changes.length > 0) {
+            try {
+              sessionStorage.setItem('trucostats:pointsDelta', changes.join(','))
+            } catch {}
+          }
+        })()
+      }
     }
     dispatch({ type: 'confirm' })
-  }, [points, state.context, state.counter, state.firstReached, state.target])
+  }, [
+    points,
+    state.context,
+    state.counter,
+    state.firstReached,
+    state.target,
+    state.timer,
+  ])
 
   const decline = useCallback(() => {
     dispatch({ type: 'decline' })
   }, [])
 
-  const winner = winnerOf(state.counter, state.target, state.firstReached)
+  const paused = isPaused(state.timer)
+
+  const togglePause = useCallback(() => {
+    dispatch(
+      isPaused(state.timer)
+        ? { type: 'resumeTimer', now: Date.now() }
+        : { type: 'pauseTimer', now: Date.now() },
+    )
+  }, [state.timer])
+
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    if (paused) {
+      return
+    }
+    const interval = window.setInterval(() => setNow(Date.now()), 1000)
+    return () => window.clearInterval(interval)
+  }, [paused])
+
+  const elapsed = elapsedSeconds(state.timer, now)
+
+  const winner = winnerOf(state.counter, state.target)
 
   return {
     target: state.target,
+    minTarget: minTargetFor(state.counter),
     context: state.context,
     started: hasStarted(state.counter),
     winner,
@@ -287,5 +402,8 @@ export function useCounter(
     setTarget,
     confirm,
     decline,
+    paused,
+    togglePause,
+    elapsed,
   }
 }

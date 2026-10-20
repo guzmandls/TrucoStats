@@ -1,7 +1,22 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { BackIcon } from '../../components/Icons'
+import {
+  Button,
+  ConfirmDialog,
+  HeaderIconButton,
+  PageHeader,
+  Screen,
+  ScreenContent,
+  ScreenFooter,
+  Section,
+  Stepper,
+  TextInput,
+} from '../../components/ui'
 import type { Group, Member } from './types'
 import { saveGroup } from './groupsStorage'
+import { addMembership } from './membership'
+import styles from './CreateGroupScreen.module.css'
 
 function createId() {
   if (
@@ -17,13 +32,25 @@ export function CreateGroupScreen() {
   const navigate = useNavigate()
   const [name, setName] = useState('')
   const [count, setCount] = useState(2)
+  const [confirming, setConfirming] = useState(false)
   const [members, setMembers] = useState<Member[]>([
-    { id: createId(), name: '' },
+    { id: createId(), name: 'Administrador' },
     { id: createId(), name: '' },
   ])
 
+  const hasData =
+    name.trim() !== '' || members.some((member, index) => index !== 0 && member.name.trim() !== '')
+
+  const handleCancel = () => {
+    if (hasData) {
+      setConfirming(true)
+    } else {
+      navigate('/')
+    }
+  }
+
   const handleCountChange = (newCount: number) => {
-    const nextCount = Math.max(1, Math.min(15, newCount))
+    const nextCount = Math.max(1, newCount)
     setCount(nextCount)
     setMembers((prev) => {
       const next: Member[] = []
@@ -56,59 +83,83 @@ export function CreateGroupScreen() {
       createdAt: now,
     }
     await saveGroup(group)
+    addMembership(group.id)
     navigate('/')
   }
 
   return (
-    <div>
-      <h1>Crear grupo</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>
-            Nombre del grupo
-            <input
+    <Screen>
+      <PageHeader
+        title="Crear grupo"
+        leading={
+          <HeaderIconButton label="Volver" onClick={handleCancel}>
+            <BackIcon />
+          </HeaderIconButton>
+        }
+      />
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <ScreenContent flush>
+          <Section title="Nombre del grupo">
+            <div className={styles.groupName}>
+            <TextInput
+              aria-label="Nombre del grupo"
+              placeholder="Los del barrio"
               value={name}
               onChange={(event) => setName(event.target.value)}
+              maxLength={20}
             />
-          </label>
-        </div>
-        <div>
-          <label>
-            Cantidad de integrantes
-            <input
-              type="number"
-              min={1}
-              max={15}
-              value={count}
-              onChange={(event) => {
-                const value = Number(event.target.value)
-                if (!Number.isNaN(value)) {
-                  handleCountChange(value)
-                }
-              }}
-            />
-          </label>
-        </div>
-        <div>
-          {members.map((member, index) => (
-            <div key={member.id}>
-              <label>
-                Integrante {index + 1}
-                <input
-                  value={member.name}
-                  onChange={(event) =>
-                    handleMemberNameChange(index, event.target.value)
-                  }
-                />
-              </label>
             </div>
-          ))}
-        </div>
-        <button type="submit">Guardar grupo</button>
-        <button type="button" onClick={() => navigate('/')}>
-          Cancelar
-        </button>
+          </Section>
+
+          <Section title="Cantidad de integrantes">
+            <div className={styles.quantityBody}>
+              <Stepper
+                value={count}
+                min={1}
+                decreaseLabel="Quitar integrante"
+                increaseLabel="Agregar integrante"
+                onDecrease={() => handleCountChange(count - 1)}
+                onIncrease={() => handleCountChange(count + 1)}
+              />
+            </div>
+          </Section>
+
+          <Section title="Integrantes">
+            <div className={styles.members}>
+              {members.map((member, index) => (
+                <label key={member.id} className={styles.memberRow}>
+                  <span className={styles.memberIndex}>{index + 1}</span>
+                  <input
+                    className={styles.memberInput}
+                    aria-label={`Integrante ${index + 1}`}
+                    placeholder={
+                      index === 0 ? 'Nombre del administrador' : 'Nombre del integrante'
+                    }
+                    value={member.name}
+                    onChange={(event) =>
+                      handleMemberNameChange(index, event.target.value)
+                    }
+                    readOnly={index === 0}
+                  />
+                </label>
+              ))}
+            </div>
+          </Section>
+        </ScreenContent>
+
+        <ScreenFooter>
+          <Button type="submit" variant="inverse">
+            Guardar grupo
+          </Button>
+        </ScreenFooter>
       </form>
-    </div>
+      {confirming && (
+        <ConfirmDialog
+          title="¿Quieres cancelar la creación del grupo?"
+          onConfirm={() => navigate('/')}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
+    </Screen>
   )
 }

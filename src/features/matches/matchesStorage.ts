@@ -55,6 +55,11 @@ function isMatch(value: unknown): value is Match {
   )
 }
 
+export async function loadMatchesByGroupId(groupId: string): Promise<Match[]> {
+  const matches = await loadMatches()
+  return matches.filter((match) => match.groupId === groupId)
+}
+
 export async function loadMatches(): Promise<Match[]> {
   const matches = await readAll<unknown>(MATCHES_STORE)
   return matches.filter(isMatch)

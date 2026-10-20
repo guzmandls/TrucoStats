@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { GAME_STORE, put } from '../../lib/db'
 import type { GameContext } from './gameContext'
 import {
+  GAME_VERSION,
   QUICK_SLOT,
   clearGame,
   gameScore,
@@ -35,11 +36,12 @@ const otherGroupContext: GameContext = {
 }
 
 const emptyGame = {
-  version: 1,
+  version: GAME_VERSION,
   target: 30,
   firstReached: null,
   declined: false,
   history: { nos: [], ellos: [] },
+  timer: { baseSeconds: 0, startedAt: 1000 },
 }
 
 async function clearAllSlots() {
