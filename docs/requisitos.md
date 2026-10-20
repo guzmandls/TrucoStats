@@ -423,12 +423,13 @@ Entra:
 - Backend mínimo (Cloudflare Workers + D1) para guardar y compartir grupos y partidas entre dispositivos.
 - Sincronización de las partidas guardadas sin conexión al recuperar la conectividad.
 - Cuentas simples (registro e inicio de sesión) y vínculo usuario ↔ integrante.
+- Invitaciones: cada grupo tiene un código o enlace secreto, compartible por WhatsApp, para que otras personas entren.
+- Mientras no existan las cuentas, cualquier persona puede crear un grupo.
 
 Queda para después:
 
 - Dibujo asistido con gestos (los botones alcanzan en el MVP).
 - Anulación de partidas e historial de anuladas.
-- Invitaciones por enlace compartible.
 - Perfil personal visible para otros integrantes.
 - Copias de seguridad y recuperación de cuentas.
 

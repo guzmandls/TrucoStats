@@ -23,7 +23,7 @@ TrucoStats es una PWA para contar puntos de truco uruguayo, guardar partidas y c
 - No implementar funcionalidades adicionales a las solicitadas.
 - Proponer pruebas para verificar cada implementación.
 - Seguir un flujo de Git con ramas y commits descriptivos.
-- No realizar commits ni push automáticamente.
+- Se pueden hacer commits al terminar una tarea, y se avisa al desarrollador qué se commiteó y con qué mensaje. Push, pull requests y merges siguen la sección Git.
 - Ante dudas sobre los requisitos, preguntar antes de implementar.
 
 ## Documentación
@@ -37,7 +37,7 @@ TrucoStats es una PWA para contar puntos de truco uruguayo, guardar partidas y c
 
 ## Git (el desarrollador quiere aprender)
 - Antes de cambiar de rama, hacer push, abrir un pull request, mergear o similar, indicar los comandos exactos y explicar por qué se usan.
-- Ejecutarlos solo si el desarrollador lo autoriza explícitamente.
+- Ejecutar push, pull requests, merges y borrado de ramas solo si el desarrollador lo autoriza explícitamente. Los commits y `git add` locales no lo requieren.
 - No agregar líneas `Co-Authored-By` ni otra atribución de IA en commits ni en pull requests.
 - Una rama por funcionalidad. Tras mergear un pull request: actualizar `main` (`git checkout main`, `git pull`), borrar la rama en origin (`git push origin --delete <rama>`) y en local (`git branch -d <rama>`), y limpiar referencias con `git fetch --prune`. No dejar ramas obsoletas.
 - No borrar una rama antes de mergear su pull request.
