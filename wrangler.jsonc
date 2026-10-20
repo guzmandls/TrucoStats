@@ -3,8 +3,21 @@
   "name": "trucostats",
   "account_id": "05bb47daad6508fed7a3a1d1e08f6759",
   "compatibility_date": "2026-10-17",
+  // Código del backend (Worker).
+  "main": "worker/index.ts",
+  // Base de datos D1. El Worker la usa como env.DB.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "trucostats-db",
+      "database_id": "4aca6236-9c06-4837-81f9-e3f0872af0e0",
+      "migrations_dir": "migrations",
+    },
+  ],
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application",
+    // Las rutas /api/* las atiende el Worker; el resto, la app (archivos de dist).
+    "run_worker_first": ["/api/*"],
   },
 }

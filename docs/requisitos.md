@@ -260,7 +260,7 @@ Resumen del grupo, visible para todos sus integrantes.
 
 - Cantidad total de partidas jugadas.
 - Duración promedio de las partidas.
-- Partida más larga y partida más corta.
+- Partida más larga, partida más corta, partida más pareja (menor diferencia de puntos) y partida con mayor diferencia de puntos. Cada una muestra el resultado, los equipos que jugaron y la fecha, sin fotos. Si hay empate, en la más pareja gana la que más duró y en la de mayor diferencia, la que menos duró.
 - Integrante con más victorias.
 - Integrante con mejor porcentaje de victorias.
 - Integrante con más derrotas.
@@ -270,6 +270,13 @@ Resumen del grupo, visible para todos sus integrantes.
 - Mejor trío (los tres integrantes con mejor porcentaje de victorias juntos).
 - Peor pareja (los dos integrantes con peor porcentaje de victorias juntos).
 - Peor trío (los tres integrantes con peor porcentaje de victorias juntos).
+- Mayor racha de victorias y mayor racha de derrotas del grupo.
+- Racha de victorias y racha de derrotas en curso (los resultados seguidos más recientes de cada integrante).
+- Rivalidad más repetida: el par de integrantes que más veces se enfrentó, con las victorias de cada uno.
+
+Una racha son al menos dos resultados seguidos iguales; uno solo no cuenta. Si varios integrantes empatan en una racha (por ejemplo, compañeros de equipo), se muestran todos. Si nadie la tiene, se muestra un guion.
+
+Los nombres de los integrantes de un mismo equipo se separan con un guion ("Juan - Pedro"). En los récords, rachas, parejas, tríos y rivalidades se muestra la foto de cada integrante; cuando son varios, las fotos se apilan superpuestas para ahorrar espacio.
 
 Una pareja se cuenta cuando dos integrantes jugaron en el mismo equipo, aunque ese equipo tuviera tres integrantes. Un trío se cuenta cuando los tres integrantes jugaron juntos en el mismo equipo.
 
@@ -285,15 +292,16 @@ Para cada integrante del grupo, sus números dentro de ese grupo.
 - Victorias y derrotas.
 - Porcentaje de victorias.
 - Duración promedio de sus partidas.
-- Integrante al que más le gana.
-- Integrante contra el que más pierde.
-- Mejor compañero (mayor porcentaje de victorias juntos).
-- Peor compañero (menor porcentaje de victorias juntos).
+- Integrante al que más le gana (con su foto).
+- Integrante contra el que más pierde (con su foto).
+- Mejor compañero (mayor porcentaje de victorias juntos, con su foto).
+- Peor compañero (menor porcentaje de victorias juntos, con su foto).
+- Puntos (Pts) acumulados en el grupo.
 - Racha más larga de victorias y de derrotas.
 
 El porcentaje de victorias se representa con un anillo circular lleno según el porcentaje, con un color interpolado de forma continua (rojo en los valores bajos, ámbar en los medios y verde en los altos) y el número visible en el centro.
 
-En la pestaña individual se comparan los integrantes mediante un ranking ordenado por porcentaje de victorias; al tocar el nombre de un integrante se accede a su ficha individual con el detalle de estos datos.
+En la pestaña individual se comparan los integrantes mediante un ranking ordenado por porcentaje de victorias, que muestra también los puntos de cada uno; al tocar el nombre de un integrante se accede a su ficha individual con el detalle de estos datos.
 
 ### 6.3. Enfrentamientos
 
@@ -415,12 +423,13 @@ Entra:
 - Backend mínimo (Cloudflare Workers + D1) para guardar y compartir grupos y partidas entre dispositivos.
 - Sincronización de las partidas guardadas sin conexión al recuperar la conectividad.
 - Cuentas simples (registro e inicio de sesión) y vínculo usuario ↔ integrante.
+- Invitaciones: cada grupo tiene un código o enlace secreto, compartible por WhatsApp, para que otras personas entren.
+- Mientras no existan las cuentas, cualquier persona puede crear un grupo.
 
 Queda para después:
 
 - Dibujo asistido con gestos (los botones alcanzan en el MVP).
 - Anulación de partidas e historial de anuladas.
-- Invitaciones por enlace compartible.
 - Perfil personal visible para otros integrantes.
 - Copias de seguridad y recuperación de cuentas.
 
@@ -485,6 +494,26 @@ Todos los `padding`, `gap` y `margin` de bloques provienen de una escala de múl
 
 - Se permite usar valores fuera de la escala únicamente para micro-ajustes tipográficos (por ejemplo, la separación de 2px entre un número y su etiqueta), nunca para el espaciado de layout.
 - Los `margin: 0`, `padding: 0` y `gap: 0` (resets) no se tokenizan.
+
+### 12.7. Tipografía
+
+Todo `font-size` proviene de la escala de tokens `--text-xs` a `--text-3xl` de `src/index.css`, y todo `letter-spacing` de `--tracking-tight`, `--tracking-wide` o `--tracking-caps`. No se escriben tamaños literales en los `*.module.css`.
+
+### 12.8. Zonas táctiles
+
+Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
+
+### 12.9. Contraste y estados
+
+- El texto secundario usa `--ink-muted` (o `--paper-muted` sobre negro); no se logra con `opacity`.
+- Los porcentajes y números se muestran en tinta; el color de la escala rojo–verde se reserva para barras y anillos.
+- Los elementos deshabilitados usan un único valor (`--disabled-opacity`).
+
+### 12.10. Componentes compartidos de estado
+
+- Una lista sin datos usa `EmptyNote`; un aviso dentro de la pantalla usa `Notice`.
+- Varias fotos de integrantes juntas usan `AvatarStack`.
+- Dentro de un grupo no se repite el color por defecto de los avatares.
 
 ---
 

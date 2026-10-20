@@ -440,3 +440,119 @@ Conceptos y herramientas nuevos:
   con distintos datos, así que se escribe una sola vez.
 - Adaptar el diseño al contenido: al agregar información, la grilla de tres
   columnas dejó de alcanzar y se cambió por una lista vertical.
+
+## Etapa 14 — Backend: primer Worker
+
+Hecho:
+
+- Primer código de backend en `worker/index.ts`: un Worker con la ruta
+  `/api/salud`, que responde `{"estado":"ok"}`.
+- `wrangler.jsonc` ahora indica dónde está el Worker (`main`) y que las rutas
+  `/api/*` las atiende él primero; el resto sigue sirviendo la app.
+- Configuración de TypeScript propia para el Worker (`tsconfig.worker.json`) y
+  tests en `worker/index.test.ts`.
+- Probado en la PC con `npx wrangler dev`, sin publicar.
+
+Conceptos y herramientas nuevos:
+
+- Backend: programa que corre en un servidor y guarda o entrega datos. La app
+  del celular no puede compartir datos entre usuarios por sí sola.
+- Cloudflare Worker: ese programa, alojado en Cloudflare. Es gratuito en el
+  plan básico y se publica junto con la app.
+- API: la forma en que la app y el backend se hablan, mediante rutas
+  (`/api/grupos`, `/api/partidas`). El prefijo `/api/` las separa de las
+  pantallas de la app.
+- Ruta de salud (health check): ruta que solo responde "estoy funcionando".
+  Sirve para comprobar que el backend está vivo antes de construir sobre él.
+- `wrangler dev`: corre el Worker en tu PC para probarlo sin publicar.
+- JSON: formato de texto con el que la API devuelve datos
+  (`{"estado":"ok"}`).
+
+## Etapa 15 — Base de datos D1
+
+Hecho:
+
+- Se creó la base `trucostats-db` en la cuenta de Cloudflare (D1, plan gratuito).
+- Se conectó al Worker en `wrangler.jsonc` (`binding: "DB"`): el código la usa
+  como `env.DB`.
+- Esquema inicial en `migrations/0001_esquema_inicial.sql`: tablas `groups`,
+  `members`, `matches` y `match_players`.
+- Migración aplicada solo en la copia local (`--local`); la base de Cloudflare
+  sigue vacía.
+
+Conceptos y herramientas nuevos:
+
+- D1: base de datos SQL de Cloudflare (basada en SQLite). Guarda los datos
+  compartidos entre todos los celulares.
+- Migración: archivo SQL numerado que cambia el esquema de la base. Queda en
+  Git y se aplica igual en la PC y en producción, en orden y una sola vez.
+- Binding: nombre con el que el Worker accede a un recurso de Cloudflare
+  (`env.DB`), sin escribir direcciones ni contraseñas en el código.
+- Clave primaria y clave foránea: la primera identifica cada fila; la segunda
+  la enlaza con otra tabla (`members.group_id` apunta a `groups.id`).
+- `ON DELETE CASCADE`: al borrar un grupo se borran sus integrantes. En
+  `matches.group_id` no se usa a propósito: las partidas se conservan.
+- Índice: atajo que acelera las búsquedas frecuentes (partidas de un grupo).
+- Local vs. remoto: `--local` usa una copia en tu PC para probar sin riesgo;
+  `--remote` actúa sobre la base real.
+
+## Etapa 16 — API de grupos con código de invitación
+
+Hecho:
+
+- `POST /api/grupos`: crea un grupo con sus integrantes y devuelve el grupo y su
+  **código de invitación** (32 caracteres aleatorios).
+- `GET /api/grupos/<código>`: devuelve el grupo con sus integrantes activos.
+  Con el id del grupo no se puede entrar: hace falta el código.
+- Validación de lo que envía la app (nombre, integrantes, administrador) con
+  errores claros: 400 si algo es inválido, 409 si el grupo ya existe, 405 si el
+  método no corresponde.
+- Migración `0002_codigo_de_invitacion.sql`: agrega `invite_code` a `groups`.
+- Tests con una base de datos simulada (`worker/testDb.ts`, SQLite de Node), sin
+  depender de Cloudflare. Probado además con `wrangler dev` y `curl`.
+
+Conceptos y herramientas nuevos:
+
+- Método HTTP: `GET` pide datos, `POST` envía datos para crear algo. La misma
+  ruta puede responder distinto según el método.
+- Código de estado: número con el resultado (200 ok, 201 creado, 400 pedido
+  inválido, 404 no existe, 405 método no permitido, 409 conflicto).
+- Validar en el servidor: la app puede equivocarse o ser manipulada; el backend
+  nunca confía en lo que recibe.
+- Código de invitación como contraseña del grupo: 128 bits aleatorios no se
+  pueden adivinar. Es simple y alcanza hasta que existan las cuentas.
+- Id elegido por la app: la app crea el id del grupo, así un grupo creado sin
+  conexión conserva el mismo id al sincronizarse después.
+- Lote atómico (`batch`): guarda el grupo y todos sus integrantes juntos; si
+  algo falla, no queda nada a medias.
+- Dependencia de desarrollo (`@cloudflare/workers-types`): solo agrega tipos de
+  TypeScript para `D1Database` y similares; no se incluye en la app publicada.
+- Prueba de integración: probar la API con peticiones reales (`curl`) además de
+  los tests automáticos.
+
+## Etapa 17 — API de partidas
+
+Hecho:
+
+- `POST /api/grupos/<código>/partidas`: guarda una partida de grupo con sus
+  equipos y puntajes.
+- `GET /api/grupos/<código>/partidas`: lista las partidas del grupo, la más
+  reciente primero.
+- Validaciones: modalidad, fecha, duración, objetivo (10 a 100 de a 5),
+  puntajes enteros, ganador con más puntos, equipos del tamaño de la modalidad,
+  y que todos los jugadores sean integrantes del grupo.
+- Solo se guardan partidas de grupo; las rápidas son personales y por ahora no
+  tienen dónde asociarse (faltan las cuentas).
+- Tests nuevos (`worker/matches.test.ts`) y prueba real con `wrangler dev`.
+
+Conceptos y herramientas nuevos:
+
+- Idempotencia: enviar la misma partida dos veces tiene el mismo efecto que
+  enviarla una. Es clave para sincronizar: si se corta la conexión y la app
+  reintenta, no se duplica nada.
+- Ruta anidada (`/api/grupos/<código>/partidas`): la dirección refleja que las
+  partidas pertenecen a un grupo.
+- Integridad de datos: el servidor comprueba reglas del negocio (por ejemplo,
+  que los jugadores pertenezcan al grupo), no solo el formato.
+- Consulta con unión (`JOIN`): trae en una sola consulta los jugadores de todas
+  las partidas del grupo, en lugar de una consulta por partida.
