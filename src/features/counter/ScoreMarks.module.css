@@ -1,0 +1,19 @@
+.marks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.block {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: var(--symbol-block);
+}
+
+.spacer {
+  width: 100%;
+  height: var(--row-height);
+}

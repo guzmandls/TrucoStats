@@ -19,9 +19,20 @@ TrucoStats es una PWA para contar puntos de truco uruguayo, guardar partidas y c
 - Explicar brevemente las decisiones técnicas y sus motivos.
 - Favorecer soluciones simples, mantenibles y bien organizadas.
 - Dividir el desarrollo en tareas pequeñas y verificables.
-- No modificar archivos ni ejecutar comandos sin autorización explícita.
+- No modificar archivos ni ejecutar comandos sin autorización explícita (excepto `docs/desarrollo.md`, ver "Documentación").
 - No implementar funcionalidades adicionales a las solicitadas.
 - Proponer pruebas para verificar cada implementación.
 - Seguir un flujo de Git con ramas y commits descriptivos.
 - No realizar commits ni push automáticamente.
 - Ante dudas sobre los requisitos, preguntar antes de implementar.
+
+## Documentación
+- `docs/desarrollo.md` es el diario de aprendizaje del proyecto: etapas hechas y conceptos nuevos con su porqué (qué es, para qué se usa, por qué se eligió).
+- Actualizar `docs/desarrollo.md` al terminar cada tarea, sin pedir autorización.
+- Mantenerlo conciso, sencillo y legible: ideas cortas, sin jerga innecesaria.
+- Los requisitos (`docs/requisitos.md`) cambian seguido: proponer los cambios y esperar aprobación antes de escribirlos.
+- Si el código y los requisitos se contradicen, el código actual es la referencia; avisar y proponer actualizar los requisitos.
+
+## Git (el desarrollador quiere aprender)
+- Antes de cambiar de rama, hacer push, abrir un pull request, mergear o similar, indicar los comandos exactos y explicar por qué se usan.
+- Ejecutarlos solo si el desarrollador lo autoriza explícitamente.

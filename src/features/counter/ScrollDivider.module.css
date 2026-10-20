@@ -1,0 +1,20 @@
+.divider {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: stretch;
+  width: 16px;
+  background: transparent;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--divider-width);
+  transform: translateX(calc(var(--divider-width) / -2));
+  background: var(--line-strong);
+}

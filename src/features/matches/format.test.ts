@@ -1,0 +1,85 @@
+import { describe, expect, it } from 'vitest'
+import { matchMeta, matchScore, matchTitle, participantNames } from './format'
+import type { Match, Participant } from './types'
+
+const juan: Participant = { id: 'm1', name: 'Juan' }
+const pedro: Participant = { id: 'm2', name: 'Pedro' }
+const luis: Participant = { id: 'm3', name: 'Luis' }
+const ana: Participant = { id: 'm4', name: 'Ana' }
+
+const groupMatch: Match = {
+  id: 'm1',
+  type: 'group',
+  groupId: 'g1',
+  modality: '2v2',
+  playedAt: '2026-03-05T20:00:00.000Z',
+  durationSeconds: 1800,
+  target: 30,
+  winner: 'nos',
+  teams: { nos: [juan, pedro], ellos: [luis, ana] },
+  scores: { nos: 30, ellos: 21 },
+}
+
+const quickMatch: Match = {
+  ...groupMatch,
+  id: 'm2',
+  type: 'quick',
+  groupId: null,
+  modality: null,
+  durationSeconds: null,
+  teams: { nos: [], ellos: [] },
+}
+
+describe('participantNames', () => {
+  it('devuelve null sin integrantes', () => {
+    expect(participantNames([])).toBeNull()
+  })
+
+  it('usa el nombre con un integrante', () => {
+    expect(participantNames([juan])).toBe('Juan')
+  })
+
+  it('une dos nombres con y', () => {
+    expect(participantNames([juan, pedro])).toBe('Juan y Pedro')
+  })
+
+  it('separa tres nombres con comas y y final', () => {
+    expect(participantNames([juan, pedro, ana])).toBe('Juan, Pedro y Ana')
+  })
+})
+
+describe('matchTitle', () => {
+  it('identifica las partidas rápidas', () => {
+    expect(matchTitle(quickMatch)).toBe('Partida rápida 30 – 21')
+  })
+
+  it('identifica las partidas de grupo por sus integrantes y el resultado', () => {
+    expect(matchTitle(groupMatch)).toBe('Juan y Pedro 30 – 21 Luis y Ana')
+  })
+})
+
+describe('matchScore', () => {
+  it('muestra el resultado final', () => {
+    expect(matchScore(groupMatch)).toBe('30 – 21')
+  })
+})
+
+describe('matchMeta', () => {
+  it('incluye modalidad, objetivo y fecha', () => {
+    const meta = matchMeta(groupMatch)
+    expect(meta).toContain('2v2')
+    expect(meta).toContain('30 puntos')
+    expect(meta).toContain('2026')
+  })
+
+  it('incluye la duración cuando existe', () => {
+    expect(matchMeta(groupMatch)).toContain('30 min')
+    expect(matchMeta(quickMatch)).not.toContain('min')
+  })
+
+  it('omite la modalidad en partidas rápidas', () => {
+    expect(matchMeta(quickMatch)).not.toContain('1v1')
+    expect(matchMeta(quickMatch)).not.toContain('2v2')
+    expect(matchMeta(quickMatch)).not.toContain('3v3')
+  })
+})

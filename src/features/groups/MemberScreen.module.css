@@ -1,0 +1,41 @@
+.empty {
+  margin: 0;
+  padding: var(--space-6) var(--space-4);
+  font-size: 14px;
+  opacity: 0.65;
+}
+
+.photoActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.fileInput {
+  display: none;
+}
+
+.headerPoints {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.pointsCard {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+}
+
+.pointsLabel {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.pointsValue {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

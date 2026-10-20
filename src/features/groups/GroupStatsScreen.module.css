@@ -1,0 +1,383 @@
+.empty {
+  margin: 0;
+  padding: var(--space-6) var(--space-4);
+  font-size: 14px;
+  opacity: 0.65;
+}
+
+/* ---------- Podio ---------- */
+
+.podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-3) 0;
+}
+
+.podiumStep {
+  flex: 1 1 0;
+  max-width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  text-decoration: none;
+  color: var(--ink);
+}
+
+.podiumStep:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.podiumName {
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.podiumRate {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.podiumPoints {
+  margin-top: 2px;
+  font-size: 18px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.podiumBase {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  border: var(--border-width) solid var(--ink);
+  border-bottom: 0;
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.podiumBase[data-place='1'] {
+  height: 72px;
+  background: var(--ink);
+  color: var(--paper);
+}
+.podiumBase[data-place='2'] {
+  height: 52px;
+}
+.podiumBase[data-place='3'] {
+  height: 38px;
+}
+
+.podiumPlace {
+  font-size: 24px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Figuras grandes ---------- */
+
+.figures {
+  display: flex;
+}
+
+.figures > * {
+  flex: 1;
+}
+
+.figures > * + * {
+  border-left: var(--hairline-width) solid var(--line-thin);
+}
+
+/* ---------- Récords de partidas ---------- */
+
+.records {
+  display: flex;
+}
+
+.records > * {
+  flex: 1;
+}
+
+.records > * + * {
+  border-left: var(--hairline-width) solid var(--line-thin);
+}
+
+.record {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-3);
+  min-width: 0;
+  text-align: center;
+}
+
+.recordScore {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordLabel {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.55;
+  max-width: 100%;
+}
+
+.recordMeta {
+  font-size: 12px;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Récords de integrantes ---------- */
+
+.recordList {
+  display: flex;
+  flex-direction: column;
+}
+
+.recordItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+.recordItem + .recordItem {
+  border-top: var(--hairline-width) solid var(--line-thin);
+}
+
+.recordItem .recordLabel {
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.recordMember {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+a.recordMember:hover {
+  opacity: 0.75;
+}
+
+.recordMember:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.recordName {
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordValue {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.recordEmpty {
+  font-size: 16px;
+  opacity: 0.4;
+}
+
+/* ---------- Ranking de integrantes ---------- */
+
+.rank {
+  display: flex;
+  flex-direction: column;
+}
+
+.rankRow {
+  display: grid;
+  grid-template-columns: 24px auto 1fr auto auto;
+  grid-template-areas:
+    'pos avatar name detail rate'
+    'bar bar bar bar bar';
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.rankRow + .rankRow {
+  border-top: var(--hairline-width) solid var(--line-thin);
+}
+
+.rankRow:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+.rankRow:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -3px;
+}
+
+.rankAvatar {
+  grid-area: avatar;
+}
+
+.rankPos {
+  grid-area: pos;
+  align-self: start;
+  font-size: 15px;
+  font-weight: 700;
+  opacity: 0.35;
+  font-variant-numeric: tabular-nums;
+}
+
+.rankName {
+  grid-area: name;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.rankDetail {
+  grid-area: detail;
+  font-size: 12px;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+
+.rankRate {
+  grid-area: rate;
+  min-width: 44px;
+  text-align: right;
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.rankBar {
+  grid-area: bar;
+  height: 6px;
+  margin-top: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+
+.rankBarFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+}
+
+/* ---------- Grilla simétrica de enfrentamientos ---------- */
+
+.gridWrap {
+  overflow-x: hidden;
+}
+
+.grid {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  font-variant-numeric: tabular-nums;
+}
+
+.gridCorner {
+  width: 92px;
+  padding: 0;
+  vertical-align: top;
+  background: var(--ink);
+  border-bottom: var(--rule-width) solid var(--paper);
+}
+
+.gridPagerButton {
+  width: 50%;
+  height: 46px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.gridPagerButton + .gridPagerButton {
+  border-left: var(--hairline-width) solid var(--grid-line-paper);
+}
+
+.gridPagerButton:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.gridColHead {
+  padding: var(--space-2) var(--space-1);
+  text-align: center;
+  vertical-align: bottom;
+  background: var(--ink);
+  border-bottom: var(--rule-width) solid var(--paper);
+}
+
+.gridColHead + .gridColHead {
+  border-left: var(--hairline-width) solid var(--grid-line-paper);
+}
+
+.gridCorner + .gridColHead {
+  border-left: var(--hairline-width) solid var(--grid-line-paper);
+}
+
+.gridRowHead {
+  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--paper);
+  background: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-right: var(--hairline-width) solid var(--grid-line-paper);
+}
+
+tr + tr .gridRowHead {
+  border-top: var(--hairline-width) solid var(--grid-line-paper);
+}
+
+.gridCell {
+  height: 52px;
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  border-top: var(--hairline-width) solid var(--line-thin);
+  border-left: var(--hairline-width) solid var(--line-thin);
+}
+
+.gridCell[data-empty='true'] {
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}

@@ -1,0 +1,66 @@
+.form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.groupName {
+  padding: var(--space-4);
+}
+
+.quantityBody {
+  display: flex;
+  padding: var(--space-4);
+}
+
+.members {
+  display: flex;
+  flex-direction: column;
+}
+
+.memberRow {
+  display: flex;
+  align-items: stretch;
+  min-height: var(--tap-height);
+}
+
+.memberRow + .memberRow {
+  border-top: var(--hairline-width) solid var(--line-thin);
+}
+
+.memberIndex {
+  flex: 0 0 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  color: var(--paper);
+  border-right: var(--rule-width) solid var(--paper);
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.memberInput {
+  flex: 1;
+  min-width: 0;
+  padding: 0 var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.memberInput[readonly] {
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+}
+
+.memberInput::placeholder {
+  opacity: 0.4;
+}
+
+.memberInput:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: calc(var(--border-width) * -1);
+}
