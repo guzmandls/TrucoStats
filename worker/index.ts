@@ -1,7 +1,9 @@
 import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
+import { createMatch, listMatches } from './matches'
 
 const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
+const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -24,6 +26,17 @@ export default {
         return errorResponse('Método no permitido', 405)
       }
       return getGroupByInviteCode(byCode[1], env)
+    }
+
+    const matchesOfGroup = MATCHES_OF_GROUP.exec(pathname)
+    if (matchesOfGroup) {
+      if (request.method === 'POST') {
+        return createMatch(matchesOfGroup[1], request, env)
+      }
+      if (request.method === 'GET') {
+        return listMatches(matchesOfGroup[1], env)
+      }
+      return errorResponse('Método no permitido', 405)
     }
 
     return errorResponse('No encontrado', 404)

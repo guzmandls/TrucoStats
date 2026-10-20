@@ -529,3 +529,30 @@ Conceptos y herramientas nuevos:
   TypeScript para `D1Database` y similares; no se incluye en la app publicada.
 - Prueba de integración: probar la API con peticiones reales (`curl`) además de
   los tests automáticos.
+
+## Etapa 17 — API de partidas
+
+Hecho:
+
+- `POST /api/grupos/<código>/partidas`: guarda una partida de grupo con sus
+  equipos y puntajes.
+- `GET /api/grupos/<código>/partidas`: lista las partidas del grupo, la más
+  reciente primero.
+- Validaciones: modalidad, fecha, duración, objetivo (10 a 100 de a 5),
+  puntajes enteros, ganador con más puntos, equipos del tamaño de la modalidad,
+  y que todos los jugadores sean integrantes del grupo.
+- Solo se guardan partidas de grupo; las rápidas son personales y por ahora no
+  tienen dónde asociarse (faltan las cuentas).
+- Tests nuevos (`worker/matches.test.ts`) y prueba real con `wrangler dev`.
+
+Conceptos y herramientas nuevos:
+
+- Idempotencia: enviar la misma partida dos veces tiene el mismo efecto que
+  enviarla una. Es clave para sincronizar: si se corta la conexión y la app
+  reintenta, no se duplica nada.
+- Ruta anidada (`/api/grupos/<código>/partidas`): la dirección refleja que las
+  partidas pertenecen a un grupo.
+- Integridad de datos: el servidor comprueba reglas del negocio (por ejemplo,
+  que los jugadores pertenezcan al grupo), no solo el formato.
+- Consulta con unión (`JOIN`): trae en una sola consulta los jugadores de todas
+  las partidas del grupo, en lugar de una consulta por partida.
