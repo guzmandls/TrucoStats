@@ -440,3 +440,30 @@ Conceptos y herramientas nuevos:
   con distintos datos, así que se escribe una sola vez.
 - Adaptar el diseño al contenido: al agregar información, la grilla de tres
   columnas dejó de alcanzar y se cambió por una lista vertical.
+
+## Etapa 14 — Backend: primer Worker
+
+Hecho:
+
+- Primer código de backend en `worker/index.ts`: un Worker con la ruta
+  `/api/salud`, que responde `{"estado":"ok"}`.
+- `wrangler.jsonc` ahora indica dónde está el Worker (`main`) y que las rutas
+  `/api/*` las atiende él primero; el resto sigue sirviendo la app.
+- Configuración de TypeScript propia para el Worker (`tsconfig.worker.json`) y
+  tests en `worker/index.test.ts`.
+- Probado en la PC con `npx wrangler dev`, sin publicar.
+
+Conceptos y herramientas nuevos:
+
+- Backend: programa que corre en un servidor y guarda o entrega datos. La app
+  del celular no puede compartir datos entre usuarios por sí sola.
+- Cloudflare Worker: ese programa, alojado en Cloudflare. Es gratuito en el
+  plan básico y se publica junto con la app.
+- API: la forma en que la app y el backend se hablan, mediante rutas
+  (`/api/grupos`, `/api/partidas`). El prefijo `/api/` las separa de las
+  pantallas de la app.
+- Ruta de salud (health check): ruta que solo responde "estoy funcionando".
+  Sirve para comprobar que el backend está vivo antes de construir sobre él.
+- `wrangler dev`: corre el Worker en tu PC para probarlo sin publicar.
+- JSON: formato de texto con el que la API devuelve datos
+  (`{"estado":"ok"}`).
