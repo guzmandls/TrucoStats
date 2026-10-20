@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
+  EmptyNote,
   Figure,
   HeaderIconButton,
   PageHeader,
@@ -59,7 +60,7 @@ export function ProfileScreen() {
       />
       <ScreenContent flush>
         {summary && summary.total === 0 ? (
-          <p className={styles.empty}>Todavía no jugaste ninguna partida</p>
+          <EmptyNote>Todavía no jugaste ninguna partida</EmptyNote>
         ) : null}
 
         {summary && summary.total > 0 && (

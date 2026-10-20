@@ -10,6 +10,7 @@ import {
   Section,
 } from '../../components/ui'
 import { memberStats } from '../matches/groupStats'
+import { avatarColors } from './avatar'
 import { fileToAvatarDataUrl } from './imageFile'
 import { updateMemberAvatar } from './groupsStorage'
 import { MemberStatsFicha, MemberStatsRows } from './MemberStats'
@@ -61,6 +62,7 @@ export function MemberScreen() {
   }
 
   const stats = memberStats(member, matches)
+  const colors = avatarColors(group.members.map((item) => item.id))
 
   async function handleFile(file: File | undefined) {
     if (!file || !group) {
@@ -104,14 +106,11 @@ export function MemberScreen() {
       />
       <ScreenContent flush>
         <Section>
-          <MemberStatsFicha member={member} stats={stats} />
-        </Section>
-
-        <Section>
-          <div className={styles.pointsCard}>
-            <span className={styles.pointsLabel}>Puntos</span>
-            <span className={styles.pointsValue}>{memberPoints ?? 0}</span>
-          </div>
+          <MemberStatsFicha
+            member={member}
+            color={colors[member.id]}
+            stats={stats}
+          />
         </Section>
 
         <Section title="Foto">
@@ -147,7 +146,11 @@ export function MemberScreen() {
         </Section>
 
         <Section title="Detalle">
-          <MemberStatsRows stats={stats} />
+          <MemberStatsRows
+            stats={stats}
+            members={group.members}
+            colors={colors}
+          />
         </Section>
       </ScreenContent>
     </Screen>

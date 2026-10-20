@@ -27,6 +27,35 @@
   --space-6: 24px;
   --space-8: 32px;
 
+  /* Escala tipográfica: todo font-size sale de aquí. */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 22px;
+  --text-2xl: 28px;
+  --text-3xl: 42px;
+
+  /* Interletrado: sutil (textos), amplio (botones/títulos) y versales (etiquetas). */
+  --tracking-tight: 0.4px;
+  --tracking-wide: 1px;
+  --tracking-caps: 2px;
+
+  /* Texto secundario con contraste suficiente sobre el papel (≈5:1). */
+  --ink-muted: color-mix(in srgb, var(--ink) 68%, var(--paper));
+  /* Lo mismo, para texto crema sobre fondo negro. */
+  --paper-muted: color-mix(in srgb, var(--paper) 70%, var(--ink));
+  --disabled-opacity: 0.4;
+  /* Fondo de barras y anillos de porcentaje. */
+  --track: color-mix(in srgb, var(--ink) 14%, transparent);
+
+  --tap-min: 44px;
+  --header-height: 56px;
+  --footer-height: calc(
+    var(--space-5) * 2 + var(--tap-height) + var(--rule-width)
+  );
+  --shadow-raised: 0 10px 24px color-mix(in srgb, var(--ink) 35%, transparent);
+
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.4;

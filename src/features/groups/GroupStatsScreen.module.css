@@ -1,10 +1,3 @@
-.empty {
-  margin: 0;
-  padding: var(--space-6) var(--space-4);
-  font-size: 14px;
-  opacity: 0.65;
-}
-
 /* ---------- Podio ---------- */
 
 .podium {
@@ -28,13 +21,13 @@
 }
 
 .podiumStep:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: var(--border-width) solid var(--ink);
   outline-offset: 2px;
-  border-radius: 8px;
+  border-radius: var(--space-2);
 }
 
 .podiumName {
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   text-align: center;
   overflow: hidden;
@@ -44,14 +37,14 @@
 }
 
 .podiumRate {
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 .podiumPoints {
-  margin-top: 2px;
-  font-size: 18px;
+  margin-top: var(--space-1);
+  font-size: var(--text-lg);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -80,7 +73,7 @@
 }
 
 .podiumPlace {
-  font-size: 24px;
+  font-size: var(--text-xl);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -101,47 +94,59 @@
 
 /* ---------- Récords de partidas ---------- */
 
-.records {
+.matchRecordHead {
   display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
 }
 
-.records > * {
-  flex: 1;
-}
-
-.records > * + * {
-  border-left: var(--hairline-width) solid var(--line-thin);
-}
-
-.record {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-5) var(--space-3);
-  min-width: 0;
-  text-align: center;
-}
-
-.recordScore {
-  font-size: 26px;
+.matchRecordValue {
+  font-size: var(--text-md);
   font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
+.matchRecordScore {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.scoreWin {
+  color: var(--ink);
+}
+
+.scoreLoss,
+.scoreDash,
+.matchVs {
+  color: var(--ink-muted);
+}
+
+.scoreDash {
+  font-size: var(--text-lg);
+}
+
+.matchRecordTeams {
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
 .recordLabel {
-  font-size: 12px;
-  letter-spacing: 1px;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  opacity: 0.55;
+  color: var(--ink-muted);
   max-width: 100%;
 }
 
 .recordMeta {
-  font-size: 12px;
-  opacity: 0.55;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
@@ -164,10 +169,10 @@
 }
 
 .recordItem .recordLabel {
-  font-size: 12px;
-  letter-spacing: 1px;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  opacity: 0.55;
+  color: var(--ink-muted);
 }
 
 .recordMember {
@@ -179,34 +184,33 @@
 }
 
 a.recordMember:hover {
-  opacity: 0.75;
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
 }
 
 .recordMember:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: var(--border-width) solid var(--ink);
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: var(--space-2);
 }
 
 .recordName {
   flex: 1;
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .recordValue {
-  font-size: 22px;
+  font-size: var(--text-xl);
   font-weight: 700;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .recordEmpty {
-  font-size: 16px;
-  opacity: 0.4;
+  font-size: var(--text-md);
+  color: var(--ink-muted);
 }
 
 /* ---------- Ranking de integrantes ---------- */
@@ -218,9 +222,9 @@ a.recordMember:hover {
 
 .rankRow {
   display: grid;
-  grid-template-columns: 24px auto 1fr auto auto;
+  grid-template-columns: var(--space-6) auto 1fr auto auto;
   grid-template-areas:
-    'pos avatar name detail rate'
+    'pos avatar info points rate'
     'bar bar bar bar bar';
   align-items: center;
   gap: var(--space-1) var(--space-3);
@@ -238,7 +242,7 @@ a.recordMember:hover {
 }
 
 .rankRow:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: var(--border-width) solid var(--ink);
   outline-offset: -3px;
 }
 
@@ -249,40 +253,54 @@ a.recordMember:hover {
 .rankPos {
   grid-area: pos;
   align-self: start;
-  font-size: 15px;
+  font-size: var(--text-sm);
   font-weight: 700;
-  opacity: 0.35;
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
+.rankInfo {
+  grid-area: info;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
 .rankName {
-  grid-area: name;
-  font-size: 15px;
+  font-size: var(--text-sm);
   font-weight: 600;
 }
 
+.rankPoints {
+  grid-area: points;
+  text-align: right;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .rankDetail {
-  grid-area: detail;
-  font-size: 12px;
-  opacity: 0.55;
+  font-size: var(--text-xs);
+  color: var(--ink-muted);
   font-variant-numeric: tabular-nums;
 }
 
 .rankRate {
   grid-area: rate;
-  min-width: 44px;
+  min-width: var(--tap-min);
   text-align: right;
-  font-size: 16px;
+  font-size: var(--text-md);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .rankBar {
   grid-area: bar;
-  height: 6px;
+  height: var(--space-2);
   margin-top: var(--space-1);
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  background: var(--track);
   overflow: hidden;
 }
 
@@ -315,14 +333,14 @@ a.recordMember:hover {
 
 .gridPagerButton {
   width: 50%;
-  height: 46px;
+  height: var(--tap-min);
   display: inline-grid;
   place-items: center;
   padding: 0;
   border: 0;
   background: var(--ink);
   color: var(--paper);
-  font-size: 18px;
+  font-size: var(--text-lg);
   line-height: 1;
   cursor: pointer;
 }
@@ -332,7 +350,7 @@ a.recordMember:hover {
 }
 
 .gridPagerButton:disabled {
-  opacity: 0.25;
+  opacity: var(--disabled-opacity);
   cursor: default;
 }
 
@@ -355,7 +373,7 @@ a.recordMember:hover {
 .gridRowHead {
   padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
   text-align: left;
-  font-size: 14px;
+  font-size: var(--text-sm);
   font-weight: 600;
   color: var(--paper);
   background: var(--ink);
@@ -370,7 +388,7 @@ tr + tr .gridRowHead {
 }
 
 .gridCell {
-  height: 52px;
+  height: var(--tap-height);
   padding: 0;
   text-align: center;
   vertical-align: middle;

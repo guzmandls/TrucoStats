@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   ButtonLink,
+  EmptyNote,
   HeaderMenu,
   PageHeader,
   PanelLink,
@@ -108,7 +109,7 @@ export function HomeScreen() {
       />
       <ScreenContent>
         {groups.length === 0 ? (
-          <p className={styles.empty}>Aún no hay grupos</p>
+          <EmptyNote>Aún no hay grupos</EmptyNote>
         ) : (
           <div className={styles.groups}>
             {groups.map((group) => (

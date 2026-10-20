@@ -144,10 +144,7 @@ export function updateFirstReached(
   return current
 }
 
-export function winnerOf(
-  state: CounterState,
-  target: number,
-): Team | null {
+export function winnerOf(state: CounterState, target: number): Team | null {
   const nosReached = hasReachedTarget(state, 'nos', target)
   const ellosReached = hasReachedTarget(state, 'ellos', target)
   if (nosReached && ellosReached) {

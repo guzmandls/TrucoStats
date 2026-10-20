@@ -39,7 +39,8 @@ export function CreateGroupScreen() {
   ])
 
   const hasData =
-    name.trim() !== '' || members.some((member, index) => index !== 0 && member.name.trim() !== '')
+    name.trim() !== '' ||
+    members.some((member, index) => index !== 0 && member.name.trim() !== '')
 
   const handleCancel = () => {
     if (hasData) {
@@ -101,13 +102,12 @@ export function CreateGroupScreen() {
         <ScreenContent flush>
           <Section title="Nombre del grupo">
             <div className={styles.groupName}>
-            <TextInput
-              aria-label="Nombre del grupo"
-              placeholder="Los del barrio"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              maxLength={20}
-            />
+              <TextInput
+                aria-label="Nombre del grupo"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                maxLength={20}
+              />
             </div>
           </Section>
 
@@ -133,7 +133,9 @@ export function CreateGroupScreen() {
                     className={styles.memberInput}
                     aria-label={`Integrante ${index + 1}`}
                     placeholder={
-                      index === 0 ? 'Nombre del administrador' : 'Nombre del integrante'
+                      index === 0
+                        ? 'Nombre del administrador'
+                        : 'Nombre del integrante'
                     }
                     value={member.name}
                     onChange={(event) =>
