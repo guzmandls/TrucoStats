@@ -238,7 +238,7 @@ Para cada partida se guardará:
 - Equipo ganador.
 - Usuario que creó y finalizó la partida.
 
-Cada partida de grupo se identifica por los integrantes de cada equipo (por ejemplo, "Juan y Pedro 30 – 21 Luis y Ana"), nunca por las etiquetas "Nosotros" y "Ellos".
+Cada partida de grupo se identifica por los integrantes de cada equipo (por ejemplo, "Juan - Pedro vs Luis - Ana, 30 – 21"), nunca por las etiquetas "Nosotros" y "Ellos".
 
 El historial y las estadísticas de grupo dependen de que existan grupos e integrantes: sin ellos no hay a quién atribuir cada partida de grupo. Por eso los grupos y los integrantes deben implementarse antes que el historial y las estadísticas de grupo.
 
