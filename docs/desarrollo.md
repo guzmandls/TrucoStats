@@ -467,3 +467,31 @@ Conceptos y herramientas nuevos:
 - `wrangler dev`: corre el Worker en tu PC para probarlo sin publicar.
 - JSON: formato de texto con el que la API devuelve datos
   (`{"estado":"ok"}`).
+
+## Etapa 15 — Base de datos D1
+
+Hecho:
+
+- Se creó la base `trucostats-db` en la cuenta de Cloudflare (D1, plan gratuito).
+- Se conectó al Worker en `wrangler.jsonc` (`binding: "DB"`): el código la usa
+  como `env.DB`.
+- Esquema inicial en `migrations/0001_esquema_inicial.sql`: tablas `groups`,
+  `members`, `matches` y `match_players`.
+- Migración aplicada solo en la copia local (`--local`); la base de Cloudflare
+  sigue vacía.
+
+Conceptos y herramientas nuevos:
+
+- D1: base de datos SQL de Cloudflare (basada en SQLite). Guarda los datos
+  compartidos entre todos los celulares.
+- Migración: archivo SQL numerado que cambia el esquema de la base. Queda en
+  Git y se aplica igual en la PC y en producción, en orden y una sola vez.
+- Binding: nombre con el que el Worker accede a un recurso de Cloudflare
+  (`env.DB`), sin escribir direcciones ni contraseñas en el código.
+- Clave primaria y clave foránea: la primera identifica cada fila; la segunda
+  la enlaza con otra tabla (`members.group_id` apunta a `groups.id`).
+- `ON DELETE CASCADE`: al borrar un grupo se borran sus integrantes. En
+  `matches.group_id` no se usa a propósito: las partidas se conservan.
+- Índice: atajo que acelera las búsquedas frecuentes (partidas de un grupo).
+- Local vs. remoto: `--local` usa una copia en tu PC para probar sin riesgo;
+  `--remote` actúa sobre la base real.
