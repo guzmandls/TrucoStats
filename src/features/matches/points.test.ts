@@ -33,43 +33,44 @@ function buildMatch(overrides: Partial<Match> = {}): Match {
 }
 
 describe('factores', () => {
-  it('el factor de partida va de 0,8 (ajustado) a 1,0 (goleada)', () => {
+  it('el factor de partida va de 0,75 (ajustado) a 1,0 (goleada)', () => {
     expect(matchFactor(buildMatch({ scores: { nos: 40, ellos: 0 } }))).toBe(1)
     expect(
       matchFactor(buildMatch({ scores: { nos: 40, ellos: 39 } })),
-    ).toBeCloseTo(0.805)
+    ).toBeCloseTo(0.75625)
   })
 
   it('el factor de nivel baja cuando el ganador tiene ventaja', () => {
     expect(nivelFactor(0, 0)).toBe(1)
-    expect(nivelFactor(300, 0)).toBeCloseTo(0.75)
-    expect(nivelFactor(600, 0)).toBe(0.6)
-    expect(nivelFactor(0, 360)).toBeCloseTo(1.3)
-    expect(nivelFactor(2000, 0)).toBe(0.6)
+    expect(nivelFactor(900, 0)).toBeCloseTo(0.6)
+    expect(nivelFactor(300, 0)).toBeCloseTo(0.8333, 3)
+    expect(nivelFactor(0, 360)).toBeCloseTo(1.2)
+    expect(nivelFactor(0, 5000)).toBe(1.4)
+    expect(nivelFactor(5000, 0)).toBe(0.6)
   })
 
-  it('la ganancia se duplica en 0 puntos y vuelve a x1 en 200', () => {
-    expect(winBoost(0)).toBe(2)
-    expect(winBoost(100)).toBe(1.5)
+  it('la ganancia vale x1,8 en 0 puntos y vuelve a x1 en 200', () => {
+    expect(winBoost(0)).toBe(1.8)
+    expect(winBoost(100)).toBeCloseTo(1.4)
     expect(winBoost(200)).toBe(1)
     expect(winBoost(500)).toBe(1)
   })
 
-  it('la pérdida resta muy poco en 0 puntos y normal en 200', () => {
-    expect(lossFactor(0)).toBeCloseTo(0.1)
+  it('la pérdida resta poco (x0,25) en 0 puntos y normal en 200', () => {
+    expect(lossFactor(0)).toBeCloseTo(0.25)
     expect(lossFactor(200)).toBe(1)
     expect(lossFactor(500)).toBe(1)
   })
 })
 
 describe('computePoints', () => {
-  it('una goleada en 0 puntos vale el doble del objetivo', () => {
+  it('una goleada en 0 puntos vale 1,8 veces el objetivo', () => {
     const points = computePoints(
       ['m1', 'm2', 'm3', 'm4'],
       [buildMatch({ scores: { nos: 40, ellos: 0 } })],
     )
-    expect(points.get('m1')).toBe(80)
-    expect(points.get('m2')).toBe(80)
+    expect(points.get('m1')).toBe(72)
+    expect(points.get('m2')).toBe(72)
   })
 
   it('ganar ajustado suma menos que golear', () => {

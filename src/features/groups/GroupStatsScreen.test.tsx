@@ -83,6 +83,18 @@ describe('GroupStatsScreen', () => {
     expect(screen.getByText('Récords')).toBeInTheDocument()
   })
 
+  it('muestra quiénes jugaron y la fecha en los récords de partidas', async () => {
+    await saveMatch(buildMatch({ playedAt: '2026-03-05T20:00:00.000Z' }))
+    renderStats()
+
+    expect(await screen.findByText('Más larga')).toBeInTheDocument()
+    expect(screen.getAllByText('Juan - Pedro').length).toBe(4)
+    expect(screen.getAllByText('Luis - Ana').length).toBe(4)
+    expect(screen.getAllByText('5/3/2026').length).toBe(4)
+    expect(screen.getByText('Más pareja')).toBeInTheDocument()
+    expect(screen.getAllByText('9 puntos').length).toBe(2)
+  })
+
   it('muestra la mejor y la peor pareja en Equipos', async () => {
     await saveMatch(buildMatch())
     await saveMatch(buildMatch())
@@ -92,8 +104,8 @@ describe('GroupStatsScreen', () => {
     expect(await screen.findByText('Equipos')).toBeInTheDocument()
     expect(screen.getByText('Mejor pareja')).toBeInTheDocument()
     expect(screen.getByText('Peor pareja')).toBeInTheDocument()
-    expect(screen.getByText('Juan y Pedro')).toBeInTheDocument()
-    expect(screen.getByText('Luis y Ana')).toBeInTheDocument()
+    expect(screen.getAllByText('Juan - Pedro').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Luis - Ana').length).toBeGreaterThan(0)
   })
 
   it('informa cuando el grupo no tiene partidas', async () => {
@@ -111,6 +123,14 @@ describe('GroupStatsScreen', () => {
     expect(screen.getByRole('link', { name: /Juan/ })).toBeInTheDocument()
     expect(screen.getAllByText('Juan').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Ana').length).toBeGreaterThan(0)
+  })
+
+  it('muestra los puntos de cada integrante en la pestaña individual', async () => {
+    await saveMatch(buildMatch())
+    renderStats()
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Individuales' }))
+    expect(screen.getAllByText(/^\d+ Pts$/)).toHaveLength(4)
   })
 
   it('cambia a la pestaña de enfrentamientos', async () => {

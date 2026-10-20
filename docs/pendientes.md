@@ -18,6 +18,11 @@ No son requisitos nuevos: son notas para no olvidarlas.
   (localStorage). Cuando existan cuentas, migrar esta lista a un modelo por
   usuario.
 
+- **Nombre del creador en Crear grupo**: hoy el integrante 1 aparece fijo como
+  "Administrador" (`src/features/groups/CreateGroupScreen.tsx`) porque todavía no
+  hay cuentas ni perfil. Cuando existan, debe aparecer ahí el nombre del usuario
+  que crea el grupo.
+
 ## Modelo de datos
 
 - Al salir del grupo siendo el único integrante, se borra el grupo pero **no** sus
@@ -43,6 +48,16 @@ No son requisitos nuevos: son notas para no olvidarlas.
   partida de grupo en curso borra la partida en curso sin avisar
   (`clearGame` en `StartGroupGameScreen.start`). No hay enlace directo que lo
   provoque, pero es una vía posible de pérdida de datos.
+
+## Calidad de código
+
+- `npm run lint` marca 3 errores y 1 aviso que ya existían: bloques `catch`
+  vacíos en `useCounter.ts` (línea ~352) y `GroupScreen.tsx` (línea ~91),
+  `setState` dentro de un efecto en `GroupScreen.tsx` (línea ~86, aviso de pulsos
+  de puntos guardado en sessionStorage) y una dependencia sobrante en un
+  `useCallback`.
+- `prettier --check .` marca 8 archivos de la raíz (README, package.json,
+  index.html, etc.), probablemente por saltos de línea CRLF/LF en Windows.
 
 ## Diseño
 

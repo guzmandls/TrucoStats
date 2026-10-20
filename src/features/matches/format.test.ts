@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { matchMeta, matchScore, matchTitle, participantNames } from './format'
+import { matchMeta, matchScore, participantNames } from './format'
 import type { Match, Participant } from './types'
 
 const juan: Participant = { id: 'm1', name: 'Juan' }
@@ -40,21 +40,11 @@ describe('participantNames', () => {
   })
 
   it('une dos nombres con y', () => {
-    expect(participantNames([juan, pedro])).toBe('Juan y Pedro')
+    expect(participantNames([juan, pedro])).toBe('Juan - Pedro')
   })
 
-  it('separa tres nombres con comas y y final', () => {
-    expect(participantNames([juan, pedro, ana])).toBe('Juan, Pedro y Ana')
-  })
-})
-
-describe('matchTitle', () => {
-  it('identifica las partidas rápidas', () => {
-    expect(matchTitle(quickMatch)).toBe('Partida rápida 30 – 21')
-  })
-
-  it('identifica las partidas de grupo por sus integrantes y el resultado', () => {
-    expect(matchTitle(groupMatch)).toBe('Juan y Pedro 30 – 21 Luis y Ana')
+  it('separa los nombres con guiones', () => {
+    expect(participantNames([juan, pedro, ana])).toBe('Juan - Pedro - Ana')
   })
 })
 

@@ -16,7 +16,9 @@ function clamp(value: number, min: number, max: number): number {
 export function matchFactor(match: Match): number {
   const target = match.target > 0 ? match.target : 1
   const diff = Math.abs(match.scores.nos - match.scores.ellos)
-  return MATCH_FACTOR_MIN + (MATCH_FACTOR_MAX - MATCH_FACTOR_MIN) * (diff / target)
+  return (
+    MATCH_FACTOR_MIN + (MATCH_FACTOR_MAX - MATCH_FACTOR_MIN) * (diff / target)
+  )
 }
 
 export function nivelFactor(winnerPoints: number, loserPoints: number): number {

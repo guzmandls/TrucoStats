@@ -7,7 +7,7 @@ import {
   Screen,
   ScreenContent,
 } from '../../components/ui'
-import { avatarColor } from './avatar'
+import { avatarColors } from './avatar'
 import { useGroup } from './useGroup'
 import styles from './ParticipantsScreen.module.css'
 
@@ -35,6 +35,8 @@ export function ParticipantsScreen() {
     )
   }
 
+  const colors = avatarColors(group.members.map((member) => member.id))
+
   return (
     <Screen>
       <PageHeader
@@ -58,7 +60,7 @@ export function ParticipantsScreen() {
             >
               <Avatar
                 name={member.name}
-                color={avatarColor(member.id)}
+                color={colors[member.id]}
                 src={member.avatar}
                 size={44}
               />

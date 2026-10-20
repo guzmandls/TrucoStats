@@ -362,3 +362,81 @@ Conceptos y herramientas nuevos:
   pantallas, en vez de repetir estilos en cada una.
 - Deuda técnica: cosas que se dejan para después a propósito; se anotan para no
   olvidarlas.
+
+## Etapa 12 — Revisión general del diseño
+
+Hecho:
+
+- Revisión de todas las pantallas con capturas en tamaño de celular (390 px).
+- Escala tipográfica: los tamaños de texto salen de tokens (`--text-xs` a
+  `--text-3xl`), no de números sueltos. Antes había 15 tamaños distintos.
+- Más tokens: interletrado, texto secundario, fondo de barras, sombra y alturas
+  mínimas. Un solo valor de "deshabilitado" para toda la app.
+- Zonas táctiles de al menos 44 px (antes había botones de 32 y 40 px).
+- Texto secundario con más contraste, y porcentajes en negro: el verde claro
+  sobre crema casi no se leía. El color queda en barras y anillos.
+- Pestañas inactivas contiguas separadas por una línea crema.
+- Participantes: filas negras a todo el ancho, en vez de tarjetas flotantes.
+- Colores de avatar distintos dentro de cada grupo (antes podían repetirse).
+- Errores corregidos: la ficha del integrante no mostraba su nombre; el aviso de
+  puntos del grupo usaba una variable CSS inexistente; los títulos largos
+  cambiaban de tamaño según la pantalla.
+- Componentes compartidos nuevos: `EmptyNote` (mensaje de lista vacía) y `Notice`
+  (aviso a todo el ancho), que reemplazan copias sueltas en cada pantalla.
+- Pruebas de puntos actualizadas a la fórmula real del código.
+
+Estado: 240 pruebas en verde; build sin errores.
+
+Conceptos y herramientas nuevos:
+
+- Escala tipográfica: lista corta de tamaños de texto que se reutilizan; da
+  coherencia y permite cambiar todo desde un solo lugar.
+- Contraste: diferencia de luminosidad entre texto y fondo. Se recomienda 4,5:1
+  para texto normal (WCAG, la guía de accesibilidad web).
+- Zona táctil: área mínima que se puede tocar con el dedo sin errar; Apple
+  recomienda 44 px.
+- Capturas automáticas: se abrió Chrome sin ventana, controlado por código, para
+  revisar cada pantalla con datos de prueba sin hacerlo a mano.
+- Variable CSS inexistente: usar `var(--algo)` sin definirlo invalida la
+  propiedad en silencio, sin avisar. Conviene revisar los tokens que se usan.
+
+## Etapa 13 — Récords de partidas con detalle
+
+Hecho:
+
+- "Más larga", "Más corta" y "Mayor diferencia" ahora muestran el resultado, los
+  equipos que jugaron y la fecha, en filas a todo el ancho (antes eran tres
+  columnas con solo el resultado).
+- Se quitó el nombre de ejemplo ("Los del barrio") del campo Nombre del grupo.
+- Estadísticas nuevas: partida más reñida, mayor racha de derrotas, rachas de
+  victorias y de derrotas en curso, y rivalidad más repetida.
+- Desempates: en "más reñida" gana la partida que más duró; en "mayor
+  diferencia", la que menos duró. En las rachas se muestran todos los que
+  empatan (por ejemplo, compañeros de equipo).
+- Una racha son al menos dos resultados seguidos; uno solo no cuenta. Si nadie
+  la tiene, la fila igual aparece con un guion.
+- "Más reñida" pasó a llamarse "Más pareja".
+- Fotos en las estadísticas: récords, rachas, rivalidad, parejas y tríos, y los
+  datos de la ficha individual. Si son varios, se apilan superpuestos
+  (`AvatarStack`). La sección "Partidas" no lleva fotos.
+
+- Estadísticas individuales: cada integrante muestra también sus puntos (Pts),
+  y el nombre con su récord quedó apilado a la izquierda.
+- Recorrido final: se revisaron menús abiertos, contador con puntos, pausa y
+  diálogo de confirmación. El historial del grupo ahora escribe los equipos
+  como "Juan - Pedro vs Luis - Ana", igual que las estadísticas (los nombres de
+  un equipo se separan con un guion).
+
+Conceptos y herramientas nuevos:
+
+- Superponer elementos: un margen negativo hace que cada avatar tape un poco al
+  anterior; un aro del color del fondo los separa visualmente.
+- Datos con identidad: para mostrar una foto no alcanza el nombre; las
+  estadísticas ahora devuelven el `id` de cada integrante para poder buscarla.
+
+Conceptos y herramientas nuevos:
+
+- Componente a medida dentro de una pantalla (`MatchRecord`): se usa tres veces
+  con distintos datos, así que se escribe una sola vez.
+- Adaptar el diseño al contenido: al agregar información, la grilla de tres
+  columnas dejó de alcanzar y se cambió por una lista vertical.

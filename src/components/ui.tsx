@@ -28,18 +28,12 @@ export function PageHeader({
   return (
     <header className={styles.header}>
       {leading && <div className={styles.headerLeading}>{leading}</div>}
-      {center ? (
-        <div className={styles.headerCenter}>{center}</div>
-      ) : (
-        <h1
-          className={cx(
-            styles.headerTitle,
-            title && title.length > 14 ? styles.headerTitleLong : undefined,
-          )}
-        >
+      {title && (
+        <h1 className={styles.headerTitle} title={title}>
           {title}
         </h1>
       )}
+      {center && <div className={styles.headerCenter}>{center}</div>}
       {trailing && <div className={styles.headerTrailing}>{trailing}</div>}
     </header>
   )
@@ -327,6 +321,22 @@ export function Figure({ value, label, accent }: FigureProps) {
   )
 }
 
+interface EmptyNoteProps {
+  children: ReactNode
+}
+
+export function EmptyNote({ children }: EmptyNoteProps) {
+  return <p className={styles.emptyNote}>{children}</p>
+}
+
+export function Notice({ children }: EmptyNoteProps) {
+  return (
+    <p className={styles.notice} role="alert">
+      {children}
+    </p>
+  )
+}
+
 interface StatLinkProps extends LinkProps {
   label: string
   value: ReactNode
@@ -371,6 +381,34 @@ export function Avatar({ name, color, src, size = 40 }: AvatarProps) {
   )
 }
 
+interface AvatarStackProps {
+  members: Array<{
+    id: string
+    name: string
+    color: string
+    src?: string | null
+  }>
+  size?: number
+}
+
+// Varios avatares superpuestos, para mostrar un equipo o un par en poco espacio.
+export function AvatarStack({ members, size = 32 }: AvatarStackProps) {
+  return (
+    <span className={styles.avatarStack}>
+      {members.map((member) => (
+        <span key={member.id} className={styles.avatarStackItem}>
+          <Avatar
+            name={member.name}
+            color={member.color}
+            src={member.src}
+            size={size}
+          />
+        </span>
+      ))}
+    </span>
+  )
+}
+
 interface WinRateRingProps {
   percent: number
   color: string
@@ -404,7 +442,7 @@ export function WinRateRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--line-strong)"
+          stroke="var(--track)"
           strokeWidth={stroke}
         />
         <circle

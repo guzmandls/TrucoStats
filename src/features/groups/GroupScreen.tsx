@@ -9,6 +9,7 @@ import {
 import {
   ButtonLink,
   ConfirmDialog,
+  EmptyNote,
   HeaderIconButton,
   HeaderMenu,
   PageHeader,
@@ -25,27 +26,21 @@ import {
   loadGame,
   type PersistedGame,
 } from '../counter/gameStorage'
-import { matchMeta } from '../matches/format'
-import type { Participant } from '../matches/types'
+import { matchMeta, participantNames } from '../matches/format'
 import { leaveGroup } from './groupsStorage'
 import { computePoints } from '../matches/points'
 import { removeMembership } from './membership'
 import { useGroup } from './useGroup'
 import styles from './GroupScreen.module.css'
 
-function teamNames(participants: Participant[]): string | null {
-  const names = participants.map((participant) => participant.name)
-  if (names.length === 0) {
-    return null
-  }
-  return names.join(' - ')
-}
-
 export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { group, matches } = useGroup(id)
-  const userId = typeof localStorage !== 'undefined' ? localStorage.getItem('trucostats:profileId') : null
+  const userId =
+    typeof localStorage !== 'undefined'
+      ? localStorage.getItem('trucostats:profileId')
+      : null
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [pointsDelta, setPointsDelta] = useState<string | null>(null)
@@ -152,13 +147,13 @@ export function GroupScreen() {
       />
       <ScreenContent flush>
         {matches.length === 0 ? (
-          <p className={styles.empty}>Todavía no hay partidas</p>
+          <EmptyNote>Todavía no hay partidas</EmptyNote>
         ) : (
           <div data-testid="historial">
             <Section>
               {matches.map((match) => {
-                const nos = teamNames(match.teams.nos)
-                const ellos = teamNames(match.teams.ellos)
+                const nos = participantNames(match.teams.nos)
+                const ellos = participantNames(match.teams.ellos)
                 return (
                   <div
                     key={match.id}
@@ -203,7 +198,7 @@ export function GroupScreen() {
               })}
             </Section>
           </div>
-        )        }
+        )}
       </ScreenContent>
       {pointsDelta && (
         <div className={styles.deltaOverlay}>

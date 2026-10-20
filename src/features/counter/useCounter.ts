@@ -339,10 +339,16 @@ export function useCounter(
           const delta = computePointsDelta(Array.from(ids), existing, match)
           const changes = Array.from(delta.entries())
             .filter(([, d]) => d !== 0)
-            .map(([id, d]) => `${id}:${(d as number) > 0 ? '+' : ''}${d as number}`)
+            .map(
+              ([id, d]) =>
+                `${id}:${(d as number) > 0 ? '+' : ''}${d as number}`,
+            )
           if (changes.length > 0) {
             try {
-              sessionStorage.setItem('trucostats:pointsDelta', changes.join(','))
+              sessionStorage.setItem(
+                'trucostats:pointsDelta',
+                changes.join(','),
+              )
             } catch {}
           }
         })()

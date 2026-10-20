@@ -1,13 +1,36 @@
 import { Avatar, StatRow, WinRateRing } from '../../components/ui'
 import type { MemberStats } from '../matches/groupStats'
+import type { Participant } from '../matches/types'
 import { formatDuration } from '../matches/stats'
 import { winRateColor } from '../matches/winRateColor'
-import { avatarColor } from './avatar'
 import type { Member } from './types'
 import styles from './MemberStats.module.css'
 
-function orDash(value: string | null): string {
-  return value ?? '—'
+interface PeopleProps {
+  members: Member[]
+  colors: Record<string, string>
+}
+
+function PersonValue({
+  person,
+  members,
+  colors,
+}: PeopleProps & { person: Participant | null }) {
+  if (!person) {
+    return <>—</>
+  }
+  const member = members.find((item) => item.id === person.id)
+  return (
+    <span className={styles.person}>
+      <Avatar
+        name={person.name}
+        color={colors[person.id]}
+        src={member?.avatar}
+        size={28}
+      />
+      {person.name}
+    </span>
+  )
 }
 
 function duration(seconds: number | null): string {
@@ -16,9 +39,11 @@ function duration(seconds: number | null): string {
 
 export function MemberStatsFicha({
   member,
+  color,
   stats,
 }: {
   member: Member
+  color: string
   stats: MemberStats
 }) {
   const rate = stats.winRate
@@ -27,12 +52,7 @@ export function MemberStatsFicha({
 
   return (
     <div className={styles.ficha}>
-      <Avatar
-        name={member.name}
-        color={avatarColor(member.id)}
-        src={member.avatar}
-        size={72}
-      />
+      <Avatar name={member.name} color={color} src={member.avatar} size={72} />
       <div className={styles.fichaMain}>
         <WinRateRing percent={rate ?? 0} color={rateColor} size={58} />
         <div className={styles.fichaFigures}>
@@ -54,20 +74,27 @@ export function MemberStatsFicha({
   )
 }
 
-export function MemberStatsRows({ stats }: { stats: MemberStats }) {
+export function MemberStatsRows({
+  stats,
+  members,
+  colors,
+}: PeopleProps & { stats: MemberStats }) {
+  const person = (value: Participant | null) => (
+    <PersonValue person={value} members={members} colors={colors} />
+  )
   return (
     <>
       <StatRow
         label="Duración promedio"
         value={duration(stats.averageDurationSeconds)}
       />
-      <StatRow label="Al que más le gana" value={orDash(stats.bestVictim)} />
+      <StatRow label="Al que más le gana" value={person(stats.bestVictim)} />
       <StatRow
         label="Contra el que más pierde"
-        value={orDash(stats.toughestRival)}
+        value={person(stats.toughestRival)}
       />
-      <StatRow label="Mejor compañero" value={orDash(stats.bestPartner)} />
-      <StatRow label="Peor compañero" value={orDash(stats.worstPartner)} />
+      <StatRow label="Mejor compañero" value={person(stats.bestPartner)} />
+      <StatRow label="Peor compañero" value={person(stats.worstPartner)} />
       <StatRow
         label="Racha más larga de victorias"
         value={stats.longestWinStreak}

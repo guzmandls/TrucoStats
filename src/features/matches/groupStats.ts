@@ -1,8 +1,10 @@
 import type { Group, Member } from '../groups/types'
-import type { Match } from './types'
+import type { Match, Participant } from './types'
 import { computePoints } from './points'
 
 const MIN_GAMES = 3
+// Una racha son al menos dos resultados seguidos iguales.
+const MIN_STREAK = 2
 
 type Side = 'nos' | 'ellos'
 
@@ -14,24 +16,33 @@ export interface MemberStats {
   losses: number
   winRate: number | null
   averageDurationSeconds: number | null
-  bestVictim: string | null
-  toughestRival: string | null
-  bestPartner: string | null
-  worstPartner: string | null
+  bestVictim: Participant | null
+  toughestRival: Participant | null
+  bestPartner: Participant | null
+  worstPartner: Participant | null
   longestWinStreak: number
   longestLossStreak: number
+  currentWinStreak: number
+  currentLossStreak: number
   points: number
 }
 
 export interface TeamStat {
+  ids: string[]
   names: string[]
   winRate: number
   games: number
 }
 
 export interface StreakRecord {
-  member: string
+  members: Participant[]
   count: number
+}
+
+export interface Rivalry {
+  members: [Participant, Participant]
+  played: number
+  wins: [number, number]
 }
 
 export interface GroupSummary {
@@ -39,8 +50,13 @@ export interface GroupSummary {
   averageDurationSeconds: number | null
   longestMatch: Match | null
   shortestMatch: Match | null
+  closestMatch: Match | null
   biggestBlowout: Match | null
   longestWinStreak: StreakRecord | null
+  longestLossStreak: StreakRecord | null
+  activeWinStreak: StreakRecord | null
+  activeLossStreak: StreakRecord | null
+  topRivalry: Rivalry | null
   mostWins: MemberStats | null
   bestWinRate: MemberStats | null
   mostLosses: MemberStats | null
@@ -63,6 +79,7 @@ export interface HeadToHead {
 }
 
 interface Tally {
+  id: string
   name: string
   games: number
   wins: number
@@ -117,6 +134,7 @@ function tallyBy(
     const won = match.winner === side
     for (const participant of others) {
       const current = tallies.get(participant.id) ?? {
+        id: participant.id,
         name: participant.name,
         games: 0,
         wins: 0,
@@ -138,7 +156,7 @@ function pickBest(
   tallies: Map<string, Tally>,
   compare: (a: Tally, b: Tally) => number,
   minimum: number,
-): string | null {
+): Participant | null {
   const eligible = [...tallies.values()].filter(
     (tally) => tally.games >= minimum,
   )
@@ -146,13 +164,18 @@ function pickBest(
     return null
   }
   eligible.sort(compare)
-  return eligible[0].name
+  return { id: eligible[0].id, name: eligible[0].name }
 }
 
 function streaks(
   played: Match[],
   memberId: string,
-): { longestWinStreak: number; longestLossStreak: number } {
+): {
+  longestWinStreak: number
+  longestLossStreak: number
+  currentWinStreak: number
+  currentLossStreak: number
+} {
   const ordered = played
     .slice()
     .sort((a, b) => a.playedAt.localeCompare(b.playedAt))
@@ -175,7 +198,12 @@ function streaks(
       longestLossStreak = Math.max(longestLossStreak, currentLoss)
     }
   }
-  return { longestWinStreak, longestLossStreak }
+  return {
+    longestWinStreak,
+    longestLossStreak,
+    currentWinStreak: currentWin,
+    currentLossStreak: currentLoss,
+  }
 }
 
 export function memberStats(
@@ -285,6 +313,7 @@ function pickTeam(
   )
   const [key, stats] = eligible[0]
   return {
+    ids: key.split(':'),
     names: key.split(':').map((id) => nameOf(members, id)),
     winRate: percent(stats.wins / stats.games),
     games: stats.games,
@@ -317,6 +346,62 @@ function minBy(
   )
 }
 
+function scoreDifference(match: Match): number {
+  return Math.abs(match.scores.nos - match.scores.ellos)
+}
+
+// Devuelve la partida que queda primera según `compare` (como en Array.sort).
+function pickMatch(
+  matches: Match[],
+  compare: (a: Match, b: Match) => number,
+): Match | null {
+  if (matches.length === 0) {
+    return null
+  }
+  return matches.slice().sort(compare)[0]
+}
+
+// Quienes tienen la mayor racha (de al menos MIN_STREAK). Si varios empatan
+// —por ejemplo, compañeros de equipo— se informan todos.
+function bestStreak(
+  stats: MemberStats[],
+  value: (stat: MemberStats) => number,
+): StreakRecord | null {
+  const count = Math.max(0, ...stats.map(value))
+  if (count < MIN_STREAK) {
+    return null
+  }
+  return {
+    members: stats
+      .filter((stat) => value(stat) === count)
+      .map((stat) => ({ id: stat.id, name: stat.name })),
+    count,
+  }
+}
+
+// El enfrentamiento entre dos integrantes que más veces se jugó; si empatan,
+// el más parejo.
+function topRivalry(group: Group, matches: Match[]): Rivalry | null {
+  const [top] = headToHead(group, matches)
+    .filter((row) => row.played >= MIN_GAMES)
+    .sort(
+      (a, b) =>
+        b.played - a.played ||
+        Math.abs(a.aWins - a.bWins) - Math.abs(b.aWins - b.bWins),
+    )
+  if (!top) {
+    return null
+  }
+  return {
+    members: [
+      { id: top.a.id, name: top.a.name },
+      { id: top.b.id, name: top.b.name },
+    ],
+    played: top.played,
+    wins: [top.aWins, top.bWins],
+  }
+}
+
 export function groupSummary(group: Group, matches: Match[]): GroupSummary {
   const points = computePoints(
     group.members.map((member) => member.id),
@@ -342,30 +427,33 @@ export function groupSummary(group: Group, matches: Match[]): GroupSummary {
             ? current
             : best,
         )
-  const biggestBlowout =
-    matches.length === 0
-      ? null
-      : matches.reduce((best, current) => {
-          const diff = Math.abs(current.scores.nos - current.scores.ellos)
-          const bestDiff = Math.abs(best.scores.nos - best.scores.ellos)
-          return diff > bestDiff ? current : best
-        })
-  const longestWinStreak = stats
-    .filter((stat) => stat.longestWinStreak > 0)
-    .reduce<StreakRecord | null>((best, stat) => {
-      if (!best || stat.longestWinStreak > best.count) {
-        return { member: stat.name, count: stat.longestWinStreak }
-      }
-      return best
-    }, null)
+  // Si hay empate, la partida más reñida es la que más duró y la de mayor
+  // diferencia es la que menos duró.
+  const closestMatch = pickMatch(matches, (a, b) => {
+    return (
+      scoreDifference(a) - scoreDifference(b) ||
+      (b.durationSeconds ?? -1) - (a.durationSeconds ?? -1)
+    )
+  })
+  const biggestBlowout = pickMatch(matches, (a, b) => {
+    return (
+      scoreDifference(b) - scoreDifference(a) ||
+      (a.durationSeconds ?? Infinity) - (b.durationSeconds ?? Infinity)
+    )
+  })
 
   return {
     totalMatches: matches.length,
     averageDurationSeconds: averageDuration(matches),
     longestMatch,
     shortestMatch,
+    closestMatch,
     biggestBlowout,
-    longestWinStreak,
+    longestWinStreak: bestStreak(stats, (stat) => stat.longestWinStreak),
+    longestLossStreak: bestStreak(stats, (stat) => stat.longestLossStreak),
+    activeWinStreak: bestStreak(stats, (stat) => stat.currentWinStreak),
+    activeLossStreak: bestStreak(stats, (stat) => stat.currentLossStreak),
+    topRivalry: topRivalry(group, matches),
     mostWins: maxBy(stats, (stat) => stat.wins),
     bestWinRate: maxBy(stats, (stat) => stat.winRate ?? -1),
     mostLosses: maxBy(stats, (stat) => stat.losses),

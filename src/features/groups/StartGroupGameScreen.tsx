@@ -4,6 +4,7 @@ import { BackIcon } from '../../components/Icons'
 import {
   Button,
   HeaderIconButton,
+  Notice,
   PageHeader,
   Rows,
   Screen,
@@ -159,13 +160,7 @@ export function StartGroupGameScreen() {
         }
       />
       <ScreenContent flush>
-        <div className={styles.top}>
-          {problem && (
-            <p className={styles.alert} role="alert">
-              {problem}
-            </p>
-          )}
-        </div>
+        {problem && <Notice>{problem}</Notice>}
 
         <Section title="Objetivo">
           <div

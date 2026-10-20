@@ -65,13 +65,13 @@ describe('memberStats', () => {
     expect(two.bestVictim).toBeNull()
 
     const three = memberStats(juan, [buildMatch(), buildMatch(), buildMatch()])
-    expect(three.bestVictim).toBe('Luis')
+    expect(three.bestVictim).toEqual(luis)
   })
 
   it('encuentra el mejor compañero con al menos 3 partidas juntos', () => {
     const stats = memberStats(juan, [buildMatch(), buildMatch(), buildMatch()])
-    expect(stats.bestPartner).toBe('Pedro')
-    expect(stats.worstPartner).toBe('Pedro')
+    expect(stats.bestPartner).toEqual(pedro)
+    expect(stats.worstPartner).toEqual(pedro)
   })
 
   it('promedia la duración solo de las partidas con duración', () => {
@@ -113,14 +113,72 @@ describe('groupSummary', () => {
     expect(summary.biggestBlowout?.scores).toEqual({ nos: 30, ellos: 10 })
   })
 
-  it('informa la racha de victorias más larga del grupo', () => {
+  it('en la partida más reñida, ante un empate gana la que más duró', () => {
+    const summary = groupSummary(group, [
+      buildMatch({ scores: { nos: 30, ellos: 28 }, durationSeconds: 600 }),
+      buildMatch({ scores: { nos: 30, ellos: 28 }, durationSeconds: 1500 }),
+      buildMatch({ scores: { nos: 30, ellos: 10 }, durationSeconds: 2000 }),
+    ])
+    expect(summary.closestMatch?.durationSeconds).toBe(1500)
+  })
+
+  it('en la mayor diferencia, ante un empate gana la que menos duró', () => {
+    const summary = groupSummary(group, [
+      buildMatch({ scores: { nos: 30, ellos: 10 }, durationSeconds: 900 }),
+      buildMatch({ scores: { nos: 30, ellos: 10 }, durationSeconds: 400 }),
+      buildMatch({ scores: { nos: 30, ellos: 28 }, durationSeconds: 100 }),
+    ])
+    expect(summary.biggestBlowout?.durationSeconds).toBe(400)
+  })
+
+  it('informa la racha de victorias más larga, con todos los que empatan', () => {
     const summary = groupSummary(group, [
       buildMatch(),
       buildMatch(),
       buildMatch(),
     ])
-    expect(summary.longestWinStreak?.member).toBe('Juan')
+    expect(summary.longestWinStreak?.members).toEqual([juan, pedro])
     expect(summary.longestWinStreak?.count).toBe(3)
+    expect(summary.longestLossStreak?.members).toEqual([luis, ana])
+  })
+
+  it('no considera racha un solo resultado', () => {
+    const summary = groupSummary(group, [buildMatch()])
+    expect(summary.longestWinStreak).toBeNull()
+    expect(summary.activeWinStreak).toBeNull()
+  })
+
+  it('informa las rachas en curso, que se cortan con un resultado distinto', () => {
+    const summary = groupSummary(group, [
+      buildMatch(),
+      buildMatch(),
+      buildMatch({ winner: 'ellos' }),
+      buildMatch({ winner: 'ellos' }),
+    ])
+    expect(summary.activeWinStreak?.members).toEqual([luis, ana])
+    expect(summary.activeWinStreak?.count).toBe(2)
+    expect(summary.activeLossStreak?.members).toEqual([juan, pedro])
+    expect(summary.longestWinStreak?.count).toBe(2)
+  })
+
+  it('encuentra el enfrentamiento más repetido', () => {
+    const summary = groupSummary(group, [
+      buildMatch(),
+      buildMatch(),
+      buildMatch(),
+      buildMatch({
+        teams: { nos: [juan], ellos: [luis] },
+        winner: 'ellos',
+      }),
+    ])
+    expect(summary.topRivalry?.played).toBe(4)
+    expect(summary.topRivalry?.members).toEqual([juan, luis])
+    expect(summary.topRivalry?.wins).toEqual([3, 1])
+  })
+
+  it('no informa rivalidad con menos de 3 partidas', () => {
+    const summary = groupSummary(group, [buildMatch(), buildMatch()])
+    expect(summary.topRivalry).toBeNull()
   })
 
   it('no compara integrantes con menos de 3 partidas', () => {

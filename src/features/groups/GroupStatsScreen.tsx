@@ -3,6 +3,8 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
   Avatar,
+  AvatarStack,
+  EmptyNote,
   Figure,
   HeaderIconButton,
   PageHeader,
@@ -12,7 +14,12 @@ import {
   Tabs,
   WinRateRing,
 } from '../../components/ui'
-import { matchScore } from '../matches/format'
+import {
+  joinNames,
+  matchDate,
+  participantNames,
+  scoreDifferenceLabel,
+} from '../matches/format'
 import { gridColumns } from '../matches/gridColumns'
 import {
   groupSummary,
@@ -20,12 +27,14 @@ import {
   memberStats,
   podium as podiumOf,
   type MemberStats,
+  type StreakRecord,
   type TeamStat,
 } from '../matches/groupStats'
+import { computePoints } from '../matches/points'
 import { formatDuration } from '../matches/stats'
 import type { Match } from '../matches/types'
 import { winRateColor } from '../matches/winRateColor'
-import { avatarColor } from './avatar'
+import { avatarColors } from './avatar'
 import type { Group } from './types'
 import { useGroup } from './useGroup'
 import styles from './GroupStatsScreen.module.css'
@@ -84,7 +93,7 @@ export function GroupStatsScreen() {
       />
       <ScreenContent flush>
         {matches.length === 0 ? (
-          <p className={styles.empty}>Todavía no hay partidas jugadas</p>
+          <EmptyNote>Todavía no hay partidas jugadas</EmptyNote>
         ) : tab === 'grupales' ? (
           <GroupStats group={group} matches={matches} />
         ) : tab === 'individuales' ? (
@@ -98,6 +107,7 @@ export function GroupStatsScreen() {
 }
 
 function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
+  const colors = avatarColors(group.members.map((member) => member.id))
   const summary = groupSummary(group, matches)
   const podium = podiumOf(group, matches)
 
@@ -119,7 +129,7 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           >
             <Avatar
               name={stat.name}
-              color={avatarColor(stat.id)}
+              color={colors[stat.id]}
               src={member?.avatar}
               size={32}
             />
@@ -133,18 +143,47 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
     )
   }
 
+  const stackFor = (ids: string[]) => (
+    <AvatarStack
+      members={ids.map((id) => {
+        const member = group.members.find((item) => item.id === id)
+        return {
+          id,
+          name: member?.name ?? id,
+          color: colors[id],
+          src: member?.avatar,
+        }
+      })}
+    />
+  )
+
+  const streakRow = (label: string, streak: StreakRecord | null) => (
+    <div className={styles.recordItem}>
+      <span className={styles.recordLabel}>{label}</span>
+      {streak ? (
+        <span className={styles.recordMember}>
+          {stackFor(streak.members.map((member) => member.id))}
+          <span className={styles.recordName}>
+            {joinNames(streak.members.map((member) => member.name))}
+          </span>
+          <span className={styles.recordValue}>{streak.count}</span>
+        </span>
+      ) : (
+        <span className={styles.recordEmpty}>—</span>
+      )}
+    </div>
+  )
+
   const teamRow = (label: string, team: TeamStat | null) => {
     if (!team) {
       return null
     }
-    const names =
-      team.names.length <= 1
-        ? (team.names[0] ?? '')
-        : `${team.names.slice(0, -1).join(', ')} y ${team.names[team.names.length - 1]}`
+    const names = joinNames(team.names)
     return (
       <div className={styles.recordItem}>
         <span className={styles.recordLabel}>{label}</span>
         <span className={styles.recordMember}>
+          {stackFor(team.ids)}
           <span className={styles.recordName}>{names}</span>
           <span className={styles.recordValue}>{team.winRate}%</span>
         </span>
@@ -179,24 +218,15 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
                 >
                   <Avatar
                     name={stat.name}
-                    color={avatarColor(stat.id)}
+                    color={colors[stat.id]}
                     src={member?.avatar}
                     size={place === 1 ? 64 : 52}
                   />
                   <span className={styles.podiumName}>{stat.name}</span>
-                  <span className={styles.podiumPoints}>
-                    {stat.points} Pts
-                  </span>
-                  <span
-                    className={styles.podiumRate}
-                    style={{
-                      color:
-                        stat.winRate === null
-                          ? undefined
-                          : winRateColor(stat.winRate),
-                    }}
-                  >
-                    {stat.winRate === null ? '—' : `${stat.winRate}%`} · <span style={{ color: 'var(--ink)' }}>{stat.wins}-{stat.losses}</span>
+                  <span className={styles.podiumPoints}>{stat.points} Pts</span>
+                  <span className={styles.podiumRate}>
+                    {stat.winRate === null ? '—' : `${stat.winRate}%`} ·{' '}
+                    {stat.wins}-{stat.losses}
                   </span>
                   <span className={styles.podiumBase} data-place={place}>
                     <span className={styles.podiumPlace}>{place}</span>
@@ -223,46 +253,42 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
       </Section>
 
       <Section title="Partidas">
-        <div className={styles.records}>
+        <div className={styles.recordList}>
           {summary.longestMatch && (
-            <div className={styles.record}>
-              <span className={styles.recordScore}>
-                {matchScore(summary.longestMatch)}
-              </span>
-              <span className={styles.recordLabel}>Más larga</span>
-              {summary.longestMatch.durationSeconds !== null && (
-                <span className={styles.recordMeta}>
-                  {formatDuration(summary.longestMatch.durationSeconds)}
-                </span>
-              )}
-            </div>
+            <MatchRecord
+              label="Más larga"
+              match={summary.longestMatch}
+              value={
+                summary.longestMatch.durationSeconds === null
+                  ? null
+                  : formatDuration(summary.longestMatch.durationSeconds)
+              }
+            />
           )}
           {summary.shortestMatch && (
-            <div className={styles.record}>
-              <span className={styles.recordScore}>
-                {matchScore(summary.shortestMatch)}
-              </span>
-              <span className={styles.recordLabel}>Más corta</span>
-              {summary.shortestMatch.durationSeconds !== null && (
-                <span className={styles.recordMeta}>
-                  {formatDuration(summary.shortestMatch.durationSeconds)}
-                </span>
-              )}
-            </div>
+            <MatchRecord
+              label="Más corta"
+              match={summary.shortestMatch}
+              value={
+                summary.shortestMatch.durationSeconds === null
+                  ? null
+                  : formatDuration(summary.shortestMatch.durationSeconds)
+              }
+            />
+          )}
+          {summary.closestMatch && (
+            <MatchRecord
+              label="Más pareja"
+              match={summary.closestMatch}
+              value={scoreDifferenceLabel(summary.closestMatch)}
+            />
           )}
           {summary.biggestBlowout && (
-            <div className={styles.record}>
-              <span className={styles.recordScore}>
-                {Math.abs(
-                  summary.biggestBlowout.scores.nos -
-                    summary.biggestBlowout.scores.ellos,
-                )}
-              </span>
-              <span className={styles.recordLabel}>Mayor diferencia</span>
-              <span className={styles.recordMeta}>
-                {matchScore(summary.biggestBlowout)}
-              </span>
-            </div>
+            <MatchRecord
+              label="Mayor diferencia"
+              match={summary.biggestBlowout}
+              value={scoreDifferenceLabel(summary.biggestBlowout)}
+            />
           )}
         </div>
       </Section>
@@ -272,26 +298,39 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           {recordMember(summary.mostWins, 'Más victorias', (s) => s.wins)}
           {recordMember(
             summary.bestWinRate,
-            'Mejor winrate',
+            'Mejor % de victorias',
             (s) => `${s.winRate}%`,
           )}
           {recordMember(summary.mostLosses, 'Más derrotas', (s) => s.losses)}
           {recordMember(
             summary.worstWinRate,
-            'Peor winrate',
+            'Peor % de victorias',
             (s) => `${s.winRate}%`,
           )}
           {recordMember(summary.mostPlayed, 'Más partidas', (s) => s.played)}
-          {summary.longestWinStreak && (
+          {streakRow('Mayor racha de victorias', summary.longestWinStreak)}
+          {streakRow('Mayor racha de derrotas', summary.longestLossStreak)}
+          {streakRow('Racha de victorias en curso', summary.activeWinStreak)}
+          {streakRow('Racha de derrotas en curso', summary.activeLossStreak)}
+          {summary.topRivalry && (
             <div className={styles.recordItem}>
-              <span className={styles.recordLabel}>Racha más larga</span>
+              <span className={styles.recordLabel}>Rivalidad más repetida</span>
               <span className={styles.recordMember}>
+                {stackFor(
+                  summary.topRivalry.members.map((member) => member.id),
+                )}
                 <span className={styles.recordName}>
-                  {summary.longestWinStreak.member}
+                  {summary.topRivalry.members[0].name}{' '}
+                  <span className={styles.matchVs}>vs</span>{' '}
+                  {summary.topRivalry.members[1].name}
                 </span>
                 <span className={styles.recordValue}>
-                  {summary.longestWinStreak.count}
+                  {summary.topRivalry.played}
                 </span>
+              </span>
+              <span className={styles.recordMeta}>
+                Victorias: {summary.topRivalry.wins[0]} –{' '}
+                {summary.topRivalry.wins[1]}
               </span>
             </div>
           )}
@@ -315,6 +354,44 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
   )
 }
 
+function MatchRecord({
+  label,
+  match,
+  value,
+}: {
+  label: string
+  match: Match
+  value: string | null
+}) {
+  const nos = participantNames(match.teams.nos)
+  const ellos = participantNames(match.teams.ellos)
+  const winnerIsNos = match.winner === 'nos'
+  return (
+    <div className={styles.recordItem}>
+      <div className={styles.matchRecordHead}>
+        <span className={styles.recordLabel}>{label}</span>
+        {value && <span className={styles.matchRecordValue}>{value}</span>}
+      </div>
+      <span className={styles.matchRecordScore}>
+        <span className={winnerIsNos ? styles.scoreWin : styles.scoreLoss}>
+          {match.scores.nos}
+        </span>
+        <span className={styles.scoreDash}>–</span>
+        <span className={winnerIsNos ? styles.scoreLoss : styles.scoreWin}>
+          {match.scores.ellos}
+        </span>
+      </span>
+      {nos && ellos && (
+        <span className={styles.matchRecordTeams}>
+          <span>{nos}</span> <span className={styles.matchVs}>vs</span>{' '}
+          <span>{ellos}</span>
+        </span>
+      )}
+      <span className={styles.recordMeta}>{matchDate(match)}</span>
+    </div>
+  )
+}
+
 function IndividualStats({
   group,
   matches,
@@ -322,8 +399,13 @@ function IndividualStats({
   group: Group
   matches: Match[]
 }) {
+  const colors = avatarColors(group.members.map((member) => member.id))
+  const points = computePoints(
+    group.members.map((member) => member.id),
+    matches,
+  )
   const stats = group.members
-    .map((member) => memberStats(member, matches))
+    .map((member) => memberStats(member, matches, points.get(member.id) ?? 0))
     .sort((a, b) => (b.winRate ?? -1) - (a.winRate ?? -1))
 
   return (
@@ -341,24 +423,19 @@ function IndividualStats({
               <span className={styles.rankAvatar}>
                 <Avatar
                   name={member.name}
-                  color={avatarColor(member.id)}
+                  color={colors[member.id]}
                   src={person?.avatar}
                   size={40}
                 />
               </span>
-              <span className={styles.rankName}>{member.name}</span>
-              <span className={styles.rankDetail}>
-                {member.wins}V · {member.losses}D
+              <span className={styles.rankInfo}>
+                <span className={styles.rankName}>{member.name}</span>
+                <span className={styles.rankDetail}>
+                  {member.wins}V · {member.losses}D
+                </span>
               </span>
-              <span
-                className={styles.rankRate}
-                style={{
-                  color:
-                    member.winRate === null
-                      ? undefined
-                      : winRateColor(member.winRate),
-                }}
-              >
+              <span className={styles.rankPoints}>{member.points} Pts</span>
+              <span className={styles.rankRate}>
                 {member.winRate === null ? '—' : `${member.winRate}%`}
               </span>
               <span className={styles.rankBar}>
@@ -383,9 +460,10 @@ function IndividualStats({
 
 function DuelStats({ group, matches }: { group: Group; matches: Match[] }) {
   const [page, setPage] = useState(0)
+  const colors = avatarColors(group.members.map((member) => member.id))
   const rows = headToHead(group, matches)
   if (rows.length === 0) {
-    return <p className={styles.empty}>Todavía no hay enfrentamientos</p>
+    return <EmptyNote>Todavía no hay enfrentamientos</EmptyNote>
   }
 
   const members = group.members
@@ -457,7 +535,7 @@ function DuelStats({ group, matches }: { group: Group; matches: Match[] }) {
                 >
                   <Avatar
                     name={member.name}
-                    color={avatarColor(member.id)}
+                    color={colors[member.id]}
                     src={member.avatar}
                     size={30}
                   />
