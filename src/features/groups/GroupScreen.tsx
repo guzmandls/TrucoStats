@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   ExitIcon,
@@ -6,6 +6,7 @@ import {
   ChartIcon,
   CloudOffIcon,
   PeopleIcon,
+  SearchIcon,
   ShareIcon,
 } from '../../components/Icons'
 import {
@@ -21,6 +22,7 @@ import {
   ScreenContent,
   ScreenFooter,
   Section,
+  TextInput,
 } from '../../components/ui'
 import {
   contextOf,
@@ -31,6 +33,7 @@ import {
   type PersistedGame,
 } from '../counter/gameStorage'
 import { matchMeta, participantNames } from '../matches/format'
+import { filterMatches } from '../matches/search'
 import { ApiError } from '../../lib/api'
 import { registerGroup } from './groupsApi'
 import { InviteDialog } from './InviteDialog'
@@ -42,6 +45,9 @@ import { removeMembership } from './membership'
 import { useGroup } from './useGroup'
 import styles from './GroupScreen.module.css'
 
+// Cuántas partidas se muestran de una vez; al llegar al final se cargan más.
+const PAGE_SIZE = 20
+
 export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -51,6 +57,18 @@ export function GroupScreen() {
   const [inviting, setInviting] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [pointsDelta, setPointsDelta] = useState<string | null>(null)
+  const [searching, setSearching] = useState(false)
+  const [query, setQuery] = useState('')
+  const [visible, setVisible] = useState(PAGE_SIZE)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+  const found = useMemo(
+    () => filterMatches(matches ?? [], query),
+    [matches, query],
+  )
+  // Sin IntersectionObserver (navegadores muy viejos) se muestran todas.
+  const paged = typeof IntersectionObserver !== 'undefined'
+  const shown = paged ? found.slice(0, visible) : found
+  const hasMore = shown.length < found.length
   // Qué integrante es la persona de este celular (null si no se sabe).
   const userId = group?.myMemberId ?? null
   const myPoints = useMemo(() => {
@@ -81,6 +99,25 @@ export function GroupScreen() {
 
   // Al abrir el grupo y cuando vuelve la conexión: envía las partidas
   // pendientes y trae lo que cambiaron los demás.
+  // Scroll infinito: cuando el final de la lista se acerca a la pantalla, se
+  // muestran 20 partidas más.
+  useEffect(() => {
+    const end = sentinelRef.current
+    if (!end || !hasMore) {
+      return
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setVisible((count) => count + PAGE_SIZE)
+        }
+      },
+      { rootMargin: '200px' },
+    )
+    observer.observe(end)
+    return () => observer.disconnect()
+  }, [hasMore, visible, query])
+
   useEffect(() => {
     if (!id) {
       return
@@ -152,6 +189,12 @@ export function GroupScreen() {
     }
   }
 
+  const toggleSearch = () => {
+    setSearching((open) => !open)
+    setQuery('')
+    setVisible(PAGE_SIZE)
+  }
+
   const handleLeave = async () => {
     await leaveGroup(group)
     removeMembership(group.id)
@@ -163,24 +206,31 @@ export function GroupScreen() {
       <PageHeader
         title={group.name}
         center={
-          myPoints === null && pendingCount === 0 ? undefined : (
-            <span className={styles.headerInfo}>
-              {pendingCount > 0 && (
-                <span
-                  className={styles.pendingBadge}
-                  role="status"
-                  aria-label={`${pendingCount} ${pendingCount === 1 ? 'partida sin enviar' : 'partidas sin enviar'}`}
-                  title="Se enviarán al servidor cuando haya conexión"
-                >
-                  <CloudOffIcon size={18} />
-                  {pendingCount}
-                </span>
-              )}
-              {myPoints !== null && (
-                <span className={styles.headerPoints}>{myPoints} Pts</span>
-              )}
-            </span>
-          )
+          <span className={styles.headerInfo}>
+            {pendingCount > 0 && (
+              <span
+                className={styles.pendingBadge}
+                role="status"
+                aria-label={`${pendingCount} ${pendingCount === 1 ? 'partida sin enviar' : 'partidas sin enviar'}`}
+                title="Se enviarán al servidor cuando haya conexión"
+              >
+                <CloudOffIcon size={18} />
+                {pendingCount}
+              </span>
+            )}
+            <button
+              type="button"
+              className={styles.searchButton}
+              aria-label="Buscar partidas"
+              aria-pressed={searching}
+              onClick={toggleSearch}
+            >
+              <SearchIcon size={20} />
+            </button>
+            {myPoints !== null && (
+              <span className={styles.headerPoints}>{myPoints} Pts</span>
+            )}
+          </span>
         }
         leading={
           <HeaderIconButton label="Volver" onClick={() => navigate('/')}>
@@ -216,12 +266,29 @@ export function GroupScreen() {
         }
       />
       <ScreenContent flush>
+        {searching && (
+          <div className={styles.searchBar}>
+            <TextInput
+              type="search"
+              aria-label="Buscar en el historial"
+              placeholder="Jugador, fecha o resultado"
+              autoFocus
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value)
+                setVisible(PAGE_SIZE)
+              }}
+            />
+          </div>
+        )}
         {matches.length === 0 ? (
           <EmptyNote>Todavía no hay partidas</EmptyNote>
+        ) : found.length === 0 ? (
+          <EmptyNote>Ninguna partida coincide con la búsqueda</EmptyNote>
         ) : (
           <div data-testid="historial">
             <Section>
-              {matches.map((match) => {
+              {shown.map((match) => {
                 const nos = participantNames(match.teams.nos)
                 const ellos = participantNames(match.teams.ellos)
                 return (
@@ -268,6 +335,7 @@ export function GroupScreen() {
                 )
               })}
             </Section>
+            {hasMore && <div ref={sentinelRef} aria-hidden="true" />}
           </div>
         )}
       </ScreenContent>

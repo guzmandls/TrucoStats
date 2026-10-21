@@ -67,6 +67,7 @@
 
 .headerInfo {
   display: flex;
+  padding-left: var(--space-2);
   align-items: center;
   gap: var(--space-3);
 }
@@ -77,6 +78,30 @@
   gap: var(--space-1);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+}
+
+.searchButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.searchButton[aria-pressed='true'] {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.searchBar {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--hairline-width) solid var(--line-thin);
 }
 
 .headerPoints {

@@ -169,6 +169,41 @@ describe('GroupScreen', () => {
     expect(screen.queryByText(/Sin enviar/)).not.toBeInTheDocument()
   })
 
+  it('busca partidas con la lupa del encabezado', async () => {
+    await saveMatch(buildMatch({ id: 'p1' }))
+    await saveMatch(
+      buildMatch({
+        id: 'p2',
+        scores: { nos: 12, ellos: 30 },
+        winner: 'ellos',
+        teams: {
+          nos: [{ id: 'm1', name: 'Juan' }],
+          ellos: [{ id: 'm3', name: 'Luis' }],
+        },
+        modality: '1v1',
+      }),
+    )
+    renderGroup()
+    await screen.findAllByTestId('partida')
+    expect(screen.queryByLabelText('Buscar en el historial')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar partidas' }))
+    fireEvent.change(screen.getByLabelText('Buscar en el historial'), {
+      target: { value: '12' },
+    })
+    expect(screen.getAllByTestId('partida')).toHaveLength(1)
+
+    fireEvent.change(screen.getByLabelText('Buscar en el historial'), {
+      target: { value: 'zzz' },
+    })
+    expect(
+      screen.getByText('Ninguna partida coincide con la búsqueda'),
+    ).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Buscar partidas' }))
+    expect(screen.getAllByTestId('partida')).toHaveLength(2)
+  })
+
   it('ofrece iniciar una partida cuando no hay ninguna en curso', async () => {
     renderGroup()
     expect(

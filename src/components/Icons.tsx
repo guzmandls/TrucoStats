@@ -194,6 +194,26 @@ export function ShareIcon({ size = 22 }: IconProps) {
   )
 }
 
+export function SearchIcon({ size = 22 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4.5 4.5" />
+    </svg>
+  )
+}
+
 export function CloudOffIcon({ size = 22 }: IconProps) {
   return (
     <svg
