@@ -1158,3 +1158,19 @@ sirve; conviene ponerla donde la persona ya está mirando (la lista de integrant
 Hecho: el nombre de usuario ahora puede tener de 1 a 20 caracteres (antes, de 3 a 20).
 Solo cambió la validación del servidor (`worker/users.ts`); la app no limitaba el
 largo. Los usuarios ya registrados no se ven afectados.
+
+## Etapa 40 — Grupos creados antes de las cuentas
+
+Hecho:
+
+- **Grupo solo en el celular** (sin código de invitación): su administrador pasa a
+  ser la persona de este celular al leerlo, así aparece como integrante (puntos,
+  ranking). Al invitar, el servidor lo vincula como administrador.
+- **Grupo ya en el servidor pero sin nadie vinculado:** la pantalla del grupo pregunta
+  "¿Cuál de los integrantes eres?" a quien tiene cuenta registrada. Nuevo pedido
+  `POST /api/grupos/:código/reclamar` (`worker/claim.ts`): vincula a esa persona y la
+  hace administradora, solo mientras el grupo no tenga a nadie vinculado.
+
+Concepto nuevo: **migrar datos viejos sin perderlos.** En vez de borrar o ignorar los
+grupos anteriores, se agregó un camino para vincularlos a una cuenta, con una regla
+estricta (solo si nadie está vinculado) para que no se pueda usar para "robar" un lugar.

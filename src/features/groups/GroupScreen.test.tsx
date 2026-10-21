@@ -485,6 +485,104 @@ describe('GroupScreen', () => {
     expect(screen.queryByRole('link', { name: /En vivo/ })).toBeNull()
   })
 
+  describe('grupo creado antes de las cuentas', () => {
+    function stubServer(claimed: string[], me: string | null = null) {
+      const calls: { method: string; url: string; body: string | null }[] = []
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
+          const url = String(input)
+          calls.push({
+            method: init.method ?? 'GET',
+            url,
+            body: (init.body as string) ?? null,
+          })
+          if (url.endsWith('/partidas')) {
+            return new Response(JSON.stringify({ matches: [] }), {
+              status: 200,
+            })
+          }
+          if (url.endsWith('/en-vivo')) {
+            return new Response(JSON.stringify({ live: [] }), { status: 200 })
+          }
+          if (init.method === 'POST') {
+            return new Response(JSON.stringify({ memberId: 'm1' }), {
+              status: 200,
+            })
+          }
+          return new Response(
+            JSON.stringify({
+              group: { ...group, inviteCode: undefined },
+              inviteCode: 'abc123',
+              claimedMemberIds: claimed,
+              myMemberId: me,
+            }),
+            { status: 200 },
+          )
+        }),
+      )
+      return calls
+    }
+
+    function registerAccount() {
+      saveSession({
+        token: 't',
+        user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+      })
+    }
+
+    it('pregunta cuál integrante eres y lo vincula', async () => {
+      registerAccount()
+      await saveGroup({ ...group, inviteCode: 'abc123' })
+      const calls = stubServer([])
+      renderGroup()
+
+      fireEvent.click(await screen.findByRole('radio', { name: 'Juan' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Soy yo' }))
+
+      await waitFor(() =>
+        expect(calls).toContainEqual({
+          method: 'POST',
+          url: '/api/grupos/abc123/reclamar',
+          body: JSON.stringify({ memberId: 'm1' }),
+        }),
+      )
+    })
+
+    it('no pregunta si el grupo ya tiene integrantes vinculados', async () => {
+      registerAccount()
+      await saveGroup({ ...group, inviteCode: 'abc123' })
+      stubServer(['m2'])
+      renderGroup()
+
+      await screen.findByRole('button', { name: 'Menú' })
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      expect(screen.queryByRole('radio', { name: 'Juan' })).toBeNull()
+    })
+
+    it('no pregunta sin una cuenta registrada', async () => {
+      await saveGroup({ ...group, inviteCode: 'abc123' })
+      stubServer([])
+      renderGroup()
+
+      await screen.findByRole('button', { name: 'Menú' })
+      await new Promise((resolve) => setTimeout(resolve, 100))
+      expect(screen.queryByRole('radio', { name: 'Juan' })).toBeNull()
+    })
+
+    it('"Ahora no" cierra la pregunta', async () => {
+      registerAccount()
+      await saveGroup({ ...group, inviteCode: 'abc123' })
+      stubServer([])
+      renderGroup()
+
+      await screen.findByRole('radio', { name: 'Juan' })
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+
+      expect(screen.queryByRole('radio', { name: 'Juan' })).toBeNull()
+    })
+  })
+
   it('ofrece agregar un integrante solo a los administradores', async () => {
     await saveGroup({
       ...group,

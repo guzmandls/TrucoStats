@@ -44,13 +44,23 @@ export async function loadGroups(): Promise<Group[]> {
     const { adminMemberId, ...rest } = group as Group & {
       adminMemberId?: string
     }
+    const adminMemberIds = isIdList(group.adminMemberIds)
+      ? group.adminMemberIds
+      : adminMemberId
+        ? [adminMemberId]
+        : []
     return {
       ...rest,
-      adminMemberIds: isIdList(group.adminMemberIds)
-        ? group.adminMemberIds
-        : adminMemberId
-          ? [adminMemberId]
-          : [],
+      adminMemberIds,
+      // Un grupo creado en este celular antes de las cuentas y que todavía no está
+      // en el servidor es de quien lo creó: esa persona es su administrador. Así
+      // aparece como integrante (puntos, ranking) y, al invitar, el servidor la
+      // vincula como administradora.
+      ...(group.myMemberId === undefined &&
+      group.inviteCode === undefined &&
+      adminMemberIds[0]
+        ? { myMemberId: adminMemberIds[0] }
+        : {}),
     }
   })
 }

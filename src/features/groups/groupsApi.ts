@@ -147,6 +147,15 @@ export async function setRemoteMemberAdmin(
   )
 }
 
+// Un grupo creado antes de las cuentas no tiene a nadie vinculado: quien lo creó
+// reclama su integrante y pasa a ser administrador.
+export async function claimRemoteMember(
+  inviteCode: string,
+  memberId: string,
+): Promise<void> {
+  await postJson(`/api/grupos/${inviteCode}/reclamar`, { memberId })
+}
+
 // Cambia el nombre de un integrante (también en las partidas ya guardadas).
 export async function renameRemoteMember(
   inviteCode: string,

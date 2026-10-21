@@ -98,7 +98,3 @@ No son requisitos nuevos: son notas para no olvidarlas.
 - Los errores al subir una foto o cambiar un nombre sin permiso se ignoran en
   silencio.
 
-- Los grupos creados antes de existir las cuentas (si alguno llegó a registrarse
-  en el servidor) no tienen ningún integrante vinculado a una cuenta, así que
-  nadie puede enviar partidas ni cambiar nombres en ellos. Hace falta un camino
-  para que el creador "reclame" su integrante de administrador.
