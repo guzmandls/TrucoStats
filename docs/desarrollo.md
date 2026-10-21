@@ -1220,3 +1220,30 @@ ejemplos en requisitos §6.4.
 Concepto nuevo: **definir reglas preguntando.** Antes de programar se fijaron, una por
 una, las decisiones que cambian los números (meseta, asimetría arriba, tamaño de una
 partida, constancia, ajustes) y se comprobaron con simulaciones.
+
+## Etapa 44 — Vínculo cuenta ↔ integrante y sincronización entre celulares
+
+Problemas vistos probando con dos celulares y su causa:
+
+- **Las partidas no se veían entre celulares ni funcionaba la partida en vivo:** la cuenta
+  de quien creó el grupo antes de las cuentas no estaba vinculada a ningún integrante en
+  el servidor; sin ese vínculo el servidor rechaza (403) enviar, recibir y transmitir, y la
+  app lo ignoraba en silencio. Si otra persona se unía con el enlace antes de que el
+  creador reclamara su lugar, además, ya no podía reclamarlo.
+- **Arreglo:** al abrir un grupo la app comprueba que el servidor sepa quién es la cuenta
+  y, si no, pregunta (con un aviso visible si se cierra la pregunta). El servidor permite
+  reclamar mientras no haya un administrador vinculado, aunque otros ya se hayan unido.
+- **Sincronización:** el grupo abierto se sincroniza cada 10 segundos y al volver a la app.
+- **Salir del grupo** ahora quita el grupo del celular; entrar de nuevo con el enlace vuelve
+  a pedir elegir integrante y apodos (antes entraba directo porque la copia local seguía).
+- **Volver atrás desde el contador** lleva al grupo (la pantalla de armar la partida se
+  reemplaza en el historial de navegación).
+
+Concepto nuevo: **fallos silenciosos.** Una operación que falla sin avisar es peor que una
+que falla con un mensaje; cuando algo depende de un vínculo, conviene comprobarlo y
+mostrarlo.
+
+Agregado en la misma etapa: **el enlace de invitación pide una cuenta.** Sin sesión, la pantalla
+de unirse muestra "Necesitas una cuenta" con "Registrarse" e "Iniciar sesión" (vuelven al
+enlace al terminar) y, discreto, "Seguir sin cuenta". Se vio probando que quien entraba sin
+cuenta no sabía que le faltaba y no se sincronizaba como esperaba.

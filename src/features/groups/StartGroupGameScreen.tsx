@@ -165,7 +165,9 @@ export function StartGroupGameScreen() {
       teams: { nos: pick(nos), ellos: pick(ellos) },
     }
     await clearGame(gameSlot(gameContext))
-    navigate('/partida', { state: { gameContext, target } })
+    // Se reemplaza esta pantalla: al volver atrás desde el contador se llega a la
+    // pantalla del grupo, no a la de armar la partida.
+    navigate('/partida', { state: { gameContext, target }, replace: true })
   }
 
   const problem = teamsAreValid

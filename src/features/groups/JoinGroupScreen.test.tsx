@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JoinGroupScreen } from './JoinGroupScreen'
 import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
-import { clearSession, getSession } from '../../lib/session'
+import { clearSession, getSession, saveSession } from '../../lib/session'
 import { clearMembership, loadMembership } from './membership'
 import type { Group } from './types'
 
@@ -27,6 +27,12 @@ function LocationProbe() {
   return <div data-testid="location">{location.pathname}</div>
 }
 
+function AuthProbe() {
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from
+  return <div data-testid="auth-from">{from}</div>
+}
+
 function renderJoin() {
   return render(
     <MemoryRouter initialEntries={[`/unirse/${CODE}`]}>
@@ -34,6 +40,8 @@ function renderJoin() {
         <Route path="/unirse/:code" element={<JoinGroupScreen />} />
         <Route path="/grupo/:id" element={<LocationProbe />} />
         <Route path="/" element={<LocationProbe />} />
+        <Route path="/registrarse" element={<AuthProbe />} />
+        <Route path="/iniciar-sesion" element={<AuthProbe />} />
       </Routes>
     </MemoryRouter>,
   )
@@ -85,6 +93,11 @@ describe('JoinGroupScreen', () => {
       await deleteGroup(existing.id)
     }
     clearMembership()
+    // Por defecto la persona ya tiene una cuenta (si no, se le pide registrarse).
+    saveSession({
+      token: 'r'.repeat(64),
+      user: { id: 'u1', username: 'pedro', email: null, name: 'pedro' },
+    })
   })
 
   it('pregunta cuál de los integrantes es la persona', async () => {
@@ -167,10 +180,56 @@ describe('JoinGroupScreen', () => {
     ).toBeEnabled()
   })
 
+  it('sin sesión pide registrarse o iniciar sesión antes de elegir', async () => {
+    clearSession()
+    stubServer(serverWithGroup)
+    renderJoin()
+
+    expect(await screen.findByText('Necesitas una cuenta')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Registrarse' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Iniciar sesión' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: 'Pedro' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Unirme al grupo' })).toBeNull()
+  })
+
+  it('Registrarse e Iniciar sesión llevan a esas pantallas y vuelven al enlace', async () => {
+    clearSession()
+    stubServer(serverWithGroup)
+    renderJoin()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Registrarse' }))
+
+    expect(await screen.findByTestId('auth-from')).toHaveTextContent(
+      `/unirse/${CODE}`,
+    )
+  })
+
+  it('se puede seguir sin cuenta', async () => {
+    clearSession()
+    stubServer(serverWithGroup)
+    renderJoin()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Seguir sin cuenta' }),
+    )
+
+    expect(
+      await screen.findByRole('radio', { name: 'Pedro' }),
+    ).toBeInTheDocument()
+  })
+
   it('se une con el nombre original y guarda la cuenta invitada', async () => {
+    clearSession()
     const fetchMock = stubServer(serverWithGroup)
     renderJoin()
 
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Seguir sin cuenta' }),
+    )
     fireEvent.click(await screen.findByRole('radio', { name: 'Pedro' }))
     fireEvent.click(screen.getByRole('button', { name: 'Unirme al grupo' }))
 

@@ -549,15 +549,65 @@ describe('GroupScreen', () => {
       )
     })
 
-    it('no pregunta si el grupo ya tiene integrantes vinculados', async () => {
+    it('si otro integrante ya se unió pero no hay administrador vinculado, aún se puede reclamar', async () => {
       registerAccount()
       await saveGroup({ ...group, inviteCode: 'abc123' })
-      stubServer(['m2'])
+      const calls = stubServer(['m2'])
+      renderGroup()
+
+      const taken = await screen.findByRole('radio', { name: 'Pedro' })
+      expect(taken).toBeDisabled()
+      fireEvent.click(screen.getByRole('radio', { name: 'Juan' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Soy yo' }))
+
+      await waitFor(() =>
+        expect(calls.some((call) => call.url.endsWith('/reclamar'))).toBe(true),
+      )
+    })
+
+    it('si el grupo ya tiene un administrador vinculado, hay que elegir un lugar libre (unirse)', async () => {
+      registerAccount()
+      // m1 es el administrador y ya está elegido por otra persona.
+      await saveGroup({ ...group, inviteCode: 'abc123' })
+      const calls = stubServer(['m1'])
+      renderGroup()
+
+      await screen.findByRole('radio', { name: 'Juan' })
+      expect(screen.getByRole('radio', { name: 'Juan' })).toBeDisabled()
+      fireEvent.click(screen.getByRole('radio', { name: 'Pedro' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Soy yo' }))
+
+      await waitFor(() =>
+        expect(calls.some((call) => call.url.endsWith('/unirse'))).toBe(true),
+      )
+    })
+
+    it('si el servidor ya sabe quién es la cuenta, no pregunta', async () => {
+      registerAccount()
+      await saveGroup({ ...group, inviteCode: 'abc123' })
+      stubServer(['m1'], 'm1')
       renderGroup()
 
       await screen.findByRole('button', { name: 'Menú' })
       await new Promise((resolve) => setTimeout(resolve, 100))
       expect(screen.queryByRole('radio', { name: 'Juan' })).toBeNull()
+      expect(screen.queryByText(/no está vinculada/)).toBeNull()
+    })
+
+    it('al cerrar la pregunta queda un aviso para volver a elegir', async () => {
+      registerAccount()
+      await saveGroup({ ...group, inviteCode: 'abc123' })
+      stubServer([])
+      renderGroup()
+
+      await screen.findByRole('radio', { name: 'Juan' })
+      fireEvent.click(screen.getByRole('button', { name: 'Ahora no' }))
+
+      expect(await screen.findByText(/no está vinculada/)).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Elegir quién eres' }))
+      expect(
+        await screen.findByRole('radio', { name: 'Juan' }),
+      ).toBeInTheDocument()
     })
 
     it('no pregunta sin una cuenta registrada', async () => {
@@ -669,7 +719,7 @@ describe('GroupScreen', () => {
     )
   })
 
-  it('transfiere la administración al salir si quedan integrantes', async () => {
+  it('al salir, el grupo se quita de este celular (volver a entrar con el enlace pide elegir quién eres)', async () => {
     renderGroup()
     fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
     fireEvent.click(
@@ -678,8 +728,7 @@ describe('GroupScreen', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Salir' }))
 
     expect(await screen.findByText('inicio')).toBeInTheDocument()
-    const [saved] = await loadGroups()
-    expect(saved.adminMemberIds).toEqual(['m2'])
+    expect(await loadGroups()).toEqual([])
   })
 
   it('avisa al servidor al salir de un grupo que está en el servidor', async () => {

@@ -15,6 +15,7 @@ import {
   TextInput,
 } from '../../components/ui'
 import { ApiError } from '../../lib/api'
+import { useSession } from '../../lib/session'
 import { avatarColors } from './avatar'
 import { parseAliasList } from '../matches/guests'
 import {
@@ -48,6 +49,11 @@ export function JoinGroupScreen() {
   const [memberId, setMemberId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [aliasText, setAliasText] = useState('')
+  // Sin sesión se pide registrarse o iniciar sesión antes de elegir; quien no
+  // quiere puede seguir sin cuenta (se le crea una cuenta invitada).
+  const session = useSession()
+  const [withoutAccount, setWithoutAccount] = useState(false)
+  const needsAccount = session === null && !withoutAccount
   const [joining, setJoining] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const [canRetry, setCanRetry] = useState(true)
@@ -176,7 +182,45 @@ export function JoinGroupScreen() {
           </div>
         )}
 
-        {status === 'ready' && group && (
+        {status === 'ready' && group && needsAccount && (
+          <Section title="Necesitas una cuenta">
+            <div className={styles.accountPrompt}>
+              <p className={styles.accountText}>
+                Para unirte a “{group.name}”, regístrate o inicia sesión. Así
+                tus partidas quedan guardadas en tu cuenta y puedes entrar desde
+                cualquier celular.
+              </p>
+              <Button
+                onClick={() =>
+                  navigate('/registrarse', {
+                    state: { from: `/unirse/${code}` },
+                  })
+                }
+              >
+                Registrarse
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  navigate('/iniciar-sesion', {
+                    state: { from: `/unirse/${code}` },
+                  })
+                }
+              >
+                Iniciar sesión
+              </Button>
+              <button
+                type="button"
+                className={styles.withoutAccount}
+                onClick={() => setWithoutAccount(true)}
+              >
+                Seguir sin cuenta
+              </button>
+            </div>
+          </Section>
+        )}
+
+        {status === 'ready' && group && !needsAccount && (
           <>
             <Section
               title={`¿Cuál de los integrantes de “${group.name}” eres?`}
@@ -251,7 +295,7 @@ export function JoinGroupScreen() {
           </>
         )}
       </ScreenContent>
-      {status === 'ready' && (
+      {status === 'ready' && !needsAccount && (
         <ScreenFooter>
           <Button
             variant="inverse"

@@ -137,24 +137,14 @@ export async function updateMemberAvatar(
 }
 
 /**
- * Saca al usuario actual del grupo. Como todavía no existe el vínculo
- * usuario↔integrante se asume que este dispositivo es el administrador: si
- * quedan otros integrantes se transfiere la administración y el grupo se
- * conserva (con las partidas intactas); si el admin era el único integrante se
- * borra el grupo. Las partidas ya jugadas no se borran para que sigan contando
- * en el perfil personal.
+ * Saca el grupo de este celular al salir. El grupo deja de estar guardado aquí
+ * (si se vuelve a entrar con el enlace se vuelve a elegir quién eres); en el
+ * servidor, el integrante queda libre y el rol de administrador pasa a otro si hace
+ * falta (eso se avisa antes, desde la pantalla del grupo). Las partidas ya jugadas
+ * no se borran, para que sigan contando en el perfil personal. Devuelve 'deleted'
+ * si la persona era el único integrante (el grupo deja de existir) y 'left' si no.
  */
 export async function leaveGroup(group: Group): Promise<'left' | 'deleted'> {
-  const me = group.myMemberId ?? group.adminMemberIds[0]
-  const others = group.members.filter((member) => member.id !== me)
-  if (others.length === 0) {
-    await deleteGroup(group.id)
-    return 'deleted'
-  }
-  const admins = group.adminMemberIds.filter((id) => id !== me)
-  await saveGroup({
-    ...group,
-    adminMemberIds: admins.length > 0 ? admins : [others[0].id],
-  })
-  return 'left'
+  await deleteGroup(group.id)
+  return group.members.length <= 1 ? 'deleted' : 'left'
 }

@@ -91,6 +91,54 @@ describe('POST /api/grupos/:código/reclamar', () => {
     expect(response.status).toBe(409)
   })
 
+  it('aunque otra persona ya se unió con el enlace, el creador todavía puede reclamar y las partidas fluyen entre los dos', async () => {
+    // Pedro se une con el enlace (cuenta invitada) antes de que el creador reclame.
+    const joined = await send('POST', `/api/grupos/${code}/unirse`, {
+      memberId: 'm2',
+    })
+    const pedroToken = ((await joined.json()) as { token: string }).token
+    const juanToken = await registerTestUser(env, 'juan')
+
+    expect((await claim('m1', juanToken)).status).toBe(200)
+
+    // Ahora los dos están vinculados y se ven las partidas del otro.
+    const match = (id: string) => ({
+      id,
+      type: 'group',
+      modality: '1v1',
+      playedAt: '2026-10-05T20:00:00.000Z',
+      durationSeconds: 600,
+      target: 30,
+      winner: 'nos',
+      teams: {
+        nos: [{ id: 'm1', name: 'Juan' }],
+        ellos: [{ id: 'm2', name: 'Pedro' }],
+      },
+      scores: { nos: 30, ellos: 10 },
+    })
+    const post = (id: string, token: string) =>
+      send('POST', `/api/grupos/${code}/partidas`, match(id), token)
+    expect((await post('pj', juanToken)).status).toBe(201)
+    expect((await post('pp', pedroToken)).status).toBe(201)
+    const list = async (token: string) =>
+      (
+        (await (
+          await send('GET', `/api/grupos/${code}/partidas`, undefined, token)
+        ).json()) as { matches: { id: string }[] }
+      ).matches
+        .map((item) => item.id)
+        .sort()
+    expect(await list(juanToken)).toEqual(['pj', 'pp'])
+    expect(await list(pedroToken)).toEqual(['pj', 'pp'])
+  })
+
+  it('no se puede reclamar un integrante que ya eligió otra persona', async () => {
+    await send('POST', `/api/grupos/${code}/unirse`, { memberId: 'm2' })
+    const token = await registerTestUser(env, 'juan')
+
+    expect((await claim('m2', token)).status).toBe(409)
+  })
+
   it('exige una cuenta registrada (no sirve sin sesión ni con una invitada)', async () => {
     expect((await claim('m1')).status).toBe(401)
   })
