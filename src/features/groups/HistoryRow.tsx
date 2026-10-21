@@ -1,11 +1,11 @@
 import { CloudOffIcon } from '../../components/Icons'
 import { AvatarStack, OverflowMenu } from '../../components/ui'
 import {
+  matchDate,
   matchDurationLabel,
-  matchMetaParts,
+  matchTime,
   participantNames,
 } from '../matches/format'
-import { matchWhen } from '../matches/groupOverview'
 import type { Match, Participant } from '../matches/types'
 import { avatarColor, avatarColors } from './avatar'
 import { availableActions, type MatchAction } from './matchActions'
@@ -20,8 +20,8 @@ interface HistoryRowProps {
   // null si no jugó o no se sabe.
   pointChange?: number | null
   onAction?: (match: Match, action: MatchAction) => void
-  // Versión para las estadísticas: sin modalidad ni objetivo, con la hora de la
-  // partida y si se envió en la misma línea de arriba, y sin opciones.
+  // Versión para las estadísticas: solo la tarjeta con la fecha debajo, sin
+  // opciones ni puntos.
   compact?: boolean
 }
 
@@ -55,11 +55,12 @@ function TeamLine({
   )
 }
 
-// Una partida del historial: arriba una línea con los datos (modalidad,
-// objetivo, duración) y lo que pasó con ella (sin enviar, cancelada, puntos que
-// sumaste o restaste, opciones); debajo, a la izquierda cada equipo con sus
-// avatares (el ganador resaltado) y a la derecha un bloque negro con los dos
-// puntajes, cada uno a la altura de su equipo.
+// Una partida: la tarjeta con los equipos y sus puntajes (un recuadro con
+// contorno; el bloque negro de la derecha lleva los dos puntajes, cada uno a la
+// altura de su equipo) y, debajo, una línea con la hora, la duración y si se
+// envió o se canceló. A la derecha de esa línea van los puntos que sumaste o
+// restaste y el menú de opciones. En las estadísticas (`compact`) la línea de
+// abajo muestra solo la fecha.
 export function HistoryRow({
   match,
   group,
@@ -68,13 +69,13 @@ export function HistoryRow({
   compact = false,
 }: HistoryRowProps) {
   const actions = compact ? [] : availableActions(match, group)
+  const showChange =
+    !compact && pointChange !== null && pointChange !== 0 && !match.canceled
   const metaParts = compact
-    ? [matchDurationLabel(match), matchWhen(match)].filter(
+    ? [matchDate(match)]
+    : [matchTime(match), matchDurationLabel(match)].filter(
         (part): part is string => part !== null,
       )
-    : matchMetaParts(match)
-  const showChange =
-    pointChange !== null && pointChange !== 0 && !match.canceled
   return (
     <div
       data-testid="partida"
@@ -82,41 +83,6 @@ export function HistoryRow({
     >
       <span className={styles.flag} aria-hidden="true" />
       <div className={styles.content}>
-        <div className={styles.head}>
-          <div className={styles.meta}>
-            {metaParts.map((part) => (
-              <span key={part}>{part}</span>
-            ))}
-            {compact && isPending(match) && (
-              <span className={styles.note}>
-                <CloudOffIcon size={14} />
-                Sin enviar
-              </span>
-            )}
-          </div>
-          <div className={styles.headEnd}>
-            {showChange && (
-              <span
-                className={`${styles.chip} ${pointChange > 0 ? styles.chipUp : styles.chipDown}`}
-              >
-                {pointChange > 0 ? '+' : '−'}
-                {Math.abs(pointChange)} Pts
-              </span>
-            )}
-            {actions.length > 0 && (
-              <OverflowMenu
-                label="Opciones de la partida"
-                items={actions.map((action) => ({
-                  label:
-                    action === 'cancel'
-                      ? 'Cancelar partida'
-                      : 'Restaurar partida',
-                  onClick: () => onAction(match, action),
-                }))}
-              />
-            )}
-          </div>
-        </div>
         <div className={styles.main}>
           <div className={styles.body}>
             <TeamLine
@@ -143,22 +109,55 @@ export function HistoryRow({
             </span>
           </div>
         </div>
-        {!compact && (isPending(match) || match.canceled) && (
-          <div className={styles.foot}>
-            {isPending(match) && (
-              <span className={styles.note}>
-                <CloudOffIcon size={14} />
-                Sin enviar
-              </span>
-            )}
-            {match.canceled && <span className={styles.note}>Cancelada</span>}
-            {match.canceled?.reason && (
-              <span className={styles.reason}>
-                Motivo: {match.canceled.reason}
-              </span>
+        <div className={styles.foot}>
+          <div className={styles.footLine}>
+            <div className={styles.meta}>
+              {metaParts.map((part) => (
+                <span key={part}>{part}</span>
+              ))}
+            </div>
+            {(showChange || actions.length > 0) && (
+              <div className={styles.footEnd}>
+                {showChange && (
+                  <span
+                    className={`${styles.chip} ${pointChange > 0 ? styles.chipUp : styles.chipDown}`}
+                  >
+                    {pointChange > 0 ? '+' : '−'}
+                    {Math.abs(pointChange)} Pts
+                  </span>
+                )}
+                {actions.length > 0 && (
+                  <OverflowMenu
+                    label="Opciones de la partida"
+                    items={actions.map((action) => ({
+                      label:
+                        action === 'cancel'
+                          ? 'Cancelar partida'
+                          : 'Restaurar partida',
+                      onClick: () => onAction(match, action),
+                    }))}
+                  />
+                )}
+              </div>
             )}
           </div>
-        )}
+          {((!compact && isPending(match)) || match.canceled) && (
+            <div className={styles.notes}>
+              {!compact && isPending(match) && (
+                <span className={styles.note}>
+                  <CloudOffIcon size={14} />
+                  Sin enviar
+                </span>
+              )}
+              {match.canceled && <span className={styles.note}>Cancelada</span>}
+              {match.canceled?.reason && (
+                <span className={styles.reason}>
+                  Motivo: {match.canceled.reason}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

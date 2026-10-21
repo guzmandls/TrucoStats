@@ -981,3 +981,14 @@ Récords de partidas: ahora reutilizan la tarjeta del historial (`HistoryRow` co
 opción `compact`), sin modalidad ni objetivo y con duración, hora y "Sin enviar"
 en la línea de arriba. Reutilizar el mismo componente evita que las dos
 pantallas se desalineen con el tiempo.
+
+Ajustes finales de esta pasada:
+
+- Historial: la tarjeta va arriba y los datos (hora, duración, puntos, menú,
+  sin enviar) debajo; se quitó la línea de modalidad y objetivo.
+- Récords de partidas: título y dato con la misma letra; la tarjeta con la
+  fecha debajo.
+- Grilla de enfrentamientos: las líneas se veían cortadas y desfasadas porque
+  la tabla usaba bordes "colapsados" con filas de alto fraccionario. Ahora cada
+  celda dibuja solo su línea derecha y su línea de abajo (siempre 1 px) y las
+  alturas son fijas, así las líneas llegan de borde a borde y quedan alineadas.

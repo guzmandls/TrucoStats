@@ -42,6 +42,12 @@ export function matchDurationLabel(match: Match): string | null {
     : `${Math.round(match.durationSeconds / 60)} min`
 }
 
+// Hora de la partida en el celular: "21:05".
+export function matchTime(match: Match): string {
+  const date = new Date(match.playedAt)
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
 // Con `includeDate` en false se omite la fecha (el historial ya la muestra en el
 // título del día).
 export function matchMeta(match: Match, includeDate = true): string {

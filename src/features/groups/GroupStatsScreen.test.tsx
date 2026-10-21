@@ -83,14 +83,14 @@ describe('GroupStatsScreen', () => {
     expect(screen.getByText('Récords')).toBeInTheDocument()
   })
 
-  it('muestra la tarjeta de la partida (equipos, duración y hora) en los récords', async () => {
+  it('muestra la tarjeta de la partida (equipos y fecha) en los récords', async () => {
     await saveMatch(buildMatch({ playedAt: '2026-03-05T20:00:00.000Z' }))
     renderStats()
 
     expect(await screen.findByText('Más larga')).toBeInTheDocument()
     expect(screen.getAllByText('Juan - Pedro').length).toBe(4)
     expect(screen.getAllByText('Luis - Ana').length).toBe(4)
-    expect(screen.getAllByText(/5 mar/).length).toBe(4)
+    expect(screen.getAllByText('5/3/2026').length).toBe(4)
     // La tarjeta no repite la modalidad ni el objetivo.
     expect(screen.queryByText('2v2')).not.toBeInTheDocument()
     expect(screen.queryByText('30 pts')).not.toBeInTheDocument()
