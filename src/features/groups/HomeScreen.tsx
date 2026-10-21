@@ -28,6 +28,7 @@ import { loadMatches } from '../matches/matchesStorage'
 import { loadGroups } from './groupsStorage'
 import { hasMembership, loadMembership, replaceMembership } from './membership'
 import { GroupRow } from './GroupRow'
+import styles from './HomeScreen.module.css'
 import { groupOverview } from '../matches/groupOverview'
 import type { Match } from '../matches/types'
 import { isPending } from './matchesSync'
@@ -135,11 +136,11 @@ export function HomeScreen() {
           />
         }
       />
-      <ScreenContent flush>
+      <ScreenContent>
         {groups.length === 0 ? (
           <EmptyNote>Aún no hay grupos</EmptyNote>
         ) : (
-          <div>
+          <div className={styles.groups}>
             {groups.map((group) => (
               <GroupRow
                 key={group.id}

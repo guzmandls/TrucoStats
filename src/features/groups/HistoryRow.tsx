@@ -18,12 +18,10 @@ interface HistoryRowProps {
 
 function TeamLine({
   team,
-  score,
   won,
   group,
 }: {
   team: Participant[]
-  score: number
   won: boolean
   group: Group
 }) {
@@ -44,14 +42,13 @@ function TeamLine({
         }))}
       />
       <span className={styles.names}>{names}</span>
-      <span className={styles.score}>{score}</span>
     </div>
   )
 }
 
-// Una partida del historial: cada equipo en su línea con su puntaje (el ganador
-// resaltado), la barra de al costado dice cómo te fue y, si jugaste, cuántos
-// puntos sumaste o restaste.
+// Una partida del historial: cada equipo en su línea (el ganador resaltado), un
+// bloque negro con los dos puntajes y, si jugaste, cuántos puntos sumaste o
+// restaste.
 export function HistoryRow({
   match,
   group,
@@ -75,13 +72,11 @@ export function HistoryRow({
       <div className={styles.body}>
         <TeamLine
           team={match.teams.nos}
-          score={match.scores.nos}
           won={match.winner === 'nos'}
           group={group}
         />
         <TeamLine
           team={match.teams.ellos}
-          score={match.scores.ellos}
           won={match.winner === 'ellos'}
           group={group}
         />
@@ -99,6 +94,20 @@ export function HistoryRow({
         {match.canceled?.reason && (
           <span className={styles.reason}>Motivo: {match.canceled.reason}</span>
         )}
+      </div>
+      {/* Un solo bloque negro del alto de la partida, con los dos puntajes
+          separados por una línea crema. */}
+      <div className={styles.scores}>
+        <span
+          className={`${styles.scoreCell} ${match.winner === 'nos' ? styles.scoreWon : ''}`}
+        >
+          {match.scores.nos}
+        </span>
+        <span
+          className={`${styles.scoreCell} ${match.winner === 'ellos' ? styles.scoreWon : ''}`}
+        >
+          {match.scores.ellos}
+        </span>
       </div>
       {actions.length > 0 && (
         <OverflowMenu

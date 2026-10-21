@@ -72,7 +72,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - La pantalla inicial mostrará los grupos de la lista de pertenencia del dispositivo; al salir de un grupo, este deja de mostrarse.
 - La pantalla inicial permitirá iniciar una partida rápida, sin grupo ni integrantes.
 - La pantalla de un grupo ofrecerá la opción de salir del grupo.
-- Cada grupo se presenta como una fila de lado a lado (no como tarjeta redondeada) que empieza con una banda negra con letra crema: a la izquierda el nombre del grupo (lo más grande de la fila, con la nube de partidas sin enviar al lado) y a la derecha la posición de la persona. Debajo, sobre fondo crema: "N integrantes · M partidas jugadas"; los avatares de los 8 primeros del ranking de puntos, en orden y sin contador de "+N", con los puntos de la persona a la derecha ("105 Pts", en tamaño menor al nombre); y la última partida ("Última: ganaste 30 – 21 · hoy", o quién ganó si la persona no jugó; "Sin partidas todavía" si no hay).
+- Cada grupo se presenta como una tarjeta con borde redondeado y margen a los costados (no de borde a borde, para que se note que es un botón). Empieza con una banda negra con letra crema: a la izquierda el nombre del grupo (lo más grande, con la nube de partidas sin enviar al lado) y a la derecha la posición de la persona. Debajo, sobre fondo crema: "N integrantes · M partidas jugadas"; los avatares de los 8 primeros del ranking de puntos, en orden y sin contador de "+N", con los puntos de la persona a la derecha ("105 Pts", en tamaño menor al nombre); y la última partida ("Última: ganaste 30 – 21 · hoy", o quién ganó si la persona no jugó; "Sin partidas todavía" si no hay).
 - La posición va en la banda negra: con un trofeo dorado, plateado o de bronce si es 1º, 2º o 3º, y solo el número ("5º") del cuarto lugar en adelante. Sin partidas no hay posición ni puntos.
 - Si el grupo tiene partidas sin enviar, la nube tachada con la cantidad aparece junto al nombre.
 - Al seleccionar un grupo, se accederá a su historial de partidas. Las estadísticas y los participantes se consultan con botones de icono del sector superior, que llevan a sus propias pantallas.
@@ -246,7 +246,7 @@ Las partidas rápidas no generan historial: se juegan de forma rápida y solo cu
 ### 5.1. Presentación
 
 - El historial se agrupa por día, con un título en una banda negra con letra crema: "Hoy", "Ayer" y después la fecha corta ("18 oct", y con el año si es de otro año).
-- Cada partida muestra a cada equipo en su línea, con sus avatares, los nombres y su puntaje a la derecha dentro de un cuadro negro con número crema; el equipo ganador va resaltado (nombre en negrita y número en crema pleno) y el perdedor atenuado.
+- Cada partida muestra a cada equipo en su línea, con sus avatares y los nombres; el equipo ganador va resaltado (nombre en negrita) y el perdedor atenuado. A la derecha hay un único bloque negro del mismo alto que la barra vertical de la partida, con los dos puntajes en crema separados por una línea crema horizontal en el medio (el del ganador resaltado).
 - Una barra negra vertical al costado de cada partida.
 - Si la persona jugó, se muestra cuántos puntos sumó o restó en esa partida ("+12 Pts", "−8 Pts"). No se muestra si no jugó, si la partida fue cancelada o si el cambio fue de 0.
 

@@ -36,29 +36,38 @@
   font-size: var(--text-md);
 }
 
-/* Cada puntaje va en un cuadro negro con número crema; el del ganador resalta. */
-.score {
-  flex: 0 0 auto;
-  min-width: 44px;
-  height: 36px;
-  padding: 0 var(--space-2);
+/* Bloque negro del alto de la partida con los dos puntajes, separados por una
+   línea crema en el medio. */
+.scores {
+  flex: 0 0 60px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.scoreCell {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  background: var(--ink);
   color: var(--paper-muted);
   font-size: var(--text-xl);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
-.won .names {
+.scoreCell + .scoreCell {
+  border-top: var(--border-width) solid var(--paper);
+}
+
+.scoreWon {
+  color: var(--paper);
   font-weight: 800;
 }
 
-.won .score {
-  color: var(--paper);
+.won .names {
   font-weight: 800;
 }
 

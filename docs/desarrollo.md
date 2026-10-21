@@ -885,3 +885,12 @@ a la app (fondos negros con letra crema). Se corrigió:
   `prettier --check .` pasa en cualquier máquina.
 - Concepto: `eslint` encuentra errores de lógica y malas prácticas; `prettier`
   solo da formato. Tenerlos en cero evita que la deuda se acumule.
+
+### Segundo ajuste de la etapa 27
+
+- Historial: los dos puntajes forman un solo bloque negro del alto de la partida,
+  con una línea crema en el medio, en lugar de dos cuadros sueltos.
+- Home: los grupos vuelven a ser tarjetas con margen y borde redondeado, para que
+  se note que son botones; la banda negra con el nombre se mantiene.
+- Lección: un elemento tocable necesita señales de que lo es (margen, borde,
+  forma de botón); ocupar todo el ancho lo hace parecer una fila de lista.

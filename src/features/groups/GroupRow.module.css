@@ -1,6 +1,11 @@
+/* Cada grupo es una tarjeta con margen, no de borde a borde: así se nota que es
+   un botón. */
 .row {
   display: block;
-  border-bottom: var(--border-width) solid var(--ink);
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper);
   color: var(--ink);
   text-decoration: none;
 }
