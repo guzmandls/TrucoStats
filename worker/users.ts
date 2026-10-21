@@ -9,7 +9,7 @@ const HASH_ITERATIONS = 100_000
 const SESSION_DAYS = 90
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // Letras, números, punto, guion y guion bajo; entre 3 y 20 caracteres.
-const USERNAME_FORMAT = /^[a-z0-9_.-]{3,20}$/
+const USERNAME_FORMAT = /^[a-z0-9_.-]{1,20}$/
 
 // Una cuenta invitada tiene username y email null (ver createGuest). El correo
 // de una cuenta registrada es opcional.
@@ -175,7 +175,7 @@ export async function register(request: Request, env: Env): Promise<Response> {
   const username = normalizeUsername(body.username)
   if (!username) {
     return errorResponse(
-      'El usuario debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo',
+      'El usuario debe tener de 1 a 20 caracteres: letras, números, punto, guion o guion bajo',
       400,
     )
   }
