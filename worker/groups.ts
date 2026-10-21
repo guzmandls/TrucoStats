@@ -154,10 +154,10 @@ export async function createGroup(
   request: Request,
   env: Env,
 ): Promise<Response> {
-  // Crear un grupo exige cuenta con correo: el administrador debe poder
-  // recuperar su acceso.
+  // Crear un grupo exige una cuenta registrada (no basta la invitada): el
+  // administrador necesita una identidad estable.
   const user = await authenticate(request, env)
-  if (!user || user.email === null) {
+  if (!user || user.username === null) {
     return errorResponse('Necesitas una cuenta para crear un grupo', 401)
   }
 

@@ -30,7 +30,12 @@ function send(
 
 interface Joined {
   token?: string
-  user: { id: string; email: string | null; name: string }
+  user: {
+    id: string
+    username: string | null
+    email: string | null
+    name: string
+  }
   memberId: string
   member: { id: string; name: string }
 }
@@ -82,7 +87,7 @@ beforeEach(async () => {
 })
 
 describe('crear grupo', () => {
-  it('exige una cuenta con correo', async () => {
+  it('exige una cuenta registrada', async () => {
     const group = {
       id: 'g2',
       name: 'X',
@@ -119,7 +124,11 @@ describe('POST /api/grupos/:código/unirse', () => {
     expect(response.status).toBe(200)
     const body = (await response.json()) as Joined
     expect(body.token).toMatch(/^[0-9a-f]{64}$/)
-    expect(body.user).toMatchObject({ email: null, name: 'Pedrito' })
+    expect(body.user).toMatchObject({
+      username: null,
+      email: null,
+      name: 'Pedrito',
+    })
     expect(body.member).toEqual({ id: 'm2', name: 'Pedrito' })
 
     const group = (await (
@@ -219,7 +228,7 @@ describe('permisos', () => {
   })
 
   it('alguien de afuera del grupo no puede cambiar nada', async () => {
-    const outsider = await registerTestUser(env, 'otra@correo.com', 'Otra')
+    const outsider = await registerTestUser(env, 'otra')
 
     expect((await rename('m2', outsider)).status).toBe(403)
   })
@@ -243,7 +252,7 @@ describe('permisos', () => {
   })
 
   it('sin sesión o de afuera del grupo no se ven ni se registran partidas', async () => {
-    const outsider = await registerTestUser(env, 'otra@correo.com', 'Otra')
+    const outsider = await registerTestUser(env, 'otra')
 
     expect(
       (await send('POST', `/api/grupos/${code}/partidas`, match)).status,
@@ -269,7 +278,7 @@ describe('permisos', () => {
   })
 })
 
-describe('convertir la cuenta invitada en una cuenta con correo', () => {
+describe('convertir la cuenta invitada en una cuenta registrada', () => {
   it('conserva el integrante y el historial', async () => {
     const guest = (await (await join('m2')).json()) as Joined
     await send('POST', `/api/grupos/${code}/partidas`, match, guest.token)
@@ -277,34 +286,32 @@ describe('convertir la cuenta invitada en una cuenta con correo', () => {
     const response = await send(
       'POST',
       '/api/registro',
-      {
-        email: 'pedro@correo.com',
-        password: 'contraseña-segura',
-        name: 'Pedro',
-      },
+      { username: 'pedro', password: 'contraseña-segura' },
       guest.token,
     )
 
     expect(response.status).toBe(201)
     const upgraded = (await response.json()) as Joined
     expect(upgraded.user.id).toBe(guest.user.id)
-    expect(upgraded.user.email).toBe('pedro@correo.com')
+    expect(upgraded.user.username).toBe('pedro')
+    // Conserva el nombre que eligió al unirse.
+    expect(upgraded.user.name).toBe('Pedro')
 
     const group = (await (
       await send('GET', `/api/grupos/${code}`, undefined, upgraded.token)
     ).json()) as GroupBody
     expect(group.myMemberId).toBe('m2')
     const login = await send('POST', '/api/sesion', {
-      email: 'pedro@correo.com',
+      identifier: 'pedro',
       password: 'contraseña-segura',
     })
     expect(login.status).toBe(200)
   })
 
-  it('una cuenta invitada no puede iniciar sesión con correo', async () => {
+  it('una cuenta invitada no puede iniciar sesión', async () => {
     await join('m2')
     const login = await send('POST', '/api/sesion', {
-      email: 'null',
+      identifier: 'null',
       password: 'x',
     })
 

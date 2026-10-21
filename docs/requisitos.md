@@ -26,12 +26,13 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Podrá estar vinculado a integrantes en uno o varios grupos.
 - Podrá consultar sus estadísticas individuales globales, sumando las partidas de los integrantes a los que está vinculado, en todos sus grupos.
 - El perfil personal será visible para los integrantes de los grupos en los que participa.
-- El registro y el inicio de sesión son con correo y contraseña (el usuario también indica su nombre). La recuperación de contraseña queda para más adelante.
-- La cuenta con correo es obligatoria solo para crear un grupo (el administrador necesita poder recuperar su acceso). El contador y la partida rápida funcionan sin cuenta.
+- El registro pide un usuario (identificador único para entrar, en minúsculas; no tiene por qué ser el nombre de la persona) y una contraseña. El correo es opcional, con la aclaración de que sirve para recuperar la contraseña. Se inicia sesión con el usuario o con el correo. La recuperación de contraseña por correo queda para más adelante.
+- La cuenta registrada (con usuario) es obligatoria solo para crear un grupo: el administrador necesita una identidad estable. El contador y la partida rápida funcionan sin cuenta.
+- Al crear un grupo, el integrante del creador aparece con su usuario como sugerencia de nombre y puede cambiarlo.
 - Unirse a un grupo con el enlace no exige cuenta: al unirse, el servidor crea automáticamente una cuenta invitada (sin correo ni contraseña, invisible para la persona) vinculada a su integrante. Con esa identidad solo ella o el administrador pueden cambiar su nombre, y puede registrar partidas.
-- Una cuenta invitada se puede convertir después en una cuenta con correo y contraseña sin perder su integrante ni su historial. Si nunca lo hace, funciona igual en ese celular; si lo pierde, pierde esa identidad.
+- Una cuenta invitada se puede convertir después en una cuenta registrada (usuario y contraseña) sin perder su integrante ni su historial. Si nunca lo hace, funciona igual en ese celular; si lo pierde, pierde esa identidad.
 - Solo los integrantes vinculados a una cuenta (con correo o invitada) pueden registrar partidas del grupo. Un integrante ya elegido por otra persona no se puede elegir de nuevo; el administrador podrá liberarlo.
-- El registro y el inicio de sesión se hacen desde el menú de las tres rayas de la pantalla principal, que también tiene "Cerrar sesión". Crear un grupo pide la cuenta si hace falta.
+- Desde el menú de las tres rayas de la pantalla principal hay opciones separadas "Registrarse" e "Iniciar sesión" (sin sesión) y "Cerrar sesión" (con sesión). Crear un grupo pide la cuenta si hace falta.
 - Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
 ### 3.2. Integrantes
@@ -437,7 +438,7 @@ Entra:
 - Publicación en Cloudflare (ya implementado).
 - Backend mínimo (Cloudflare Workers + D1) para guardar y compartir grupos y partidas entre dispositivos.
 - Sincronización de las partidas guardadas sin conexión al recuperar la conectividad.
-- Cuentas con correo y contraseña (registro e inicio de sesión) y vínculo usuario ↔ integrante.
+- Cuentas con usuario y contraseña, y correo opcional (registro e inicio de sesión), y vínculo usuario ↔ integrante.
 - Invitaciones: cada grupo tiene un código o enlace secreto, compartible por WhatsApp, para que otras personas entren.
 - Mientras no existan las cuentas, cualquier persona puede crear un grupo.
 

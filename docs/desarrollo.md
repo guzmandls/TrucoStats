@@ -712,13 +712,14 @@ Conceptos nuevos:
 
 Hecho:
 
-- Rutas nuevas: `POST /api/registro` (crea la cuenta y abre sesión),
+- Rutas nuevas: `POST /api/registro` (usuario, contraseña y correo opcional; abre sesión),
   `POST /api/sesion` (iniciar sesión), `DELETE /api/sesion` (cerrar sesión) y
   `GET /api/yo` (quién soy según la sesión).
 - Migración `0003_cuentas.sql`: tablas de usuarios y sesiones, y la columna
   `user_id` en los integrantes (para el vínculo, que viene después).
-- Decisiones del usuario: cuenta con correo y contraseña; obligatoria solo para
-  grupos (la partida rápida sigue sin cuenta).
+- Decisiones del usuario: cuenta con usuario y contraseña (el correo es
+  opcional y sirve para recuperar la contraseña); obligatoria solo para crear
+  grupos (la partida rápida sigue sin cuenta). Se entra con usuario o correo.
 
 Conceptos nuevos:
 

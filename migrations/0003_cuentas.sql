@@ -1,8 +1,11 @@
 -- Cuentas de usuario. La contraseña nunca se guarda: solo su hash con sal.
--- Una cuenta invitada (la que se crea al unirse a un grupo) no tiene correo ni
--- contraseña: esas columnas quedan vacías hasta que la persona se registra.
+-- "username" es el identificador para entrar (en minúsculas); no tiene por qué
+-- ser el nombre de la persona. El correo es opcional: sirve para recuperar la
+-- contraseña. Una cuenta invitada (la que se crea al unirse a un grupo) no tiene
+-- usuario, correo ni contraseña hasta que la persona se registra.
 CREATE TABLE users (
   id            TEXT PRIMARY KEY,
+  username      TEXT,
   email         TEXT,
   name          TEXT NOT NULL,
   password_hash TEXT,
@@ -10,6 +13,7 @@ CREATE TABLE users (
   created_at    TEXT NOT NULL
 );
 
+CREATE UNIQUE INDEX idx_users_username ON users (username);
 CREATE UNIQUE INDEX idx_users_email ON users (email);
 
 -- Sesiones abiertas. Se guarda el hash del token, no el token: si alguien lee

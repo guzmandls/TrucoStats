@@ -4,21 +4,25 @@ import { errorResponse, json } from './http'
 const MIN_PASSWORD_LENGTH = 8
 const MAX_PASSWORD_LENGTH = 100
 const MAX_EMAIL_LENGTH = 100
-const MAX_NAME_LENGTH = 20
 // Cloudflare Workers admite como máximo 100.000 vueltas en PBKDF2.
 const HASH_ITERATIONS = 100_000
 const SESSION_DAYS = 90
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+// Letras, números, punto, guion y guion bajo; entre 3 y 20 caracteres.
+const USERNAME_FORMAT = /^[a-z0-9_.-]{3,20}$/
 
-// Una cuenta invitada tiene email null (ver createGuest).
+// Una cuenta invitada tiene username y email null (ver createGuest). El correo
+// de una cuenta registrada es opcional.
 export interface User {
   id: string
+  username: string | null
   email: string | null
   name: string
 }
 
 interface UserRow {
   id: string
+  username: string | null
   email: string | null
   name: string
   password_hash: string | null
@@ -90,6 +94,14 @@ async function readBody(
   }
 }
 
+function normalizeUsername(value: unknown): string | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+  const username = value.trim().toLowerCase()
+  return USERNAME_FORMAT.test(username) ? username : null
+}
+
 function normalizeEmail(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null
@@ -128,7 +140,7 @@ export async function authenticate(
     return null
   }
   const row = await env.DB.prepare(
-    `SELECT u.id, u.email, u.name FROM sessions s
+    `SELECT u.id, u.username, u.email, u.name FROM sessions s
      JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > ?`,
   )
@@ -149,7 +161,10 @@ export async function createGuest(
   )
     .bind(id, name, new Date().toISOString())
     .run()
-  return { token: await openSession(id, env), user: { id, email: null, name } }
+  return {
+    token: await openSession(id, env),
+    user: { id, username: null, email: null, name },
+  }
 }
 
 export async function register(request: Request, env: Env): Promise<Response> {
@@ -157,11 +172,14 @@ export async function register(request: Request, env: Env): Promise<Response> {
   if (!body) {
     return errorResponse('El cuerpo no es un JSON válido', 400)
   }
-  const email = normalizeEmail(body.email)
-  if (!email) {
-    return errorResponse('El correo no es válido', 400)
+  const username = normalizeUsername(body.username)
+  if (!username) {
+    return errorResponse(
+      'El usuario debe tener de 3 a 20 caracteres: letras, números, punto, guion o guion bajo',
+      400,
+    )
   }
-  const { password, name } = body
+  const { password } = body
   if (
     typeof password !== 'string' ||
     password.length < MIN_PASSWORD_LENGTH ||
@@ -172,42 +190,56 @@ export async function register(request: Request, env: Env): Promise<Response> {
       400,
     )
   }
-  if (
-    typeof name !== 'string' ||
-    name.trim().length === 0 ||
-    name.trim().length > MAX_NAME_LENGTH
-  ) {
-    return errorResponse(
-      `El nombre es obligatorio (hasta ${MAX_NAME_LENGTH} caracteres)`,
-      400,
-    )
+  // El correo es opcional: sirve para recuperar la contraseña más adelante.
+  const hasEmail =
+    body.email !== undefined &&
+    body.email !== null &&
+    !(typeof body.email === 'string' && body.email.trim() === '')
+  const email = hasEmail ? normalizeEmail(body.email) : null
+  if (hasEmail && !email) {
+    return errorResponse('El correo no es válido', 400)
   }
 
-  const taken = await env.DB.prepare('SELECT id FROM users WHERE email = ?')
-    .bind(email)
-    .first<{ id: string }>()
-  if (taken) {
+  if (
+    await env.DB.prepare('SELECT id FROM users WHERE username = ?')
+      .bind(username)
+      .first()
+  ) {
+    return errorResponse('Ese usuario ya existe', 409)
+  }
+  if (
+    email &&
+    (await env.DB.prepare('SELECT id FROM users WHERE email = ?')
+      .bind(email)
+      .first())
+  ) {
     return errorResponse('Ya existe una cuenta con ese correo', 409)
   }
 
   const salt = randomHex(16)
   const passwordHash = await hashPassword(password, salt)
   // Si quien se registra ya tiene una cuenta invitada, esa misma cuenta pasa a
-  // tener correo y contraseña: conserva su integrante y su historial.
+  // ser una cuenta registrada: conserva su integrante, su nombre y su historial.
   const guest = await authenticate(request, env)
-  const upgrading = guest !== null && guest.email === null
+  const upgrading = guest !== null && guest.username === null
   const id = upgrading ? guest.id : crypto.randomUUID()
-  const user: User = { id, email, name: name.trim() }
+  const user: User = {
+    id,
+    username,
+    email,
+    name: upgrading ? guest.name : username,
+  }
   try {
     await (
       upgrading
         ? env.DB.prepare(
-            'UPDATE users SET email = ?, name = ?, password_hash = ?, password_salt = ? WHERE id = ?',
-          ).bind(email, user.name, passwordHash, salt, id)
+            'UPDATE users SET username = ?, email = ?, password_hash = ?, password_salt = ? WHERE id = ?',
+          ).bind(username, email, passwordHash, salt, id)
         : env.DB.prepare(
-            'INSERT INTO users (id, email, name, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO users (id, username, email, name, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
           ).bind(
             id,
+            username,
             email,
             user.name,
             passwordHash,
@@ -216,28 +248,33 @@ export async function register(request: Request, env: Env): Promise<Response> {
           )
     ).run()
   } catch {
-    return errorResponse('Ya existe una cuenta con ese correo', 409)
+    return errorResponse('Ese usuario o correo ya existe', 409)
   }
   return json({ token: await openSession(id, env), user }, 201)
 }
 
+// Se entra con el usuario o con el correo (si la cuenta tiene uno).
 export async function login(request: Request, env: Env): Promise<Response> {
   const body = await readBody(request)
   if (!body) {
     return errorResponse('El cuerpo no es un JSON válido', 400)
   }
-  const email = normalizeEmail(body.email)
+  const identifier =
+    typeof body.identifier === 'string'
+      ? body.identifier.trim().toLowerCase()
+      : ''
   const password = body.password
   // El mismo mensaje para "no existe" y "contraseña mala": no revela qué
-  // correos tienen cuenta.
-  const rejected = errorResponse('Correo o contraseña incorrectos', 401)
-  if (!email || typeof password !== 'string') {
+  // usuarios o correos tienen cuenta.
+  const rejected = errorResponse('Usuario o contraseña incorrectos', 401)
+  if (identifier === '' || typeof password !== 'string') {
     return rejected
   }
+  const column = identifier.includes('@') ? 'email' : 'username'
   const row = await env.DB.prepare(
-    'SELECT id, email, name, password_hash, password_salt FROM users WHERE email = ?',
+    `SELECT id, username, email, name, password_hash, password_salt FROM users WHERE ${column} = ?`,
   )
-    .bind(email)
+    .bind(identifier)
     .first<UserRow>()
   if (!row || !row.password_hash || !row.password_salt) {
     return rejected
@@ -246,7 +283,12 @@ export async function login(request: Request, env: Env): Promise<Response> {
   if (!sameText(hash, row.password_hash)) {
     return rejected
   }
-  const user: User = { id: row.id, email: row.email, name: row.name }
+  const user: User = {
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    name: row.name,
+  }
   return json({ token: await openSession(row.id, env), user })
 }
 

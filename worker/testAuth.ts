@@ -1,17 +1,16 @@
 import worker from './index'
 import type { Env } from './groups'
 
-// Crea una cuenta con correo en el servidor de prueba y devuelve su token.
+// Crea una cuenta registrada en el servidor de prueba y devuelve su token.
 export async function registerTestUser(
   env: Env,
-  email = 'admin@correo.com',
-  name = 'Admin',
+  username = 'admin',
 ): Promise<string> {
   const response = await worker.fetch(
     new Request('https://trucostats.test/api/registro', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ email, password: 'contraseña-segura', name }),
+      body: JSON.stringify({ username, password: 'contraseña-segura' }),
     }),
     env,
   )
