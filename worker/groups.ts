@@ -20,7 +20,7 @@ interface GroupInput {
 
 export const MAX_NAME_LENGTH = 20
 const MAX_MEMBERS = 50
-const MAX_AVATAR_LENGTH = 200_000
+export const MAX_AVATAR_LENGTH = 200_000
 const MAX_ID_LENGTH = 100
 
 export function isNonEmptyString(

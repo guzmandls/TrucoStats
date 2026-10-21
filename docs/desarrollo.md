@@ -656,3 +656,30 @@ Dato para más adelante: la PWA se puede publicar en Play Store (con PWABuilder,
 unos 25 USD únicos) y App Store (con Capacitor, 99 USD por año); casi todo el
 código se reutiliza. En iPhone, solo la app instalada en la pantalla de inicio
 conserva sus datos de forma fiable y recibe notificaciones.
+
+## Etapa 21 — Ver lo que hacen los demás (5d)
+
+Hecho:
+
+- Al abrir un grupo (y cuando vuelve la conexión) la app primero envía lo
+  pendiente y después trae del servidor las partidas de los demás, los nombres
+  cambiados, las fotos y el nombre del grupo. Dos celulares ven el mismo
+  historial.
+- Las partidas que ya estaban se actualizan si alguien cambió un nombre.
+- Lo propio que todavía no se envió nunca se pisa; "quién soy yo" y el código de
+  invitación se conservan.
+- Las fotos de los integrantes ahora también viajan al servidor: el mismo
+  `PATCH` de integrantes acepta nombre, foto o ambos (`null` quita la foto).
+- Probado con dos celulares reales (dos perfiles de Chrome): cada uno jugó una
+  partida, ambos terminaron con las dos y uno vio el nombre nuevo del otro.
+
+Conceptos nuevos:
+
+- Sincronización en dos sentidos: subir (push) lo propio y bajar (pull) lo
+  ajeno. Siempre en ese orden, para no perder partidas propias.
+- "El servidor manda": cuando hay conflicto sobre algo ya confirmado, vale la
+  versión del servidor. Es la regla más simple y evita que dos celulares se
+  pisen entre sí.
+- Fusionar (`merge`): en lugar de reemplazar todo, se actualiza lo que cambió y
+  se conserva lo que solo existe en el celular (como el código de invitación).
+- Pedidos en paralelo (`Promise.all`): el grupo y sus partidas se piden a la vez.

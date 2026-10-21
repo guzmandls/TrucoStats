@@ -1,6 +1,6 @@
 import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
-import { renameMember } from './members'
+import { updateMember } from './members'
 import { createMatch, listMatches } from './matches'
 
 const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
@@ -47,7 +47,7 @@ export default {
       if (request.method !== 'PATCH') {
         return errorResponse('Método no permitido', 405)
       }
-      return renameMember(
+      return updateMember(
         memberOfGroup[1],
         decodeURIComponent(memberOfGroup[2]),
         request,

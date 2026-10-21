@@ -35,12 +35,19 @@ No son requisitos nuevos: son notas para no olvidarlas.
 - Un integrante que entra por el enlace no es el administrador, pero `leaveGroup`
   sigue suponiendo que este celular es el administrador. Al salir, transfiere la
   administración en la copia local aunque no corresponda. Revisar con las cuentas.
-- Los cambios de nombre se envían al servidor, pero los otros celulares todavía no
-  los reciben: se verán cuando exista la sincronización de grupos (5d).
+- Los otros celulares reciben nombres, fotos y partidas al abrir el grupo con
+  conexión (5d). Si un cambio de foto se hace sin conexión, queda solo en ese
+  celular y se pierde en la próxima sincronización (el servidor manda). Lo mismo
+  ocurriría con un cambio de nombre fallido, pero ese no se puede hacer fuera
+  del flujo de unirse.
+- La app todavía no puede agregar ni dar de baja integrantes después de crear el
+  grupo; cuando exista, hay que enviarlo al servidor y a los demás celulares.
+- Las estadísticas y los participantes leen lo que hay en el celular: la
+  sincronización ocurre al abrir la pantalla del grupo.
 - Una partida que el servidor rechaza (por ejemplo, porque incluye a un integrante
-  agregado después de registrar el grupo, que el servidor todavía no conoce) queda
-  "sin enviar" para siempre y el aviso del encabezado no desaparece. Se resuelve
-  cuando los cambios de integrantes también se sincronicen (5d).
+  que el servidor no conoce) queda "sin enviar" para siempre y el aviso del
+  encabezado no desaparece. Hoy no debería pasar, pero conviene decidir qué hacer
+  con una partida rechazada de forma definitiva.
 - Las partidas de grupo jugadas antes de existir la sincronización se envían la
   primera vez que se abre el grupo con conexión.
 - El nombre se puede cambiar sin controles: cualquiera con el enlace puede

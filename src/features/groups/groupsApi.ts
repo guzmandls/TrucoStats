@@ -56,6 +56,29 @@ export async function sendMatch(
   })
 }
 
+// Sube o quita (null) la foto de un integrante.
+export async function setRemoteAvatar(
+  inviteCode: string,
+  memberId: string,
+  avatar: string | null,
+): Promise<void> {
+  await patchJson(`/api/grupos/${inviteCode}/integrantes/${memberId}`, {
+    avatar,
+  })
+}
+
+interface MatchesResponse {
+  matches: Match[]
+}
+
+// Trae todas las partidas del grupo que hay en el servidor.
+export async function fetchRemoteMatches(inviteCode: string): Promise<Match[]> {
+  const response = await apiRequest<MatchesResponse>(
+    `/api/grupos/${inviteCode}/partidas`,
+  )
+  return response.matches
+}
+
 export function inviteLink(inviteCode: string): string {
   return `${window.location.origin}/unirse/${inviteCode}`
 }

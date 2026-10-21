@@ -34,7 +34,8 @@ import { matchMeta, participantNames } from '../matches/format'
 import { ApiError } from '../../lib/api'
 import { registerGroup } from './groupsApi'
 import { InviteDialog } from './InviteDialog'
-import { isPending, syncPendingMatches } from './matchesSync'
+import { syncGroup } from './groupsSync'
+import { isPending } from './matchesSync'
 import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints } from '../matches/points'
 import { removeMembership } from './membership'
@@ -44,7 +45,7 @@ import styles from './GroupScreen.module.css'
 export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { group, matches, setGroup, reloadMatches } = useGroup(id)
+  const { group, matches, setGroup, reload } = useGroup(id)
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
@@ -78,19 +79,23 @@ export function GroupScreen() {
     }
   }, [group])
 
-  // Envía las partidas pendientes al abrir el grupo y cuando vuelve la conexión.
+  // Al abrir el grupo y cuando vuelve la conexión: envía las partidas
+  // pendientes y trae lo que cambiaron los demás.
   useEffect(() => {
-    const send = () => {
-      void syncPendingMatches().then((sent) => {
-        if (sent > 0) {
-          reloadMatches()
+    if (!id) {
+      return
+    }
+    const sync = () => {
+      void syncGroup(id).then((changed) => {
+        if (changed) {
+          reload()
         }
       })
     }
-    send()
-    window.addEventListener('online', send)
-    return () => window.removeEventListener('online', send)
-  }, [reloadMatches])
+    sync()
+    window.addEventListener('online', sync)
+    return () => window.removeEventListener('online', sync)
+  }, [id, reload])
 
   useEffect(() => {
     try {

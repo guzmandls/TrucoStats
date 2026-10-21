@@ -1,10 +1,15 @@
-import { isNonEmptyString, MAX_NAME_LENGTH, type Env } from './groups'
+import {
+  isNonEmptyString,
+  MAX_AVATAR_LENGTH,
+  MAX_NAME_LENGTH,
+  type Env,
+} from './groups'
 import { errorResponse, json } from './http'
 import { findGroupIdByCode } from './matches'
 
-// Cambia el nombre de un integrante. Sin cuentas todavía, cualquiera que tenga
-// el código del grupo puede hacerlo.
-export async function renameMember(
+// Cambia el nombre y/o la foto de un integrante (la foto null la quita). Sin
+// cuentas todavía, cualquiera que tenga el código del grupo puede hacerlo.
+export async function updateMember(
   inviteCode: string,
   memberId: string,
   request: Request,
@@ -21,12 +26,25 @@ export async function renameMember(
   } catch {
     return errorResponse('El cuerpo no es un JSON válido', 400)
   }
-  const name = (body as { name?: unknown } | null)?.name
-  if (!isNonEmptyString(name, MAX_NAME_LENGTH)) {
+  const fields = (typeof body === 'object' && body !== null ? body : {}) as {
+    name?: unknown
+    avatar?: unknown
+  }
+  const hasAvatar = 'avatar' in fields
+  // Sin foto en el pedido, el nombre sigue siendo obligatorio.
+  const hasName = !hasAvatar || 'name' in fields
+  if (hasName && !isNonEmptyString(fields.name, MAX_NAME_LENGTH)) {
     return errorResponse(
       `El nombre es obligatorio (hasta ${MAX_NAME_LENGTH} caracteres)`,
       400,
     )
+  }
+  if (
+    hasAvatar &&
+    fields.avatar !== null &&
+    !isNonEmptyString(fields.avatar, MAX_AVATAR_LENGTH)
+  ) {
+    return errorResponse('La foto no es válida', 400)
   }
 
   const member = await env.DB.prepare(
@@ -38,18 +56,41 @@ export async function renameMember(
     return errorResponse('Integrante no encontrado', 404)
   }
 
-  const trimmed = name.trim()
-  // Las partidas ya guardadas conservan el nombre del integrante, así que
-  // también se actualizan para que el grupo se vea coherente.
-  await env.DB.batch([
-    env.DB.prepare('UPDATE members SET name = ? WHERE id = ?').bind(
-      trimmed,
-      memberId,
-    ),
-    env.DB.prepare(
-      'UPDATE match_players SET name = ? WHERE member_id = ?',
-    ).bind(trimmed, memberId),
-  ])
+  const statements = []
+  if (hasName) {
+    const name = (fields.name as string).trim()
+    // Las partidas ya guardadas conservan el nombre del integrante, así que
+    // también se actualizan para que el grupo se vea coherente.
+    statements.push(
+      env.DB.prepare('UPDATE members SET name = ? WHERE id = ?').bind(
+        name,
+        memberId,
+      ),
+      env.DB.prepare(
+        'UPDATE match_players SET name = ? WHERE member_id = ?',
+      ).bind(name, memberId),
+    )
+  }
+  if (hasAvatar) {
+    statements.push(
+      env.DB.prepare('UPDATE members SET avatar = ? WHERE id = ?').bind(
+        fields.avatar,
+        memberId,
+      ),
+    )
+  }
+  await env.DB.batch(statements)
 
-  return json({ member: { id: memberId, name: trimmed } })
+  const updated = await env.DB.prepare(
+    'SELECT id, name, avatar FROM members WHERE id = ?',
+  )
+    .bind(memberId)
+    .first<{ id: string; name: string; avatar: string | null }>()
+  return json({
+    member: {
+      id: memberId,
+      name: updated?.name,
+      ...(updated?.avatar ? { avatar: updated.avatar } : {}),
+    },
+  })
 }

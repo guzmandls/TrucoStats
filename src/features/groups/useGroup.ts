@@ -10,7 +10,7 @@ export function useGroup(id: string | undefined) {
   const [group, setGroup] = useState<Group | null>(null)
   const [matches, setMatches] = useState<Match[] | null>(null)
   const [reloads, setReloads] = useState(0)
-  const reloadMatches = useCallback(() => setReloads((value) => value + 1), [])
+  const reload = useCallback(() => setReloads((value) => value + 1), [])
 
   useEffect(() => {
     let active = true
@@ -28,7 +28,7 @@ export function useGroup(id: string | undefined) {
     return () => {
       active = false
     }
-  }, [id, navigate])
+  }, [id, navigate, reloads])
 
   useEffect(() => {
     if (!group) {
@@ -50,5 +50,5 @@ export function useGroup(id: string | undefined) {
     }
   }, [group, reloads])
 
-  return { group, matches, setGroup, reloadMatches }
+  return { group, matches, setGroup, reload }
 }

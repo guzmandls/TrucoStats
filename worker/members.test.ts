@@ -88,6 +88,36 @@ describe('PATCH /api/grupos/:código/integrantes/:id', () => {
     expect(response.status).toBe(400)
   })
 
+  it('guarda la foto del integrante sin tocar su nombre', async () => {
+    const response = await rename('m2', {
+      avatar: 'data:image/jpeg;base64,AAA',
+    })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({
+      member: { id: 'm2', name: 'Pedro', avatar: 'data:image/jpeg;base64,AAA' },
+    })
+    const group = (await (await call(`/api/grupos/${code}`)).json()) as {
+      group: { members: { avatar?: string }[] }
+    }
+    expect(group.group.members[1].avatar).toBe('data:image/jpeg;base64,AAA')
+  })
+
+  it('quita la foto con null', async () => {
+    await rename('m2', { avatar: 'data:image/jpeg;base64,AAA' })
+    const response = await rename('m2', { avatar: null })
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({
+      member: { id: 'm2', name: 'Pedro' },
+    })
+  })
+
+  it('rechaza una foto inválida', async () => {
+    expect((await rename('m2', { avatar: 5 })).status).toBe(400)
+    expect((await rename('m2', { avatar: '' })).status).toBe(400)
+  })
+
   it('rechaza un JSON inválido', async () => {
     const response = await call(`/api/grupos/${code}/integrantes/m2`, {
       method: 'PATCH',
