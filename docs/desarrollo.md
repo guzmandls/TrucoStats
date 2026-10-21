@@ -1182,16 +1182,18 @@ a ser un enlace en letra crema que abre el perfil, y se quita la opción "Ver pe
 Sin sesión se mantiene "Ver perfil". El componente `HeaderMenu` recibió `headingTo`
 para que esa primera línea pueda ser un enlace.
 
-## Etapa 42 — Puntos tipo Elo, foto por toque y "Eliminar del grupo"
+## Etapa 42 — Puntos con meseta, foto por toque y "Eliminar del grupo"
 
 Hecho:
 
 - **Nuevo sistema de puntos** (`src/features/matches/points.ts`; reglas y constantes en
-  requisitos §6.4): intercambio de puntos entre equipos según el resultado esperado
-  (como el Elo), empezando todos en 1200, con un bonus de constancia de +3 por partida
-  jugada, una parte mínima para que ganar siempre sume algo y una escala ancha porque el
-  truco depende mucho de la suerte. Reemplaza al sistema anterior, cuyos puntos subían
-  sin límite y no convergían a nada.
+  requisitos §6.4): todos empiezan en 0 y cada integrante suma o resta según sus
+  propios puntos (muchísimo al ganar y casi nada al perder cuando tiene pocos; parejo en
+  1500; las derrotas pesan hasta el doble de las victorias arriba de 2250). Así sube
+  rápido al principio y se acomoda en una meseta que depende de cuánto gana (1500 para
+  un jugador parejo). Se definió preguntando a quien lo usa y simulando miles de
+  partidas con el código real. Reemplaza al sistema anterior (puntos que subían sin
+  límite) y a una primera versión tipo Elo que arrancaba en 1200.
 - **Foto:** el botón "Elige foto" de la ficha se quitó. Ahora se toca la foto (con una
   insignia de lápiz) y se abre "Editar foto". El perfil propio también tiene foto
   editable, que se aplica en todos los grupos donde se sabe quién eres.
@@ -1199,10 +1201,22 @@ Hecho:
 
 Conceptos nuevos:
 
-- **Elo:** cada jugador tiene un puntaje y, antes de cada partida, se calcula la
-  probabilidad esperada de ganar según la diferencia de puntajes; lo que se mueve
-  depende de qué tan sorprendente fue el resultado.
-- **Suma cero y ancla:** si lo que gana uno lo pierde otro, el promedio no se infla; el
-  único aporte "de la nada" es el bonus de constancia, que es chico y se conoce.
+- **Meseta (punto de equilibrio):** como cada jugador suma y resta según sus propios
+  puntos, hay un nivel en el que ganar y perder se compensan para su porcentaje de
+  victorias; ahí se acomoda. No hace falta que los puntos sumen cero.
 - **Simular antes de cambiar:** antes de decidir los números se simularon miles de
   partidas con el código real para ver a dónde convergen los puntos.
+
+## Etapa 43 — Puntos desde 0 con meseta
+
+Se rehízo el sistema de puntos con las reglas definidas junto con quien lo usa: todos
+empiezan en 0; un jugador parejo se acomoda cerca de 1500; se sube rápido al principio;
+ganar siempre suma algo claro aunque se esté arriba (nunca hacen falta más de dos
+victorias para compensar una derrota); una victoria típica en la meseta suma unos 30;
+se mantienen los ajustes por objetivo y por diferencia de resultado, y no hay bonus
+fijo por jugar (jugar ya premia porque se sube desde 0). Detalle, constantes y tabla de
+ejemplos en requisitos §6.4.
+
+Concepto nuevo: **definir reglas preguntando.** Antes de programar se fijaron, una por
+una, las decisiones que cambian los números (meseta, asimetría arriba, tamaño de una
+partida, constancia, ajustes) y se comprobaron con simulaciones.

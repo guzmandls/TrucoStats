@@ -1,27 +1,37 @@
 import type { Team } from '../counter/counterLogic'
 import type { Match } from './types'
 
-// Sistema de puntos (Pts) de un grupo. Es una variante simple del sistema Elo:
-// cada partida es un intercambio de puntos entre los dos equipos, y lo que se
-// mueve depende de qué tan esperado era el resultado. Está explicado paso a paso
+// Sistema de puntos (Pts) de un grupo. Todos empiezan en 0. Cada integrante suma
+// al ganar y resta al perder según SUS PROPIOS puntos: con pocos puntos las
+// victorias valen mucho y las derrotas casi nada (así se sube rápido al
+// principio); a medida que se acerca a su nivel, suma y resta se parejan; y con
+// muchos puntos las derrotas pesan más que las victorias (pero nunca más del doble).
+// Por eso cada jugador se acomoda en una meseta que depende de cuánto gana: un
+// jugador parejo termina cerca de MESA. Está explicado paso a paso, con ejemplos,
 // en docs/requisitos.md (§6.4).
 
-// Puntos con los que empieza todo integrante (y punto de partida del promedio).
-export const START_POINTS = 1200
-// Cuántos puntos se mueven, como máximo, en una partida de 30 puntos con un
-// resultado completamente inesperado.
-export const K = 50
-// Escala de la curva de "resultado esperado": con esta diferencia de puntos entre
-// dos equipos, el de más puntos tiene ~91% de probabilidad esperada de ganar. Es
-// una escala ancha a propósito: en el truco influye mucho la suerte, así que no
-// se espera que el de más puntos gane casi siempre.
-export const SCALE = 1000
-// Lo que se mueve por una victoria nunca baja de esta parte del máximo, para que
-// ganarle a alguien con muchos menos puntos siga sumando algo.
-export const MIN_SHARE = 0.25
-// Puntos que suma cada integrante que juega una partida, gane o pierda: premia la
-// constancia.
-export const PARTICIPATION_BONUS = 3
+export const START_POINTS = 0
+// Puntos en los que se acomoda un jugador parejo (gana la mitad de sus partidas).
+export const MESA = 1500
+// Lo que suma una victoria a 30 puntos, con diferencia media, contra un rival
+// parejo, cuando el jugador está en la meseta. Todos los demás valores se calculan
+// a partir de este.
+export const BASE = 30
+// Cuántas veces vale una victoria en 0 puntos respecto de la de la meseta, y cuánto
+// vale una derrota en 0 puntos (casi nada).
+export const WIN_FACTOR_AT_ZERO = 4.5
+export const LOSS_FACTOR_AT_ZERO = 0.25
+// A partir de esta fracción de la meseta (1,5 = 2250 puntos) los factores dejan de
+// cambiar: ganar vale WIN_FACTOR_AT_TOP y perder LOSS_FACTOR_AT_TOP. Con 0,7 y 1,4,
+// ganar suma la mitad de lo que resta perder: bastan dos victorias para compensar
+// una derrota.
+export const TOP = 1.5
+export const WIN_FACTOR_AT_TOP = 0.7
+export const LOSS_FACTOR_AT_TOP = 1.4
+// Ajuste por la diferencia de puntos con el rival: cada 4000 puntos de diferencia
+// mueven el resultado 100%, con un tope de 25% (de 0,75 a 1,25 de lo normal).
+export const RIVAL_SCALE = 4000
+export const RIVAL_MAX = 0.25
 
 const TARGET_BASE = 30
 const TARGET_FACTOR_MIN = 0.5
@@ -33,13 +43,40 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
-// Probabilidad esperada de que gane un equipo con `own` puntos (promedio del
-// equipo) contra uno con `rival`. Es 50% si tienen los mismos puntos.
-export function expectedScore(own: number, rival: number): number {
-  return 1 / (1 + 10 ** ((rival - own) / SCALE))
+// Cuánto vale una victoria según los puntos de quien gana: x4,5 en 0, x1 en la meseta
+// (1500) y x0,7 desde los 2250. Baja de forma pareja entre un punto y otro.
+export function winFactor(points: number): number {
+  const level = points / MESA
+  if (level <= 1) {
+    return WIN_FACTOR_AT_ZERO - (WIN_FACTOR_AT_ZERO - 1) * level
+  }
+  if (level <= TOP) {
+    return 1 - ((1 - WIN_FACTOR_AT_TOP) * (level - 1)) / (TOP - 1)
+  }
+  return WIN_FACTOR_AT_TOP
 }
 
-// Las partidas a más puntos mueven más, y las más cortas, menos (de la mitad a una
+// Cuánto resta una derrota según los puntos de quien pierde: x0,25 en 0, x1 en la meseta y
+// x1,4 desde los 2250. Sube de forma pareja entre un punto y otro.
+export function lossFactor(points: number): number {
+  const level = points / MESA
+  if (level <= 1) {
+    return LOSS_FACTOR_AT_ZERO + (1 - LOSS_FACTOR_AT_ZERO) * level
+  }
+  if (level <= TOP) {
+    return 1 + ((LOSS_FACTOR_AT_TOP - 1) * (level - 1)) / (TOP - 1)
+  }
+  return LOSS_FACTOR_AT_TOP
+}
+
+// Ajuste por el rival: es positivo si el rival tiene más puntos que el propio
+// equipo (ganarle vale más y perder contra él resta menos) y negativo si tiene
+// menos (ganarle vale menos y perderle resta más). Va de -0,25 a +0,25.
+export function rivalAdjustment(own: number, rival: number): number {
+  return clamp((rival - own) / RIVAL_SCALE, -RIVAL_MAX, RIVAL_MAX)
+}
+
+// Las partidas a más puntos mueven más y las más cortas, menos (de la mitad a una
 // vez y media lo normal): una partida a 30 es la referencia.
 export function targetFactor(match: Match): number {
   return clamp(match.target / TARGET_BASE, TARGET_FACTOR_MIN, TARGET_FACTOR_MAX)
@@ -52,18 +89,6 @@ export function marginFactor(match: Match): number {
   const target = match.target > 0 ? match.target : 1
   const diff = Math.abs(match.scores.nos - match.scores.ellos)
   return MARGIN_FACTOR_MIN + MARGIN_FACTOR_RANGE * Math.min(1, diff / target)
-}
-
-// Puntos que el equipo ganador le saca al perdedor (a cada integrante del
-// perdedor le resta esto y a cada integrante del ganador le suma esto). Es mayor
-// cuanto más inesperada fue la victoria, y nunca menos de MIN_SHARE del máximo.
-export function transfer(
-  match: Match,
-  winnerAvg: number,
-  loserAvg: number,
-): number {
-  const surprise = Math.max(MIN_SHARE, 1 - expectedScore(winnerAvg, loserAvg))
-  return Math.round(K * targetFactor(match) * marginFactor(match) * surprise)
 }
 
 function average(points: Map<string, number>, ids: string[]): number {
@@ -103,19 +128,20 @@ function applyMatch(
   if (nos.length === 0 || ellos.length === 0) {
     return changes
   }
-  const avgNos = average(points, nos)
-  const avgEllos = average(points, ellos)
-  const moved =
-    match.winner === 'nos'
-      ? transfer(match, avgNos, avgEllos)
-      : transfer(match, avgEllos, avgNos)
+  const average_ = { nos: average(points, nos), ellos: average(points, ellos) }
+  const size = BASE * targetFactor(match) * marginFactor(match)
 
   for (const side of ['nos', 'ellos'] as Team[]) {
-    const sign = match.winner === side ? 1 : -1
+    const rival = side === 'nos' ? 'ellos' : 'nos'
+    const adjustment = rivalAdjustment(average_[side], average_[rival])
+    const won = match.winner === side
     for (const id of teamIds(side)) {
       const current = points.get(id) ?? 0
+      const change = won
+        ? size * winFactor(current) * (1 + adjustment)
+        : -size * lossFactor(current) * (1 - adjustment)
       // Nadie baja de 0 puntos.
-      const next = Math.max(0, current + sign * moved + PARTICIPATION_BONUS)
+      const next = Math.max(0, Math.round(current + change))
       points.set(id, next)
       changes.set(id, next - current)
     }

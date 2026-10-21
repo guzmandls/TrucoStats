@@ -131,8 +131,9 @@ describe('forStats', () => {
 
     const points = computePoints(ids, forStats(group, matches))
 
+    // Pedro gana (sube desde 0); Luis y Juan (por su apodo) pierden y siguen en 0.
     expect(points.get('m2')).toBeGreaterThan(START_POINTS)
-    expect(points.get('m3')).toBeLessThan(START_POINTS)
+    expect(points.get('m3')).toBe(START_POINTS)
     // Juancho es apodo de Juan: perdió esa partida, así que también la cuenta.
     expect(points.has('m1')).toBe(true)
     expect([...points.keys()].some((id) => id.startsWith('x'))).toBe(false)
