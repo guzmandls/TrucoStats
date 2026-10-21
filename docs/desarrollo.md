@@ -1097,9 +1097,10 @@ Conceptos nuevos:
 Hecho:
 
 - **Servidor** (`worker/live.ts`, migración `0007_partida_en_vivo.sql`): una fila por
-  grupo con el estado de la partida que se está contando. Pedidos: `PUT` (publicar),
-  `DELETE` (terminar) y `GET` (ver) en `/api/grupos/:código/en-vivo`, solo para
-  integrantes. Si nadie la actualiza durante 5 minutos, `GET` devuelve null.
+  partida en vivo (con su propio id), así puede haber varias a la vez en un grupo.
+  Pedidos: `PUT` y `DELETE` en `/api/grupos/:código/en-vivo/:id` (publicar y
+  terminar) y `GET` en `/api/grupos/:código/en-vivo` (lista), solo para integrantes.
+  La lista deja afuera las que nadie actualiza hace 5 minutos.
 - **Contador** (`useLiveBroadcast`): publica cada cambio (con una espera corta para
   juntar toques seguidos) y cada 20 segundos; al salir del contador la borra. No hace
   nada en la partida rápida ni sin sesión o conexión.
