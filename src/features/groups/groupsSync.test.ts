@@ -74,6 +74,24 @@ describe('pullGroup', () => {
     await saveGroup(local)
   })
 
+  it('completa quién es esta persona si el celular no lo tenía guardado', async () => {
+    const { myMemberId, ...withoutMe } = local
+    void myMemberId
+    await saveGroup(withoutMe)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async (input) =>
+        String(input).endsWith('/partidas')
+          ? json({ matches: [] })
+          : json({ group: local, inviteCode: CODE, myMemberId: 'm1' }),
+      ),
+    )
+
+    expect(await pullGroup('g1')).toBe(true)
+
+    expect((await loadGroups())[0].myMemberId).toBe('m1')
+  })
+
   it('trae las partidas que registraron otros celulares', async () => {
     stubServer(local, [match('a', '2026-10-02T10:00:00.000Z')])
 

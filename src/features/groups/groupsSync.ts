@@ -41,12 +41,16 @@ export async function pullGroup(groupId: string): Promise<boolean> {
   }
 
   let remote: Group
+  let remoteMe: string | null
   let remoteMatches: Match[]
   try {
-    ;[remote, remoteMatches] = await Promise.all([
-      fetchGroupByCode(local.inviteCode).then((response) => response.group),
+    const [response, matches] = await Promise.all([
+      fetchGroupByCode(local.inviteCode),
       fetchRemoteMatches(local.inviteCode),
     ])
+    remote = response.group
+    remoteMe = response.myMemberId
+    remoteMatches = matches
   } catch {
     // Sin conexión: se muestra lo que hay en el celular.
     return false
@@ -56,8 +60,13 @@ export async function pullGroup(groupId: string): Promise<boolean> {
   }
 
   let changed = false
+  // El servidor sabe qué integrante es esta persona: si el celular no lo tenía
+  // guardado (grupos anteriores a las cuentas), se completa para habilitar las
+  // opciones que dependen de eso (por ejemplo, las de administrador).
+  const me = remoteMe ?? local.myMemberId
   if (
     remote.name !== local.name ||
+    me !== local.myMemberId ||
     JSON.stringify(remote.adminMemberIds) !==
       JSON.stringify(local.adminMemberIds) ||
     !sameMembers(remote.members, local.members)
@@ -67,6 +76,7 @@ export async function pullGroup(groupId: string): Promise<boolean> {
       name: remote.name,
       adminMemberIds: remote.adminMemberIds,
       members: remote.members,
+      ...(me ? { myMemberId: me } : {}),
     })
     changed = true
   }

@@ -13,7 +13,9 @@ import {
   ScreenContent,
 } from '../../components/ui'
 import { ApiError } from '../../lib/api'
+import { AliasesDialog } from './AliasesDialog'
 import { avatarColors } from './avatar'
+import { RenameMemberDialog } from './RenameMemberDialog'
 import { isGroupAdmin } from './groupAdmin'
 import {
   fetchGroupByCode,
@@ -27,7 +29,10 @@ import { useGroup } from './useGroup'
 import styles from './ParticipantsScreen.module.css'
 
 type Pending =
-  { kind: 'remove'; member: Member } | { kind: 'release'; member: Member }
+  | { kind: 'remove'; member: Member }
+  | { kind: 'release'; member: Member }
+  | { kind: 'rename'; member: Member }
+  | { kind: 'aliases'; member: Member }
 
 export function ParticipantsScreen() {
   const { id } = useParams<{ id: string }>()
@@ -108,7 +113,27 @@ export function ParticipantsScreen() {
     const isMe = member.id === group.myMemberId
     const isClaimed = claimed.includes(member.id)
     const isAdminMember = group.adminMemberIds.includes(member.id)
+    // Cada uno cambia su nombre y sus apodos; el administrador, el nombre de quien
+    // nadie eligió todavía y los apodos de cualquiera.
+    const ownItems = [
+      ...(isMe || (admin && !isClaimed)
+        ? [
+            {
+              label: 'Cambiar nombre',
+              onClick: () => setPending({ kind: 'rename', member }),
+            },
+          ]
+        : []),
+      {
+        label: 'Editar apodos',
+        onClick: () => setPending({ kind: 'aliases', member }),
+      },
+    ]
+    if (!admin) {
+      return isMe ? ownItems : []
+    }
     return [
+      ...ownItems,
       ...(isAdminMember
         ? [
             {
@@ -161,7 +186,7 @@ export function ParticipantsScreen() {
       <ScreenContent>
         <div className={styles.list}>
           {group.members.map((member) => {
-            const items = admin ? menuItems(member) : []
+            const items = menuItems(member)
             const to = `/grupo/${group.id}/participantes/${member.id}`
             return (
               <div key={member.id} className={styles.member}>
@@ -222,6 +247,25 @@ export function ParticipantsScreen() {
             void run(() => releaseRemoteMember(inviteCode!, pending.member.id))
           }
           onCancel={() => setPending(null)}
+        />
+      )}
+      {pending?.kind === 'rename' && inviteCode && (
+        <RenameMemberDialog
+          inviteCode={inviteCode}
+          memberId={pending.member.id}
+          currentName={pending.member.name}
+          onClose={() => setPending(null)}
+          onSaved={() => void run(() => Promise.resolve())}
+        />
+      )}
+      {pending?.kind === 'aliases' && inviteCode && (
+        <AliasesDialog
+          inviteCode={inviteCode}
+          memberId={pending.member.id}
+          memberName={pending.member.name}
+          aliases={pending.member.aliases ?? []}
+          onClose={() => setPending(null)}
+          onSaved={() => void run(() => Promise.resolve())}
         />
       )}
       {message && (
