@@ -7,7 +7,7 @@ import { cancelMatch, restoreMatch } from './cancel'
 import { matchHistory } from './history'
 import { joinGroup } from './join'
 import { leaveGroup } from './leave'
-import { getLive, publishLive, stopLive } from './live'
+import { listLive, publishLive, stopLive } from './live'
 import { createMatch, listMatches } from './matches'
 import { currentUser, login, logout, register } from './users'
 
@@ -22,7 +22,8 @@ const MATCH_ACTION =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/(cancelar|restaurar)$/
 const MATCH_HISTORY =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/historial$/
-const LIVE_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo$/
+const LIVES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo$/
+const LIVE_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo\/([^/]{1,100})$/
 const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 
@@ -106,16 +107,21 @@ export default {
         : restoreMatch(code, id, request, env)
     }
 
+    const livesOfGroup = LIVES_OF_GROUP.exec(pathname)
+    if (livesOfGroup) {
+      return request.method === 'GET'
+        ? listLive(livesOfGroup[1], request, env)
+        : errorResponse('Método no permitido', 405)
+    }
+
     const liveOfGroup = LIVE_OF_GROUP.exec(pathname)
     if (liveOfGroup) {
-      if (request.method === 'GET') {
-        return getLive(liveOfGroup[1], request, env)
-      }
+      const id = decodeURIComponent(liveOfGroup[2])
       if (request.method === 'PUT') {
-        return publishLive(liveOfGroup[1], request, env)
+        return publishLive(liveOfGroup[1], id, request, env)
       }
       if (request.method === 'DELETE') {
-        return stopLive(liveOfGroup[1], request, env)
+        return stopLive(liveOfGroup[1], id, request, env)
       }
       return errorResponse('Método no permitido', 405)
     }

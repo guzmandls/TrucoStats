@@ -39,16 +39,34 @@ const state = {
   elapsedSeconds: 95,
 }
 
-function live(token?: string, groupCode = code) {
+function list(token?: string, groupCode = code) {
   return send('GET', `/api/grupos/${groupCode}/en-vivo`, undefined, token)
 }
 
-function publish(body: unknown, token = adminToken) {
-  return send('PUT', `/api/grupos/${code}/en-vivo`, body, token)
+function publish(liveId: string, body: unknown, token = adminToken) {
+  return send('PUT', `/api/grupos/${code}/en-vivo/${liveId}`, body, token)
+}
+
+function stop(liveId: string, token = adminToken) {
+  return send(
+    'DELETE',
+    `/api/grupos/${code}/en-vivo/${liveId}`,
+    undefined,
+    token,
+  )
 }
 
 interface LiveBody {
-  live: { state: typeof state; startedAt: string; updatedAt: string } | null
+  live: {
+    id: string
+    state: typeof state
+    startedAt: string
+    updatedAt: string
+  }[]
+}
+
+async function lives(token = pedroToken): Promise<LiveBody['live']> {
+  return ((await (await list(token)).json()) as LiveBody).live
 }
 
 beforeEach(async () => {
@@ -75,77 +93,110 @@ beforeEach(async () => {
   pedroToken = ((await joined.json()) as { token: string }).token
 })
 
-describe('partida en vivo', () => {
-  it('sin partida publicada no hay nada para mirar', async () => {
-    const body = (await (await live(pedroToken)).json()) as LiveBody
-    expect(body.live).toBeNull()
+describe('partidas en vivo', () => {
+  it('sin partidas publicadas no hay nada para mirar', async () => {
+    expect(await lives()).toEqual([])
   })
 
   it('un integrante publica la partida y otro la ve', async () => {
-    expect((await publish({ state })).status).toBe(200)
+    expect((await publish('a1', { state })).status).toBe(200)
 
-    const body = (await (await live(pedroToken)).json()) as LiveBody
+    const [first] = await lives()
 
-    expect(body.live?.state).toEqual(state)
-    expect(body.live?.updatedAt).toBeTruthy()
+    expect(first.id).toBe('a1')
+    expect(first.state).toEqual(state)
+    expect(first.updatedAt).toBeTruthy()
+  })
+
+  it('puede haber varias partidas en vivo a la vez en el mismo grupo', async () => {
+    await publish('a1', { state })
+    await publish(
+      'b2',
+      {
+        state: { ...state, scores: { nos: 3, ellos: 5 } },
+      },
+      pedroToken,
+    )
+
+    const all = await lives()
+
+    expect(all.map((live) => live.id)).toEqual(['a1', 'b2'])
+    expect(all[1].state.scores).toEqual({ nos: 3, ellos: 5 })
   })
 
   it('publicar de nuevo actualiza el estado y conserva cuándo empezó', async () => {
-    await publish({ state })
-    const first = (await (await live(adminToken)).json()) as LiveBody
+    await publish('a1', { state })
+    const [first] = await lives()
 
-    await publish({ state: { ...state, scores: { nos: 20, ellos: 8 } } })
-    const second = (await (await live(adminToken)).json()) as LiveBody
+    await publish('a1', { state: { ...state, scores: { nos: 20, ellos: 8 } } })
+    const [second] = await lives()
 
-    expect(second.live?.state.scores).toEqual({ nos: 20, ellos: 8 })
-    expect(second.live?.startedAt).toBe(first.live?.startedAt)
+    expect(second.state.scores).toEqual({ nos: 20, ellos: 8 })
+    expect(second.startedAt).toBe(first.startedAt)
   })
 
-  it('al terminar deja de mostrarse', async () => {
-    await publish({ state })
+  it('al terminar una, las demás siguen', async () => {
+    await publish('a1', { state })
+    await publish('b2', { state })
 
-    expect(
-      (
-        await send(
-          'DELETE',
-          `/api/grupos/${code}/en-vivo`,
-          undefined,
-          adminToken,
-        )
-      ).status,
-    ).toBe(200)
+    expect((await stop('a1')).status).toBe(200)
 
-    expect(
-      ((await (await live(pedroToken)).json()) as LiveBody).live,
-    ).toBeNull()
+    expect((await lives()).map((live) => live.id)).toEqual(['b2'])
   })
 
   it('si nadie la actualiza durante un rato se ignora', async () => {
-    await publish({ state })
+    await publish('a1', { state })
+    await publish('b2', { state })
     const old = new Date(Date.now() - LIVE_TTL_MS - 1000).toISOString()
-    await env.DB.prepare('UPDATE live_matches SET updated_at = ?')
-      .bind(old)
+    await env.DB.prepare('UPDATE live_matches SET updated_at = ? WHERE id = ?')
+      .bind(old, 'a1')
       .run()
 
-    expect(
-      ((await (await live(pedroToken)).json()) as LiveBody).live,
-    ).toBeNull()
+    expect((await lives()).map((live) => live.id)).toEqual(['b2'])
   })
 
   it('solo la ven y publican los integrantes del grupo', async () => {
     const stranger = await registerTestUser(env, 'otro')
 
-    expect((await live()).status).toBe(401)
-    expect((await live(stranger)).status).toBe(403)
-    expect((await publish({ state }, stranger)).status).toBe(403)
-    expect((await live(adminToken, '0'.repeat(32))).status).toBe(404)
+    expect((await list()).status).toBe(401)
+    expect((await list(stranger)).status).toBe(403)
+    expect((await publish('a1', { state }, stranger)).status).toBe(403)
+    expect((await stop('a1', stranger)).status).toBe(403)
+    expect((await list(adminToken, '0'.repeat(32))).status).toBe(404)
   })
 
   it('rechaza un estado inválido o demasiado grande', async () => {
-    expect((await publish({})).status).toBe(400)
-    expect((await publish({ state: 'x' })).status).toBe(400)
+    expect((await publish('a1', {})).status).toBe(400)
+    expect((await publish('a1', { state: 'x' })).status).toBe(400)
     expect(
-      (await publish({ state: { texto: 'a'.repeat(25_000) } })).status,
+      (await publish('a1', { state: { texto: 'a'.repeat(25_000) } })).status,
     ).toBe(400)
+  })
+
+  it('no mezcla partidas de otro grupo con el mismo id', async () => {
+    await publish('a1', { state })
+    const other = await send(
+      'POST',
+      '/api/grupos',
+      {
+        id: 'g2',
+        name: 'Otros',
+        adminMemberId: 'x1',
+        members: [{ id: 'x1', name: 'Ana' }],
+      },
+      adminToken,
+    )
+    const otherCode = ((await other.json()) as { inviteCode: string })
+      .inviteCode
+
+    const response = await send(
+      'PUT',
+      `/api/grupos/${otherCode}/en-vivo/a1`,
+      { state },
+      adminToken,
+    )
+
+    expect(response.status).toBe(409)
+    expect(await lives()).toHaveLength(1)
   })
 })

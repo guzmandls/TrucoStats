@@ -4,7 +4,7 @@ import { fetchLive, type LiveMatch } from './liveApi'
 import type { Group } from './types'
 
 export interface LiveView {
-  live: LiveMatch | null
+  lives: LiveMatch[]
   // Cuándo (ms) llegó esta versión al celular: sirve para seguir contando el
   // tiempo entre una consulta y la siguiente.
   receivedAt: number
@@ -12,7 +12,7 @@ export interface LiveView {
   loaded: boolean
 }
 
-// Consulta cada tanto si hay una partida en vivo en el grupo. Solo con sesión,
+// Consulta cada tanto qué partidas en vivo hay en el grupo. Solo con sesión,
 // con el grupo en el servidor y con la pantalla visible. Sin conexión se
 // mantiene lo último que se vio.
 export function useLiveMatch(
@@ -21,7 +21,7 @@ export function useLiveMatch(
   enabled = true,
 ): LiveView {
   const [view, setView] = useState<LiveView>({
-    live: null,
+    lives: [],
     receivedAt: 0,
     loaded: false,
   })
@@ -38,9 +38,9 @@ export function useLiveMatch(
         return
       }
       fetchLive(inviteCode)
-        .then((live) => {
+        .then((lives) => {
           if (active) {
-            setView({ live, receivedAt: Date.now(), loaded: true })
+            setView({ lives, receivedAt: Date.now(), loaded: true })
           }
         })
         .catch(() => undefined)

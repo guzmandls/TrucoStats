@@ -21,10 +21,12 @@ const POLL_MS = 3000
 // mismos puntos y el mismo dibujo que ve quien cuenta, sin poder tocar nada. Se
 // actualiza sola cada pocos segundos (necesita conexión).
 export function LiveMatchScreen() {
-  const { id } = useParams<{ id: string }>()
+  const { id, liveId } = useParams<{ id: string; liveId: string }>()
   const navigate = useNavigate()
   const { group } = useGroup(id)
-  const { live, receivedAt, loaded } = useLiveMatch(group, POLL_MS)
+  const { lives, receivedAt, loaded } = useLiveMatch(group, POLL_MS)
+  // Esta partida en particular (puede haber varias en vivo a la vez).
+  const live = lives.find((item) => item.id === liveId) ?? null
   const drawingRef = useRef<HTMLDivElement>(null)
   const [now, setNow] = useState(() => Date.now())
 

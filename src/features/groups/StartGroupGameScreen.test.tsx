@@ -294,9 +294,11 @@ describe('StartGroupGameScreen', () => {
     await waitFor(() => expect(screen.getByTestId('nav-state')).toBeTruthy())
     const state = JSON.parse(screen.getByTestId('nav-state').textContent ?? '')
     expect(state.target).toBe(20)
+    // Cada partida lleva su propio id para transmitirse en vivo.
     expect(state.gameContext).toEqual({
       type: 'group',
       groupId: 'g1',
+      liveId: expect.any(String),
       modality: '1v1',
       teams: {
         nos: [{ id: 'm1', name: 'Juan' }],

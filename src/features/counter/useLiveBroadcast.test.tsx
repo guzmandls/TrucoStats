@@ -25,6 +25,7 @@ const group: Group = {
 const context: GameContext = {
   type: 'group',
   groupId: 'g1',
+  liveId: 'live-1',
   modality: '1v1',
   teams: {
     nos: [{ id: 'm1', name: 'Juan' }],
@@ -92,7 +93,7 @@ describe('transmisión en vivo del contador', () => {
       expect(calls.some((call) => call.method === 'PUT')).toBe(true),
     )
     const first = calls.find((call) => call.method === 'PUT')!
-    expect(first.path).toBe('/api/grupos/abc123/en-vivo')
+    expect(first.path).toBe('/api/grupos/abc123/en-vivo/live-1')
     expect(JSON.parse(first.body!).state).toMatchObject({
       scores: { nos: 0, ellos: 0 },
       target: 30,
@@ -130,7 +131,7 @@ describe('transmisión en vivo del contador', () => {
     await waitFor(() =>
       expect(calls).toContainEqual({
         method: 'DELETE',
-        path: '/api/grupos/abc123/en-vivo',
+        path: '/api/grupos/abc123/en-vivo/live-1',
         body: null,
       }),
     )

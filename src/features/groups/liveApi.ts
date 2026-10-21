@@ -16,6 +16,8 @@ export interface LiveState {
 }
 
 export interface LiveMatch {
+  // Identifica la partida (puede haber varias en vivo a la vez en un grupo).
+  id: string
   state: LiveState
   startedAt: string
   updatedAt: string
@@ -24,19 +26,23 @@ export interface LiveMatch {
 // El contador publica (o actualiza) la partida en curso del grupo.
 export async function publishLive(
   inviteCode: string,
+  liveId: string,
   state: LiveState,
 ): Promise<void> {
-  await putJson(`/api/grupos/${inviteCode}/en-vivo`, { state })
+  await putJson(`/api/grupos/${inviteCode}/en-vivo/${liveId}`, { state })
 }
 
 // La partida terminó o se cerró el contador.
-export async function stopLive(inviteCode: string): Promise<void> {
-  await deleteRequest(`/api/grupos/${inviteCode}/en-vivo`)
+export async function stopLive(
+  inviteCode: string,
+  liveId: string,
+): Promise<void> {
+  await deleteRequest(`/api/grupos/${inviteCode}/en-vivo/${liveId}`)
 }
 
-// La partida en vivo del grupo (null si no hay ninguna).
-export async function fetchLive(inviteCode: string): Promise<LiveMatch | null> {
-  const response = await apiRequest<{ live: LiveMatch | null }>(
+// Las partidas en vivo del grupo (vacío si no hay ninguna).
+export async function fetchLive(inviteCode: string): Promise<LiveMatch[]> {
+  const response = await apiRequest<{ live: LiveMatch[] }>(
     `/api/grupos/${inviteCode}/en-vivo`,
   )
   return response.live

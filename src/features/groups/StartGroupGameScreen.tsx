@@ -160,6 +160,7 @@ export function StartGroupGameScreen() {
     const gameContext: GameContext = {
       type: 'group',
       groupId: group.id,
+      liveId: newMemberId(),
       modality,
       teams: { nos: pick(nos), ellos: pick(ellos) },
     }

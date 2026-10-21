@@ -81,9 +81,11 @@ export function GroupScreen() {
   const navigate = useNavigate()
   const { group, matches, allMatches, setGroup, reload } = useGroup(id)
   const [game, setGame] = useState<PersistedGame | null>(null)
-  // Partida de grupo que está contando otro integrante (se ve desde aquí). Si
-  // esta persona ya tiene una partida en curso, no se muestra.
-  const { live } = useLiveMatch(group, 6000, game === null)
+  // Partidas de grupo que están contando otros integrantes (se ven desde aquí);
+  // la que cuenta esta misma persona no se muestra.
+  const { lives } = useLiveMatch(group, 6000)
+  const ownLiveId = game ? contextOf(game).liveId : undefined
+  const othersLive = lives.filter((item) => item.id !== ownLiveId)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [adding, setAdding] = useState(false)
@@ -408,8 +410,12 @@ export function GroupScreen() {
         }
       />
       <ScreenContent flush>
-        {live && game === null && (
-          <Link to={`/grupo/${group.id}/en-vivo`} className={styles.live}>
+        {othersLive.map((live) => (
+          <Link
+            key={live.id}
+            to={`/grupo/${group.id}/en-vivo/${live.id}`}
+            className={styles.live}
+          >
             <span className={styles.liveTag}>En vivo</span>
             <span className={styles.liveBody}>
               <span className={styles.liveTeams}>
@@ -424,7 +430,7 @@ export function GroupScreen() {
               <ChevronRightIcon size={24} />
             </span>
           </Link>
-        )}
+        ))}
         {searching && (
           <div className={styles.searchBar}>
             <TextInput

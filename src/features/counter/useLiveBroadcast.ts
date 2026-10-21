@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getToken } from '../../lib/session'
 import { loadGroups } from '../groups/groupsStorage'
+import { newMemberId } from '../groups/groupAdmin'
 import { publishLive, stopLive, type LiveState } from '../groups/liveApi'
 import type { CounterController } from './useCounter'
 
@@ -18,6 +19,10 @@ export function useLiveBroadcast(counter: CounterController): void {
   const { context } = counter
   const groupId = context.type === 'group' ? context.groupId : null
   const [inviteCode, setInviteCode] = useState<string | null>(null)
+  // Cada partida tiene su id; si es una partida vieja que no lo tiene, se crea uno
+  // para esta sesión del contador.
+  const [fallbackId] = useState(() => newMemberId())
+  const liveId = context.liveId ?? fallbackId
 
   useEffect(() => {
     if (!groupId) {
@@ -60,13 +65,16 @@ export function useLiveBroadcast(counter: CounterController): void {
     }
     const timeout = window.setTimeout(() => {
       if (latest.current) {
-        void publishLive(inviteCode, latest.current).catch(() => undefined)
+        void publishLive(inviteCode, liveId, latest.current).catch(
+          () => undefined,
+        )
       }
     }, DEBOUNCE_MS)
     return () => window.clearTimeout(timeout)
   }, [
     enabled,
     inviteCode,
+    liveId,
     nos,
     ellos,
     counter.target,
@@ -80,18 +88,20 @@ export function useLiveBroadcast(counter: CounterController): void {
     }
     const interval = window.setInterval(() => {
       if (latest.current) {
-        void publishLive(inviteCode, latest.current).catch(() => undefined)
+        void publishLive(inviteCode, liveId, latest.current).catch(
+          () => undefined,
+        )
       }
     }, HEARTBEAT_MS)
     return () => window.clearInterval(interval)
-  }, [enabled, inviteCode])
+  }, [enabled, inviteCode, liveId])
 
   useEffect(() => {
     if (!enabled || !inviteCode) {
       return
     }
     return () => {
-      void stopLive(inviteCode).catch(() => undefined)
+      void stopLive(inviteCode, liveId).catch(() => undefined)
     }
-  }, [enabled, inviteCode])
+  }, [enabled, inviteCode, liveId])
 }

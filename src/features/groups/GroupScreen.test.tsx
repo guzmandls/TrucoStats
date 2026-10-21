@@ -411,69 +411,73 @@ describe('GroupScreen', () => {
     )
   })
 
-  it('muestra el aviso de partida en vivo y lleva a mirarla', async () => {
-    saveSession({
-      token: 't',
-      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
-    })
-    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (input: RequestInfo | URL) => {
-        const url = String(input)
-        if (url.endsWith('/en-vivo')) {
-          return new Response(
-            JSON.stringify({
-              live: {
-                state: {
-                  teams: {
-                    nos: [{ id: 'm1', name: 'Juan' }],
-                    ellos: [{ id: 'm2', name: 'Pedro' }],
-                  },
-                  target: 30,
-                  scores: { nos: 12, ellos: 8 },
-                  paused: false,
-                  elapsedSeconds: 60,
-                  winner: null,
-                },
-                startedAt: '2026-10-01T20:00:00.000Z',
-                updatedAt: '2026-10-01T20:01:00.000Z',
-              },
-            }),
-            { status: 200 },
-          )
-        }
-        return new Response(JSON.stringify({ matches: [] }), { status: 200 })
-      }),
-    )
-    renderGroup()
+  function liveItem(
+    id: string,
+    nos: string,
+    ellos: string,
+    scores: [number, number],
+  ) {
+    return {
+      id,
+      state: {
+        teams: {
+          nos: [{ id: `${id}a`, name: nos }],
+          ellos: [{ id: `${id}b`, name: ellos }],
+        },
+        target: 30,
+        scores: { nos: scores[0], ellos: scores[1] },
+        paused: false,
+        elapsedSeconds: 60,
+        winner: null,
+      },
+      startedAt: '2026-10-01T20:00:00.000Z',
+      updatedAt: '2026-10-01T20:01:00.000Z',
+    }
+  }
 
-    const link = await screen.findByRole('link', { name: /En vivo/ })
-    expect(link).toHaveAttribute('href', `/grupo/${group.id}/en-vivo`)
-    expect(link).toHaveTextContent('Juan vs Pedro')
-    expect(link).toHaveTextContent('12 – 8')
-  })
-
-  it('no muestra el aviso si no hay partida en vivo', async () => {
-    saveSession({
-      token: 't',
-      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
-    })
-    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+  function stubLives(live: unknown[]) {
     vi.stubGlobal(
       'fetch',
       vi.fn(
         async (input: RequestInfo | URL) =>
           new Response(
             JSON.stringify(
-              String(input).endsWith('/en-vivo')
-                ? { live: null }
-                : { matches: [] },
+              String(input).endsWith('/en-vivo') ? { live } : { matches: [] },
             ),
             { status: 200 },
           ),
       ),
     )
+  }
+
+  it('muestra un aviso por cada partida en vivo y lleva a mirarla', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+    stubLives([
+      liveItem('v1', 'Juan', 'Pedro', [12, 8]),
+      liveItem('v2', 'Luis', 'Ana', [3, 5]),
+    ])
+    renderGroup()
+
+    const links = await screen.findAllByRole('link', { name: /En vivo/ })
+    expect(links).toHaveLength(2)
+    expect(links[0]).toHaveAttribute('href', `/grupo/${group.id}/en-vivo/v1`)
+    expect(links[0]).toHaveTextContent('Juan vs Pedro')
+    expect(links[0]).toHaveTextContent('12 – 8')
+    expect(links[1]).toHaveAttribute('href', `/grupo/${group.id}/en-vivo/v2`)
+    expect(links[1]).toHaveTextContent('Luis vs Ana')
+  })
+
+  it('no muestra el aviso si no hay partidas en vivo', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+    stubLives([])
     renderGroup()
 
     await screen.findByRole('button', { name: 'Menú' })

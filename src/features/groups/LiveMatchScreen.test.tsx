@@ -23,6 +23,7 @@ const group: Group = {
 
 function liveMatch(overrides: Partial<LiveMatch['state']> = {}): LiveMatch {
   return {
+    id: 'v1',
     state: {
       teams: {
         nos: [{ id: 'm1', name: 'Juan' }],
@@ -42,9 +43,12 @@ function liveMatch(overrides: Partial<LiveMatch['state']> = {}): LiveMatch {
 
 function renderLive() {
   return render(
-    <MemoryRouter initialEntries={['/grupo/g1/en-vivo']}>
+    <MemoryRouter initialEntries={['/grupo/g1/en-vivo/v1']}>
       <Routes>
-        <Route path="/grupo/:id/en-vivo" element={<LiveMatchScreen />} />
+        <Route
+          path="/grupo/:id/en-vivo/:liveId"
+          element={<LiveMatchScreen />}
+        />
         <Route path="/grupo/:id" element={<div>pantalla del grupo</div>} />
       </Routes>
     </MemoryRouter>,
@@ -54,7 +58,12 @@ function renderLive() {
 function stubLive(live: LiveMatch | null) {
   vi.stubGlobal(
     'fetch',
-    vi.fn(async () => new Response(JSON.stringify({ live }), { status: 200 })),
+    vi.fn(
+      async () =>
+        new Response(JSON.stringify({ live: live ? [live] : [] }), {
+          status: 200,
+        }),
+    ),
   )
 }
 

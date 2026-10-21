@@ -24,7 +24,10 @@ function App() {
         <Route path="/iniciar-sesion" element={<AuthScreen mode="login" />} />
         <Route path="/unirse/:code" element={<JoinGroupScreen />} />
         <Route path="/grupo/:id" element={<GroupScreen />} />
-        <Route path="/grupo/:id/en-vivo" element={<LiveMatchScreen />} />
+        <Route
+          path="/grupo/:id/en-vivo/:liveId"
+          element={<LiveMatchScreen />}
+        />
         <Route path="/grupo/:id/estadisticas" element={<GroupStatsScreen />} />
         <Route
           path="/grupo/:id/participantes"
