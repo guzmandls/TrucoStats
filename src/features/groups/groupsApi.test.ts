@@ -5,7 +5,7 @@ import type { Group } from './types'
 const group: Group = {
   id: 'g1',
   name: 'Los pibes',
-  adminMemberId: 'm1',
+  adminMemberIds: ['m1'],
   createdAt: '2026-10-01T10:00:00.000Z',
   members: [
     { id: 'm1', name: 'Juan' },
@@ -33,7 +33,12 @@ describe('registerGroup', () => {
       RequestInit,
     ]
     expect(path).toBe('/api/grupos')
-    expect(JSON.parse(init.body as string)).toEqual(group)
+    // El servidor recibe el creador como `adminMemberId`.
+    const { adminMemberIds, ...rest } = group
+    expect(JSON.parse(init.body as string)).toEqual({
+      ...rest,
+      adminMemberId: adminMemberIds[0],
+    })
   })
 })
 

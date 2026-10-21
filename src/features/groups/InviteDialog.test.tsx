@@ -5,7 +5,7 @@ import { InviteDialog } from './InviteDialog'
 const group = {
   id: 'g1',
   name: 'Los pibes',
-  adminMemberId: 'm1',
+  adminMemberIds: ['m1'],
   createdAt: '2026-10-01T10:00:00.000Z',
   members: [{ id: 'm1', name: 'Juan' }],
   inviteCode: 'abc123',

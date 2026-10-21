@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { MemberScreen } from './MemberScreen'
@@ -12,7 +12,7 @@ import type { Group } from './types'
 const group: Group = {
   id: 'g1',
   name: 'Los del truco',
-  adminMemberId: 'm1',
+  adminMemberIds: ['m1'],
   createdAt: '2026-01-01T00:00:00.000Z',
   members: [
     { id: 'm1', name: 'Juan' },
@@ -105,6 +105,127 @@ describe('ParticipantsScreen', () => {
     renderParticipants()
     fireEvent.click(await screen.findByRole('button', { name: 'Volver' }))
     expect(await screen.findByText('grupo')).toBeInTheDocument()
+  })
+})
+
+describe('ParticipantsScreen (administración)', () => {
+  const adminGroup: Group = {
+    ...group,
+    inviteCode: 'abc123',
+    myMemberId: 'm1',
+    adminMemberIds: ['m1', 'm2'],
+  }
+  let calls: { method: string; path: string; body: string | null }[]
+
+  beforeEach(async () => {
+    for (const existing of await loadGroups()) {
+      await deleteGroup(existing.id)
+    }
+    calls = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (path: string, init: RequestInit = {}) => {
+        const method = init.method ?? 'GET'
+        calls.push({ method, path, body: (init.body as string) ?? null })
+        if (path.endsWith('/partidas')) {
+          return new Response(JSON.stringify({ matches: [] }), { status: 200 })
+        }
+        if (method === 'GET') {
+          return new Response(
+            JSON.stringify({
+              group: { ...adminGroup, myMemberId: undefined },
+              inviteCode: 'abc123',
+              claimedMemberIds: ['m1', 'm2'],
+              myMemberId: 'm1',
+            }),
+            { status: 200 },
+          )
+        }
+        return new Response(JSON.stringify({ ok: true }), { status: 200 })
+      }),
+    )
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('muestra un escudo junto a cada administrador', async () => {
+    await saveGroup(adminGroup)
+    renderParticipants()
+
+    await screen.findByRole('link', { name: /Juan/ })
+    expect(screen.getAllByRole('img', { name: 'Administrador' })).toHaveLength(
+      2,
+    )
+  })
+
+  it('un integrante común no ve el menú de opciones', async () => {
+    await saveGroup({ ...adminGroup, myMemberId: 'm3' })
+    renderParticipants()
+
+    await screen.findByRole('link', { name: /Juan/ })
+    expect(screen.queryByRole('button', { name: /Opciones de/ })).toBeNull()
+  })
+
+  it('el administrador da el rol de administrador a otro integrante', async () => {
+    await saveGroup({ ...adminGroup, adminMemberIds: ['m1'] })
+    renderParticipants()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de Pedro' }),
+    )
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: 'Hacer administrador' }),
+    )
+
+    await waitFor(() =>
+      expect(calls).toContainEqual({
+        method: 'PUT',
+        path: '/api/grupos/abc123/integrantes/m2/administrador',
+        body: JSON.stringify({ admin: true }),
+      }),
+    )
+  })
+
+  it('pide confirmación antes de dar de baja a un integrante', async () => {
+    await saveGroup(adminGroup)
+    renderParticipants()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de Luis' }),
+    )
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: 'Dar de baja' }),
+    )
+    expect(calls.some((call) => call.method === 'DELETE')).toBe(false)
+    fireEvent.click(await screen.findByRole('button', { name: 'Dar de baja' }))
+
+    await waitFor(() =>
+      expect(calls).toContainEqual({
+        method: 'DELETE',
+        path: '/api/grupos/abc123/integrantes/m3',
+        body: null,
+      }),
+    )
+  })
+
+  it('solo ofrece liberar a quien ya fue elegido y no es uno mismo', async () => {
+    await saveGroup(adminGroup)
+    renderParticipants()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de Juan' }),
+    )
+    expect(
+      screen.queryByRole('menuitem', { name: 'Liberar integrante' }),
+    ).toBeNull()
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de Pedro' }),
+    )
+    expect(
+      await screen.findByRole('menuitem', { name: 'Liberar integrante' }),
+    ).toBeInTheDocument()
   })
 })
 

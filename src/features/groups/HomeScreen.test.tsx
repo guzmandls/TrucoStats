@@ -129,7 +129,7 @@ describe('HomeScreen', () => {
     await saveGroup({
       id: 'g1',
       name: 'Los del truco',
-      adminMemberId: 'm1',
+      adminMemberIds: ['m1'],
       createdAt: '2026-01-01T00:00:00.000Z',
       members: [
         { id: 'm1', name: 'Juan' },
@@ -148,7 +148,7 @@ describe('HomeScreen', () => {
     await saveGroup({
       id: 'g1',
       name: 'Los del truco',
-      adminMemberId: 'm1',
+      adminMemberIds: ['m1'],
       createdAt: '2026-01-01T00:00:00.000Z',
       members: [{ id: 'm1', name: 'Juan' }],
     })

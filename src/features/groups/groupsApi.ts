@@ -1,4 +1,10 @@
-import { apiRequest, patchJson, postJson } from '../../lib/api'
+import {
+  apiRequest,
+  deleteRequest,
+  patchJson,
+  postJson,
+  putJson,
+} from '../../lib/api'
 import { saveSession, type Account } from '../../lib/session'
 import type { Match } from '../matches/types'
 import type { Group } from './types'
@@ -9,11 +15,11 @@ interface RegisterResponse {
 
 // Registra el grupo en el servidor y devuelve su código de invitación.
 export async function registerGroup(group: Group): Promise<string> {
-  const { id, name, adminMemberId, createdAt, members } = group
+  const { id, name, adminMemberIds, createdAt, members } = group
   const response = await postJson<RegisterResponse>('/api/grupos', {
     id,
     name,
-    adminMemberId,
+    adminMemberId: adminMemberIds[0],
     createdAt,
     members,
   })
@@ -97,6 +103,48 @@ export async function setRemoteAvatar(
   await patchJson(`/api/grupos/${inviteCode}/integrantes/${memberId}`, {
     avatar,
   })
+}
+
+// --- Administración del grupo (solo para administradores) ---
+
+// Agrega un integrante nuevo.
+export async function addRemoteMember(
+  inviteCode: string,
+  member: { id: string; name: string },
+): Promise<void> {
+  await postJson(`/api/grupos/${inviteCode}/integrantes`, member)
+}
+
+// Da de baja a un integrante (sus partidas se conservan).
+export async function removeRemoteMember(
+  inviteCode: string,
+  memberId: string,
+): Promise<void> {
+  await deleteRequest(`/api/grupos/${inviteCode}/integrantes/${memberId}`)
+}
+
+// Desvincula a la persona que eligió ese integrante, para que pueda elegir de
+// nuevo.
+export async function releaseRemoteMember(
+  inviteCode: string,
+  memberId: string,
+): Promise<void> {
+  await postJson(
+    `/api/grupos/${inviteCode}/integrantes/${memberId}/liberar`,
+    {},
+  )
+}
+
+// Da o quita el rol de administrador.
+export async function setRemoteMemberAdmin(
+  inviteCode: string,
+  memberId: string,
+  admin: boolean,
+): Promise<void> {
+  await putJson(
+    `/api/grupos/${inviteCode}/integrantes/${memberId}/administrador`,
+    { admin },
+  )
 }
 
 interface MatchesResponse {

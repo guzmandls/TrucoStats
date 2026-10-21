@@ -14,6 +14,10 @@ function isMember(value: unknown): value is Member {
   )
 }
 
+function isIdList(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((id) => typeof id === 'string')
+}
+
 function isGroup(value: unknown): value is Group {
   if (typeof value !== 'object' || value === null) {
     return false
@@ -22,7 +26,8 @@ function isGroup(value: unknown): value is Group {
   return (
     typeof group.id === 'string' &&
     typeof group.name === 'string' &&
-    typeof group.adminMemberId === 'string' &&
+    (isIdList(group.adminMemberIds) ||
+      typeof group.adminMemberId === 'string') &&
     typeof group.createdAt === 'string' &&
     (group.inviteCode === undefined || typeof group.inviteCode === 'string') &&
     (group.myMemberId === undefined || typeof group.myMemberId === 'string') &&
@@ -33,7 +38,21 @@ function isGroup(value: unknown): value is Group {
 
 export async function loadGroups(): Promise<Group[]> {
   const groups = await readAll<unknown>(GROUPS_STORE)
-  return groups.filter(isGroup)
+  // Los grupos guardados antes de existir varios administradores tienen un solo
+  // `adminMemberId`; se convierten al formato nuevo al leerlos.
+  return groups.filter(isGroup).map((group) => {
+    const { adminMemberId, ...rest } = group as Group & {
+      adminMemberId?: string
+    }
+    return {
+      ...rest,
+      adminMemberIds: isIdList(group.adminMemberIds)
+        ? group.adminMemberIds
+        : adminMemberId
+          ? [adminMemberId]
+          : [],
+    }
+  })
 }
 
 export function saveGroup(group: Group): Promise<void> {
@@ -116,13 +135,16 @@ export async function updateMemberAvatar(
  * en el perfil personal.
  */
 export async function leaveGroup(group: Group): Promise<'left' | 'deleted'> {
-  const others = group.members.filter(
-    (member) => member.id !== group.adminMemberId,
-  )
+  const me = group.myMemberId ?? group.adminMemberIds[0]
+  const others = group.members.filter((member) => member.id !== me)
   if (others.length === 0) {
     await deleteGroup(group.id)
     return 'deleted'
   }
-  await saveGroup({ ...group, adminMemberId: others[0].id })
+  const admins = group.adminMemberIds.filter((id) => id !== me)
+  await saveGroup({
+    ...group,
+    adminMemberIds: admins.length > 0 ? admins : [others[0].id],
+  })
   return 'left'
 }

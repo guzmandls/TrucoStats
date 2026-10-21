@@ -11,7 +11,7 @@ import type { Group } from './types'
 const group: Group = {
   id: 'g1',
   name: 'Los del truco',
-  adminMemberId: 'm1',
+  adminMemberIds: ['m1'],
   createdAt: '2026-01-01T00:00:00.000Z',
   members: [
     { id: 'm1', name: 'Juan' },

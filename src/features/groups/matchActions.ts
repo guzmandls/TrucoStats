@@ -27,7 +27,7 @@ export function availableActions(
   if (!me) {
     return []
   }
-  const isAdmin = me === group.adminMemberId
+  const isAdmin = group.adminMemberIds.includes(me)
   if (match.canceled) {
     const mine = match.canceled.by === me
     return isAdmin || (mine && withinWindow(match.canceled.at, now))

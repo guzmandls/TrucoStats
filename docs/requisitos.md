@@ -57,10 +57,12 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Los integrantes podrán invitar a otras personas mediante un enlace compartible, por ejemplo, por WhatsApp.
 - Cada grupo tendrá sus propios integrantes, partidas, historial y estadísticas.
 - Los integrantes podrán consultar las estadísticas correspondientes a su grupo.
-- El administrador podrá administrar el grupo: editar a los integrantes (agregar, renombrar y dar de baja) y vincular o desvincular cuentas.
+- Un grupo puede tener varios administradores a la vez. Quien ya es administrador puede dar ese rol a otro integrante que ya haya sido elegido por una persona, sin dejar de serlo, y puede quitarlo (a otro o a sí mismo) siempre que quede al menos un administrador.
+- Los administradores pueden administrar el grupo: agregar integrantes (opción "Agregar integrante" del menú de tres rayas del grupo, que pide el nombre), renombrarlos, darlos de baja y liberarlos (desvincular la cuenta de quien eligió un integrante por error, para que pueda elegir de nuevo; no puede liberarse a uno mismo). Estas acciones están en el menú "⋯" de cada integrante en Participantes, visible solo para administradores, y necesitan conexión.
+- En Participantes, un escudo junto al nombre marca a los administradores.
 - Dar de baja a un integrante con partidas jugadas lo ocultará de la lista sin borrar sus partidas ni sus estadísticas.
 - El administrador tendrá acceso a las funciones de administración y podrá cancelar y restaurar partidas del grupo.
-- La administración podrá cambiar de manos (por ejemplo, si el administrador actual abusa de su poder). El procedimiento exacto está por definir.
+- Si el grupo se queda sin administradores (porque el último se fue, fue dado de baja o liberado), el rol pasa automáticamente al integrante con cuenta más antiguo; si ninguno tiene cuenta, al integrante más antiguo.
 - Mientras no exista el sistema de cuentas, el dispositivo tendrá una lista local de pertenencia: los grupos que aparecen en la pantalla inicial.
 - Un usuario podrá salir de un grupo; al hacerlo, el grupo deja de aparecer en su pantalla inicial (se quita de su lista de pertenencia).
 - Salir de un grupo no descuenta las partidas ya jugadas: las partidas jugadas por el usuario siguen contando en su perfil personal aunque el grupo se elimine.
@@ -400,7 +402,7 @@ Cada partida tendrá un único anotador responsable para evitar modificaciones s
 ## 8. Seguridad y auditoría
 
 - Cada usuario tendrá una identidad única.
-- Cada grupo tendrá un administrador.
+- Cada grupo tendrá al menos un administrador.
 - Solo el anotador autorizado podrá modificar una partida en curso.
 - Solo los usuarios autorizados podrán cancelar o anular partidas.
 - Los permisos se comprobarán en el servidor.
@@ -431,7 +433,6 @@ El desarrollo ya está en marcha (contador, partida de grupo, historial local, e
 - Sistema definitivo de registro, inicio de sesión y recuperación de cuentas.
 - Gestión de invitaciones y enlaces para unirse a grupos.
 - Administración de integrantes que abandonan un grupo.
-- Procedimiento para cambiar o transferir el administrador de un grupo.
 - Puntaje de victoria por defecto de la partida rápida.
 - Diseño visual definitivo de las pantallas.
 - Comportamiento del reconocimiento de gestos ante trazos ambiguos o incorrectos.

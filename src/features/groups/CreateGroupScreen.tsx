@@ -95,7 +95,7 @@ export function CreateGroupScreen() {
       id: createId(),
       name: name.trim() || 'Grupo',
       members,
-      adminMemberId: adminId,
+      adminMemberIds: [adminId],
       createdAt: now,
       myMemberId: adminId,
     }

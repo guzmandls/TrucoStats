@@ -11,7 +11,7 @@ const ana: Participant = { id: 'm4', name: 'Ana' }
 const group: Group = {
   id: 'g1',
   name: 'Los pibes',
-  adminMemberId: 'm1',
+  adminMemberIds: ['m1'],
   createdAt: '2026-01-01T00:00:00.000Z',
   members: [juan, pedro, luis, ana] as Member[],
 }
@@ -216,7 +216,7 @@ describe('groupSummary', () => {
     const terna: Group = {
       id: 'g3',
       name: 'Terna',
-      adminMemberId: 't1',
+      adminMemberIds: ['t1'],
       createdAt: '2026-01-01T00:00:00.000Z',
       members: [a1, a2, a3, b1, b2, b3] as Member[],
     }
@@ -242,7 +242,7 @@ describe('groupSummary', () => {
     const terna: Group = {
       id: 'g4',
       name: 'Terna',
-      adminMemberId: 't1',
+      adminMemberIds: ['t1'],
       createdAt: '2026-01-01T00:00:00.000Z',
       members: [a1, a2, a3, b1, b2, b3] as Member[],
     }
@@ -291,7 +291,7 @@ describe('podium', () => {
   const trio: Group = {
     id: 'g2',
     name: 'Terna',
-    adminMemberId: 'm1',
+    adminMemberIds: ['m1'],
     createdAt: '2026-01-01T00:00:00.000Z',
     members: [juan, pedro, luis] as Member[],
   }
