@@ -246,8 +246,8 @@ Las partidas rápidas no generan historial: se juegan de forma rápida y solo cu
 ### 5.1. Presentación
 
 - El historial se agrupa por día, con un título en una banda negra con letra crema: "Hoy", "Ayer" y después la fecha corta ("18 oct", y con el año si es de otro año).
-- Cada partida muestra a cada equipo en su línea, con sus avatares y los nombres; el equipo ganador va resaltado (nombre en negrita) y el perdedor atenuado. A la derecha hay un único bloque negro del mismo alto que la barra vertical de la partida, con los dos puntajes en crema separados por una línea crema horizontal en el medio (el del ganador resaltado).
-- Una barra negra vertical al costado de cada partida.
+- Cada partida se divide en tres columnas del mismo alto, alineadas con las dos líneas de equipos: a la izquierda un bloque negro vertical con los datos de la partida en líneas cortas (modalidad, "40 pts", "10 min", y "Sin enviar" o "Cancelada" si corresponde) y, si la persona jugó, los puntos que sumó o restó ("+12 Pts", "−8 Pts"); en el medio cada equipo en su línea, con sus avatares y los nombres (el ganador en negrita y el perdedor atenuado); y a la derecha un único bloque negro con los dos puntajes en crema, separados por una línea crema horizontal, cada uno a la altura de su equipo.
+- El motivo de una partida cancelada se muestra en una línea debajo de la partida.
 - Si la persona jugó, se muestra cuántos puntos sumó o restó en esa partida ("+12 Pts", "−8 Pts"). No se muestra si no jugó, si la partida fue cancelada o si el cambio fue de 0.
 
 ### 5.2. Navegar y buscar

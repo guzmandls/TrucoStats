@@ -1,16 +1,62 @@
 .row {
   display: flex;
-  align-items: stretch;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-3);
   border-bottom: var(--hairline-width) solid var(--line-thin);
 }
 
-/* Barra negra al costado de cada partida. */
-.flag {
-  flex: 0 0 6px;
-  border-radius: var(--radius-pill);
+/* Tres columnas del mismo alto: datos, equipos y puntajes. Los dos equipos y
+   las dos celdas de puntaje se reparten el alto en partes iguales, así cada
+   puntaje queda a la altura de su equipo. */
+.main {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+/* Bloque negro vertical con los datos de la partida. */
+.info {
+  flex: 0 0 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-2) var(--space-1);
+  border-radius: 8px;
   background: var(--ink);
+  color: var(--paper);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.2;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.note {
+  color: var(--paper-muted);
+  font-weight: 600;
+}
+
+.chip {
+  margin-top: var(--space-1);
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+.chipUp {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.chipDown {
+  border: var(--hairline-width) solid var(--paper);
+  color: var(--paper);
 }
 
 .body {
@@ -18,10 +64,11 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
 }
 
 .team {
+  flex: 1;
+  min-height: 36px;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -36,10 +83,17 @@
   font-size: var(--text-md);
 }
 
-/* Bloque negro del alto de la partida con los dos puntajes, separados por una
-   línea crema en el medio. */
+.won .names {
+  font-weight: 800;
+}
+
+.lost {
+  color: var(--ink-muted);
+}
+
+/* Bloque negro con los dos puntajes, separados por una línea crema. */
 .scores {
-  flex: 0 0 60px;
+  flex: 0 0 52px;
   display: flex;
   flex-direction: column;
   border-radius: 8px;
@@ -49,6 +103,7 @@
 
 .scoreCell {
   flex: 1;
+  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,58 +122,17 @@
   font-weight: 800;
 }
 
-.won .names {
-  font-weight: 800;
-}
-
-.lost {
-  color: var(--ink-muted);
-}
-
-.meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-tight);
-  color: var(--ink-muted);
-}
-
 .reason {
   font-size: var(--text-xs);
   color: var(--ink-muted);
 }
 
-.chip {
-  flex: 0 0 auto;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-pill);
-  font-size: var(--text-xs);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0;
-}
-
-.chipUp {
-  background: var(--ink);
-  color: var(--paper);
-}
-
-.chipDown {
-  border: var(--border-width) solid var(--ink);
-  color: var(--ink);
-}
-
-.canceled .body {
+.canceled .info,
+.canceled .body,
+.canceled .scores {
   opacity: 0.6;
 }
 
-.canceled .flag {
-  background: var(--ink-muted);
-  border: 0;
-}
-
-.canceled .score {
+.canceled .scoreCell {
   text-decoration: line-through;
 }

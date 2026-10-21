@@ -282,7 +282,10 @@ describe('GroupScreen', () => {
     const scores = within(row).getByText('30').parentElement
     expect(scores).toContainElement(within(row).getByText('21'))
     expect(scores?.textContent).toBe('3021')
-    expect(within(row).getByText(/2v2 · 30 puntos/)).toBeInTheDocument()
+    // Los datos de la partida van en líneas cortas dentro del bloque negro lateral.
+    expect(within(row).getByText('2v2')).toBeInTheDocument()
+    expect(within(row).getByText('30 pts')).toBeInTheDocument()
+    expect(within(row).getByText('30 min')).toBeInTheDocument()
   })
 
   it('resalta al equipo ganador', async () => {

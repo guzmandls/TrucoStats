@@ -901,3 +901,12 @@ a la app (fondos negros con letra crema). Se corrigió:
   posición, para indicar que es un botón. La nube de "sin enviar" pasó a la línea
   de integrantes y partidas, alineada a la derecha. La última partida ahora dice
   cuándo fue ("Última partida: ayer 21:30") en lugar de quién ganó.
+
+### Cuarto ajuste de la etapa 27: historial alineado
+
+- Los datos de la partida ("2v2", "30 pts", "26 min", "Sin enviar") y los puntos
+  que sumaste o restaste pasaron a un bloque negro vertical a la izquierda. Así la
+  partida tiene solo dos líneas (una por equipo) y cada puntaje, a la derecha,
+  queda a la altura de su equipo.
+- Técnica: tres columnas con `align-items: stretch` y los equipos y las celdas de
+  puntaje con `flex: 1`, para que se repartan el alto en partes iguales.
