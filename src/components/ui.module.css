@@ -596,10 +596,13 @@
 
 /* ---------- Mensajes ---------- */
 
+/* Mensaje de "no hay nada todavía": centrado y con aire para que se note. */
 .emptyNote {
   margin: 0;
-  padding: var(--space-6) var(--space-4);
-  font-size: var(--text-sm);
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  font-size: var(--text-md);
+  font-weight: 600;
   color: var(--ink-muted);
 }
 
