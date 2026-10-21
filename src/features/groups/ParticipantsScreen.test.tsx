@@ -160,12 +160,75 @@ describe('ParticipantsScreen (administración)', () => {
     )
   })
 
-  it('un integrante común no ve el menú de opciones', async () => {
+  it('un integrante común solo ve el menú de su propia tarjeta, sin acciones de administración', async () => {
     await saveGroup({ ...adminGroup, myMemberId: 'm3' })
     renderParticipants()
 
     await screen.findByRole('link', { name: /Juan/ })
-    expect(screen.queryByRole('button', { name: /Opciones de/ })).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: 'Opciones de Juan' }),
+    ).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Opciones de Luis' }))
+    expect(
+      screen.getByRole('menuitem', { name: 'Cambiar nombre' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: 'Editar apodos' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('menuitem', { name: 'Dar de baja' })).toBeNull()
+  })
+
+  it('el administrador cambia el nombre de un integrante que nadie eligió', async () => {
+    await saveGroup({ ...adminGroup, adminMemberIds: ['m1'] })
+    renderParticipants()
+
+    // Pedro (m2) ya fue elegido; Luis (m3) no.
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de Pedro' }),
+    )
+    expect(
+      screen.queryByRole('menuitem', { name: 'Cambiar nombre' }),
+    ).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Opciones de Luis' }))
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: 'Cambiar nombre' }),
+    )
+    fireEvent.change(screen.getByLabelText('Nombre'), {
+      target: { value: 'Luisito' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(() =>
+      expect(calls).toContainEqual({
+        method: 'PATCH',
+        path: '/api/grupos/abc123/integrantes/m3',
+        body: JSON.stringify({ name: 'Luisito' }),
+      }),
+    )
+  })
+
+  it('el administrador edita los apodos de un integrante', async () => {
+    await saveGroup(adminGroup)
+    renderParticipants()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de Luis' }),
+    )
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: 'Editar apodos' }),
+    )
+    fireEvent.change(screen.getByLabelText('Apodos'), {
+      target: { value: 'Lucho, Luisito' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar' }))
+
+    await waitFor(() =>
+      expect(calls).toContainEqual({
+        method: 'PUT',
+        path: '/api/grupos/abc123/integrantes/m3/apodos',
+        body: JSON.stringify({ aliases: ['Lucho', 'Luisito'] }),
+      }),
+    )
   })
 
   it('el administrador da el rol de administrador a otro integrante', async () => {
@@ -251,115 +314,27 @@ describe('MemberScreen', () => {
     expect(screen.getByText('Al que más le gana')).toBeInTheDocument()
   })
 
-  it('el administrador puede cambiar el nombre de un integrante que nadie eligió', async () => {
-    await deleteGroup(group.id)
-    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm2' })
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        async () =>
-          new Response(
-            JSON.stringify({
-              group,
-              inviteCode: 'abc123',
-              claimedMemberIds: ['m2'],
-              myMemberId: 'm2',
-            }),
-            { status: 200 },
-          ),
-      ),
-    )
-    // Juan (m1) no es la persona de este celular: la persona es administradora.
+  it('muestra los apodos solo si el integrante los tiene', async () => {
     await deleteGroup(group.id)
     await saveGroup({
       ...group,
-      inviteCode: 'abc123',
-      myMemberId: 'm2',
-      adminMemberIds: ['m2'],
+      members: [
+        { id: 'm1', name: 'Juan', aliases: ['Juancho'] },
+        ...group.members.slice(1),
+      ],
     })
     renderMember()
 
-    expect(
-      await screen.findByRole('button', { name: 'Cambiar nombre' }),
-    ).toBeInTheDocument()
-    vi.unstubAllGlobals()
+    expect(await screen.findByText('Juancho')).toBeInTheDocument()
+    expect(screen.getByText('Apodos')).toBeInTheDocument()
   })
 
-  it('no ofrece cambiar el nombre de quien ya eligió su lugar (salvo él mismo)', async () => {
-    await deleteGroup(group.id)
-    await saveGroup({
-      ...group,
-      inviteCode: 'abc123',
-      myMemberId: 'm2',
-      adminMemberIds: ['m2'],
-    })
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(
-        async () =>
-          new Response(
-            JSON.stringify({
-              group,
-              inviteCode: 'abc123',
-              claimedMemberIds: ['m1', 'm2'],
-              myMemberId: 'm2',
-            }),
-            { status: 200 },
-          ),
-      ),
-    )
+  it('sin apodos no aparece la sección de apodos', async () => {
     renderMember()
 
     await screen.findByText('Detalle')
-    await new Promise((resolve) => setTimeout(resolve, 50))
-    expect(screen.queryByRole('button', { name: 'Cambiar nombre' })).toBeNull()
-    vi.unstubAllGlobals()
-  })
-
-  it('cada integrante puede cambiar su propio nombre', async () => {
-    await deleteGroup(group.id)
-    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm1' })
-    renderMember()
-
-    expect(
-      await screen.findByRole('button', { name: 'Cambiar nombre' }),
-    ).toBeInTheDocument()
-  })
-
-  it('muestra los apodos y deja editarlos al administrador', async () => {
-    await deleteGroup(group.id)
-    await saveGroup({
-      ...group,
-      inviteCode: 'abc123',
-      myMemberId: 'm1',
-      members: [
-        { id: 'm1', name: 'Juan', aliases: ['Juancho'] },
-        ...group.members.slice(1),
-      ],
-    })
-    renderMember()
-
-    expect(await screen.findByText('Juancho')).toBeInTheDocument()
-    expect(
-      screen.getByRole('button', { name: 'Editar apodos' }),
-    ).toBeInTheDocument()
-  })
-
-  it('quien no es administrador no puede editar los apodos de otro', async () => {
-    await deleteGroup(group.id)
-    await saveGroup({
-      ...group,
-      inviteCode: 'abc123',
-      myMemberId: 'm2',
-      members: [
-        { id: 'm1', name: 'Juan', aliases: ['Juancho'] },
-        ...group.members.slice(1),
-      ],
-    })
-    renderMember()
-
-    expect(await screen.findByText('Juancho')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Editar apodos' })).toBeNull()
+    expect(screen.queryByText('Apodos')).toBeNull()
+    expect(screen.queryByText('Sin apodos')).toBeNull()
   })
 
   it('permite elegir una foto aunque todavía no haya jugado', async () => {

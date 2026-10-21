@@ -1136,3 +1136,19 @@ Hecho:
 Concepto nuevo: **operaciones en dos pasos con reintento seguro.** Enviar la partida
 es idempotente (repetirlo no la duplica), así que si falla el segundo paso se puede
 volver a empezar desde el primero sin riesgo.
+
+## Etapa 38 — Cambiar nombre y apodos desde el menú de Participantes
+
+Hecho:
+
+- "Cambiar nombre" y "Editar apodos" pasan al menú "⋯" de cada tarjeta en Participantes
+  (cada uno ve las de su tarjeta; los administradores, las de todas; el nombre de
+  alguien que ya eligió su lugar solo lo cambia él). Antes estaban abajo en la ficha y
+  no se encontraban.
+- En la ficha, la sección "Apodos" solo aparece si el integrante tiene apodos.
+- Al sincronizar el grupo, si el celular no tenía guardado qué integrante es la persona
+  (grupos anteriores a las cuentas), se completa con lo que dice el servidor; así se
+  habilitan las opciones de administrador.
+
+Concepto nuevo: **descubribilidad.** Una función que existe pero está escondida no
+sirve; conviene ponerla donde la persona ya está mirando (la lista de integrantes).
