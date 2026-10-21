@@ -1,4 +1,6 @@
 import type { Env } from './groups'
+import { errorResponse } from './http'
+import { authenticate } from './users'
 
 export interface Membership {
   memberId: string
@@ -21,4 +23,22 @@ export async function membershipOf(
   return row
     ? { memberId: row.id, isAdmin: row.id === row.admin_member_id }
     : null
+}
+
+// Solo los integrantes vinculados a una cuenta pueden ver y registrar partidas.
+// Devuelve quién es o la respuesta de error que corresponde.
+export async function requireMember(
+  groupId: string,
+  request: Request,
+  env: Env,
+): Promise<{ userId: string; membership: Membership } | Response> {
+  const user = await authenticate(request, env)
+  if (!user) {
+    return errorResponse('No iniciaste sesión', 401)
+  }
+  const membership = await membershipOf(user.id, groupId, env)
+  if (!membership) {
+    return errorResponse('No eres integrante de este grupo', 403)
+  }
+  return { userId: user.id, membership }
 }

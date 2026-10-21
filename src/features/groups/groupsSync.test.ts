@@ -177,3 +177,63 @@ describe('syncGroup', () => {
     expect(saved.some(isPending)).toBe(false)
   })
 })
+
+describe('pullGroup con partidas canceladas', () => {
+  beforeEach(async () => {
+    for (const existing of await loadMatches()) {
+      await deleteMatch(existing.id)
+    }
+    for (const existing of await loadGroups()) {
+      await deleteGroup(existing.id)
+    }
+    await saveGroup(local)
+  })
+
+  const canceled = {
+    at: '2026-10-06T10:00:00.000Z',
+    by: 'm1',
+    reason: 'Error al contar',
+  }
+
+  it('trae la cancelación que hizo otro celular', async () => {
+    await saveMatch({
+      ...match('a', '2026-10-02T10:00:00.000Z'),
+      syncedAt: '2026-10-02T11:00:00.000Z',
+    })
+    stubServer(local, [{ ...match('a', '2026-10-02T10:00:00.000Z'), canceled }])
+
+    expect(await pullGroup('g1')).toBe(true)
+
+    const [saved] = await loadMatches()
+    expect(saved.canceled).toEqual(canceled)
+    expect(saved.syncedAt).toBe('2026-10-02T11:00:00.000Z')
+  })
+
+  it('trae la restauración: la partida deja de estar cancelada', async () => {
+    await saveMatch({
+      ...match('a', '2026-10-02T10:00:00.000Z'),
+      syncedAt: '2026-10-02T11:00:00.000Z',
+      canceled,
+    })
+    stubServer(local, [match('a', '2026-10-02T10:00:00.000Z')])
+
+    expect(await pullGroup('g1')).toBe(true)
+
+    const [saved] = await loadMatches()
+    expect(saved.canceled).toBeUndefined()
+  })
+
+  it('guarda quién registró la partida', async () => {
+    await saveMatch({
+      ...match('a', '2026-10-02T10:00:00.000Z'),
+      syncedAt: '2026-10-02T11:00:00.000Z',
+    })
+    stubServer(local, [
+      { ...match('a', '2026-10-02T10:00:00.000Z'), createdBy: 'm2' },
+    ])
+
+    await pullGroup('g1')
+
+    expect((await loadMatches())[0].createdBy).toBe('m2')
+  })
+})

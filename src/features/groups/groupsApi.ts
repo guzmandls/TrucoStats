@@ -111,6 +111,31 @@ export async function fetchRemoteMatches(inviteCode: string): Promise<Match[]> {
   return response.matches
 }
 
+// Cancela una partida en el servidor (con un motivo opcional) y devuelve cómo
+// quedó.
+export async function cancelRemoteMatch(
+  inviteCode: string,
+  matchId: string,
+  reason: string,
+): Promise<Match> {
+  const response = await postJson<{ match: Match }>(
+    `/api/grupos/${inviteCode}/partidas/${matchId}/cancelar`,
+    { reason: reason.trim() === '' ? undefined : reason.trim() },
+  )
+  return response.match
+}
+
+export async function restoreRemoteMatch(
+  inviteCode: string,
+  matchId: string,
+): Promise<Match> {
+  const response = await postJson<{ match: Match }>(
+    `/api/grupos/${inviteCode}/partidas/${matchId}/restaurar`,
+    {},
+  )
+  return response.match
+}
+
 export function inviteLink(inviteCode: string): string {
   return `${window.location.origin}/unirse/${inviteCode}`
 }

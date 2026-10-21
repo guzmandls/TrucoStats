@@ -18,6 +18,8 @@ import {
   EmptyNote,
   HeaderIconButton,
   HeaderMenu,
+  Notice,
+  OverflowMenu,
   PageHeader,
   Screen,
   ScreenContent,
@@ -36,10 +38,17 @@ import {
 import { matchMeta, participantNames } from '../matches/format'
 import { filterMatches } from '../matches/search'
 import { ApiError } from '../../lib/api'
-import { registerGroup } from './groupsApi'
+import {
+  cancelRemoteMatch,
+  registerGroup,
+  restoreRemoteMatch,
+} from './groupsApi'
+import { availableActions, type MatchAction } from './matchActions'
+import { saveMatch } from '../matches/matchesStorage'
+import type { Match } from '../matches/types'
 import { InviteDialog } from './InviteDialog'
 import { syncGroup } from './groupsSync'
-import { isPending } from './matchesSync'
+import { isPending, syncPendingMatches } from './matchesSync'
 import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints } from '../matches/points'
 import { removeMembership } from './membership'
@@ -52,19 +61,27 @@ const PAGE_SIZE = 20
 export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { group, matches, setGroup, reload } = useGroup(id)
+  const { group, matches, allMatches, setGroup, reload } = useGroup(id)
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [pointsDelta, setPointsDelta] = useState<string | null>(null)
+  // Partida sobre la que se está cancelando o restaurando.
+  const [acting, setActing] = useState<{
+    match: Match
+    action: MatchAction
+  } | null>(null)
+  const [reason, setReason] = useState('')
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
   const [searching, setSearching] = useState(false)
   const [query, setQuery] = useState('')
   const [visible, setVisible] = useState(PAGE_SIZE)
   const sentinelRef = useRef<HTMLDivElement>(null)
   const found = useMemo(
-    () => filterMatches(matches ?? [], query),
-    [matches, query],
+    () => filterMatches(allMatches ?? [], query),
+    [allMatches, query],
   )
   // Sin IntersectionObserver (navegadores muy viejos) se muestran todas.
   const paged = typeof IntersectionObserver !== 'undefined'
@@ -190,6 +207,53 @@ export function GroupScreen() {
     }
   }
 
+  const closeAction = () => {
+    setActing(null)
+    setReason('')
+    setActionError(null)
+  }
+
+  // Cancela o restaura en el servidor y deja la partida igual en este celular.
+  // Hace falta conexión: el servidor es quien valida los permisos.
+  const handleConfirmAction = async () => {
+    if (!acting || !group.inviteCode) {
+      setActionError('El grupo todavía no está en el servidor.')
+      return
+    }
+    const { match, action } = acting
+    setBusy(true)
+    setActionError(null)
+    try {
+      // Una partida que no se envió todavía tiene que llegar primero.
+      if (isPending(match)) {
+        await syncPendingMatches()
+      }
+      const remote =
+        action === 'cancel'
+          ? await cancelRemoteMatch(group.inviteCode, match.id, reason)
+          : await restoreRemoteMatch(group.inviteCode, match.id)
+      const { canceled, ...rest } = match
+      void canceled
+      await saveMatch({
+        ...rest,
+        syncedAt: match.syncedAt ?? new Date().toISOString(),
+        ...(remote.createdBy ? { createdBy: remote.createdBy } : {}),
+        ...(remote.registeredAt ? { registeredAt: remote.registeredAt } : {}),
+        ...(remote.canceled ? { canceled: remote.canceled } : {}),
+      })
+      closeAction()
+      reload()
+    } catch (error) {
+      setActionError(
+        error instanceof ApiError && error.status !== 404
+          ? error.message
+          : 'Necesitas conexión a Internet para hacerlo. Inténtalo de nuevo cuando la tengas.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const toggleSearch = () => {
     setSearching((open) => !open)
     setQuery('')
@@ -287,7 +351,7 @@ export function GroupScreen() {
             </button>
           </div>
         )}
-        {matches.length === 0 ? (
+        {(allMatches ?? []).length === 0 ? (
           <EmptyNote>Todavía no hay partidas</EmptyNote>
         ) : found.length === 0 ? (
           <EmptyNote>Ninguna partida coincide con la búsqueda</EmptyNote>
@@ -297,11 +361,12 @@ export function GroupScreen() {
               {shown.map((match) => {
                 const nos = participantNames(match.teams.nos)
                 const ellos = participantNames(match.teams.ellos)
+                const actions = availableActions(match, group)
                 return (
                   <div
                     key={match.id}
                     data-testid="partida"
-                    className={styles.matchRow}
+                    className={`${styles.matchRow} ${match.canceled ? styles.matchCanceled : ''}`}
                   >
                     <span className={styles.matchFlag} aria-hidden="true" />
                     <div className={styles.matchBody}>
@@ -335,8 +400,26 @@ export function GroupScreen() {
                       <span className={styles.matchMeta}>
                         {matchMeta(match)}
                         {isPending(match) && ' · Sin enviar'}
+                        {match.canceled && ' · Cancelada'}
                       </span>
+                      {match.canceled?.reason && (
+                        <span className={styles.matchMeta}>
+                          Motivo: {match.canceled.reason}
+                        </span>
+                      )}
                     </div>
+                    {actions.length > 0 && (
+                      <OverflowMenu
+                        label="Opciones de la partida"
+                        items={actions.map((action) => ({
+                          label:
+                            action === 'cancel'
+                              ? 'Cancelar partida'
+                              : 'Restaurar partida',
+                          onClick: () => setActing({ match, action }),
+                        }))}
+                      />
+                    )}
                   </div>
                 )
               })}
@@ -386,6 +469,37 @@ export function GroupScreen() {
           group={{ ...group, inviteCode: group.inviteCode }}
           onClose={() => setInviting(false)}
         />
+      )}
+      {acting?.action === 'cancel' && (
+        <Dialog
+          title="¿Cancelar esta partida?"
+          onClose={closeAction}
+          closeButton
+        >
+          <TextInput
+            aria-label="Motivo (opcional)"
+            placeholder="Motivo (opcional)"
+            value={reason}
+            maxLength={200}
+            onChange={(event) => setReason(event.target.value)}
+          />
+          {actionError && <Notice>{actionError}</Notice>}
+          <Button disabled={busy} onClick={() => void handleConfirmAction()}>
+            Cancelar partida
+          </Button>
+        </Dialog>
+      )}
+      {acting?.action === 'restore' && (
+        <Dialog
+          title="¿Restaurar esta partida?"
+          onClose={closeAction}
+          closeButton
+        >
+          {actionError && <Notice>{actionError}</Notice>}
+          <Button disabled={busy} onClick={() => void handleConfirmAction()}>
+            Restaurar partida
+          </Button>
+        </Dialog>
       )}
       {inviteError && (
         <Dialog title={inviteError} onClose={() => setInviteError(null)}>

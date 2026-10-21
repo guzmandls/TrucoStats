@@ -1,7 +1,6 @@
 import type { Env } from './groups'
-import { membershipOf } from './access'
+import { requireMember } from './access'
 import { errorResponse, json } from './http'
-import { authenticate } from './users'
 
 type Team = 'nos' | 'ellos'
 type Modality = '1v1' | '2v2' | '3v3'
@@ -23,6 +22,12 @@ export interface MatchData {
   winner: Team
   teams: Record<Team, Participant[]>
   scores: Record<Team, number>
+  // Integrante que registró la partida (si todavía tiene cuenta vinculada).
+  createdBy?: string
+  // Cuándo recibió el servidor la partida.
+  registeredAt?: string
+  // Presente solo si la partida está cancelada.
+  canceled?: { at: string; by: string | null; reason: string | null }
 }
 
 const TEAM_SIZE: Record<Modality, number> = { '1v1': 1, '2v2': 2, '3v3': 3 }
@@ -160,6 +165,11 @@ interface MatchRow {
   winner: Team
   nos_score: number
   ellos_score: number
+  created_by_member: string | null
+  registered_at: string | null
+  canceled_at: string | null
+  canceled_by_member: string | null
+  cancel_reason: string | null
 }
 
 interface PlayerRow {
@@ -185,11 +195,26 @@ function toMatch(row: MatchRow, players: PlayerRow[]): MatchData {
     winner: row.winner,
     teams: { nos: team('nos'), ellos: team('ellos') },
     scores: { nos: row.nos_score, ellos: row.ellos_score },
+    ...(row.created_by_member ? { createdBy: row.created_by_member } : {}),
+    ...(row.registered_at ? { registeredAt: row.registered_at } : {}),
+    ...(row.canceled_at
+      ? {
+          canceled: {
+            at: row.canceled_at,
+            by: row.canceled_by_member,
+            reason: row.cancel_reason,
+          },
+        }
+      : {}),
   }
 }
 
-const MATCH_COLUMNS =
-  'id, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score'
+// Quién registró y quién canceló se devuelven como integrante del grupo, no
+// como cuenta.
+const MATCH_COLUMNS = `id, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score,
+  canceled_at, cancel_reason, registered_at,
+  (SELECT mem.id FROM members mem WHERE mem.user_id = matches.created_by AND mem.group_id = matches.group_id) AS created_by_member,
+  (SELECT mem.id FROM members mem WHERE mem.user_id = matches.canceled_by AND mem.group_id = matches.group_id) AS canceled_by_member`
 
 export async function findGroupIdByCode(
   inviteCode: string,
@@ -203,7 +228,10 @@ export async function findGroupIdByCode(
   return group?.id ?? null
 }
 
-async function loadMatch(matchId: string, env: Env): Promise<MatchData | null> {
+export async function loadMatch(
+  matchId: string,
+  env: Env,
+): Promise<MatchData | null> {
   const row = await env.DB.prepare(
     `SELECT ${MATCH_COLUMNS} FROM matches WHERE id = ?`,
   )
@@ -218,22 +246,6 @@ async function loadMatch(matchId: string, env: Env): Promise<MatchData | null> {
     .bind(matchId)
     .all<PlayerRow>()
   return toMatch(row, results)
-}
-
-// Solo los integrantes vinculados a una cuenta pueden ver y registrar partidas.
-async function requireMember(
-  groupId: string,
-  request: Request,
-  env: Env,
-): Promise<{ userId: string } | Response> {
-  const user = await authenticate(request, env)
-  if (!user) {
-    return errorResponse('No iniciaste sesión', 401)
-  }
-  if (!(await membershipOf(user.id, groupId, env))) {
-    return errorResponse('No eres integrante de este grupo', 403)
-  }
-  return { userId: user.id }
 }
 
 export async function createMatch(
@@ -296,7 +308,7 @@ export async function createMatch(
   try {
     await env.DB.batch([
       env.DB.prepare(
-        'INSERT INTO matches (id, type, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO matches (id, type, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score, created_by, registered_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       ).bind(
         match.id,
         'group',
@@ -309,6 +321,7 @@ export async function createMatch(
         match.scores.nos,
         match.scores.ellos,
         access.userId,
+        new Date().toISOString(),
       ),
       ...players,
     ])

@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loadMatches } from '../matches/matchesStorage'
+import { activeMatches } from '../matches/status'
 import type { Match } from '../matches/types'
 import { loadGroups } from './groupsStorage'
 import type { Group } from './types'
@@ -8,7 +9,7 @@ import type { Group } from './types'
 export function useGroup(id: string | undefined) {
   const navigate = useNavigate()
   const [group, setGroup] = useState<Group | null>(null)
-  const [matches, setMatches] = useState<Match[] | null>(null)
+  const [allMatches, setAllMatches] = useState<Match[] | null>(null)
   const [reloads, setReloads] = useState(0)
   const reload = useCallback(() => setReloads((value) => value + 1), [])
 
@@ -39,7 +40,7 @@ export function useGroup(id: string | undefined) {
       if (!active) {
         return
       }
-      setMatches(
+      setAllMatches(
         all
           .filter((match) => match.groupId === group.id)
           .sort((a, b) => b.playedAt.localeCompare(a.playedAt)),
@@ -50,5 +51,12 @@ export function useGroup(id: string | undefined) {
     }
   }, [group, reloads])
 
-  return { group, matches, setGroup, reload }
+  // `matches` son las que cuentan (sin canceladas); `allMatches`, todo el
+  // historial.
+  const matches = useMemo(
+    () => (allMatches ? activeMatches(allMatches) : null),
+    [allMatches],
+  )
+
+  return { group, matches, allMatches, setGroup, reload }
 }

@@ -23,4 +23,19 @@ export interface Match {
   // Cuándo confirmó el servidor la partida. Solo en este celular: si falta,
   // la partida de grupo está pendiente de enviar.
   syncedAt?: string
+  // Integrante que registró la partida (lo informa el servidor).
+  createdBy?: string
+  // Cuándo recibió el servidor la partida (desde ahí corre el plazo de quien
+  // la registró para cancelarla).
+  registeredAt?: string
+  // Presente solo si la partida fue cancelada: no cuenta para puntos ni
+  // estadísticas, pero sigue en el historial.
+  canceled?: Cancellation
+}
+
+export interface Cancellation {
+  at: string
+  // Integrante que la canceló.
+  by: string | null
+  reason: string | null
 }

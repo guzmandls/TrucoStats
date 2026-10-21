@@ -17,8 +17,15 @@ function sameMembers(a: Member[], b: Member[]): boolean {
   )
 }
 
-function sameTeams(a: Match, b: Match): boolean {
-  return JSON.stringify(a.teams) === JSON.stringify(b.teams)
+// Lo que puede cambiar en una partida ya guardada: los nombres de los
+// jugadores, quién la registró y si fue cancelada.
+function sameServerState(a: Match, b: Match): boolean {
+  return (
+    JSON.stringify(a.teams) === JSON.stringify(b.teams) &&
+    a.createdBy === b.createdBy &&
+    a.registeredAt === b.registeredAt &&
+    JSON.stringify(a.canceled ?? null) === JSON.stringify(b.canceled ?? null)
+  )
 }
 
 // Trae del servidor lo que cambió en el grupo (nombres, fotos, integrantes) y
@@ -69,9 +76,17 @@ export async function pullGroup(groupId: string): Promise<boolean> {
     if (!existing) {
       await saveMatch({ ...match, syncedAt: new Date().toISOString() })
       changed = true
-    } else if (!sameTeams(existing, match)) {
-      // Un nombre cambió en otro celular: las partidas muestran el nuevo.
-      await saveMatch({ ...existing, teams: match.teams })
+    } else if (!sameServerState(existing, match)) {
+      // Cambió en otro celular (un nombre, o la partida se canceló o restauró).
+      const { canceled, ...rest } = existing
+      void canceled
+      await saveMatch({
+        ...rest,
+        teams: match.teams,
+        ...(match.createdBy ? { createdBy: match.createdBy } : {}),
+        ...(match.registeredAt ? { registeredAt: match.registeredAt } : {}),
+        ...(match.canceled ? { canceled: match.canceled } : {}),
+      })
       changed = true
     }
   }
