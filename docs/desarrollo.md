@@ -1242,3 +1242,8 @@ Problemas vistos probando con dos celulares y su causa:
 Concepto nuevo: **fallos silenciosos.** Una operación que falla sin avisar es peor que una
 que falla con un mensaje; cuando algo depende de un vínculo, conviene comprobarlo y
 mostrarlo.
+
+Agregado en la misma etapa: **el enlace de invitación pide una cuenta.** Sin sesión, la pantalla
+de unirse muestra "Necesitas una cuenta" con "Registrarse" e "Iniciar sesión" (vuelven al
+enlace al terminar) y, discreto, "Seguir sin cuenta". Se vio probando que quien entraba sin
+cuenta no sabía que le faltaba y no se sincronizaba como esperaba.
