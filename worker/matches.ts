@@ -24,6 +24,8 @@ export interface MatchData {
   scores: Record<Team, number>
   // Integrante que registró la partida (si todavía tiene cuenta vinculada).
   createdBy?: string
+  // Cuándo recibió el servidor la partida.
+  registeredAt?: string
   // Presente solo si la partida está cancelada.
   canceled?: { at: string; by: string | null; reason: string | null }
 }
@@ -164,6 +166,7 @@ interface MatchRow {
   nos_score: number
   ellos_score: number
   created_by_member: string | null
+  registered_at: string | null
   canceled_at: string | null
   canceled_by_member: string | null
   cancel_reason: string | null
@@ -193,6 +196,7 @@ function toMatch(row: MatchRow, players: PlayerRow[]): MatchData {
     teams: { nos: team('nos'), ellos: team('ellos') },
     scores: { nos: row.nos_score, ellos: row.ellos_score },
     ...(row.created_by_member ? { createdBy: row.created_by_member } : {}),
+    ...(row.registered_at ? { registeredAt: row.registered_at } : {}),
     ...(row.canceled_at
       ? {
           canceled: {
@@ -208,7 +212,7 @@ function toMatch(row: MatchRow, players: PlayerRow[]): MatchData {
 // Quién registró y quién canceló se devuelven como integrante del grupo, no
 // como cuenta.
 const MATCH_COLUMNS = `id, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score,
-  canceled_at, cancel_reason,
+  canceled_at, cancel_reason, registered_at,
   (SELECT mem.id FROM members mem WHERE mem.user_id = matches.created_by AND mem.group_id = matches.group_id) AS created_by_member,
   (SELECT mem.id FROM members mem WHERE mem.user_id = matches.canceled_by AND mem.group_id = matches.group_id) AS canceled_by_member`
 
@@ -304,7 +308,7 @@ export async function createMatch(
   try {
     await env.DB.batch([
       env.DB.prepare(
-        'INSERT INTO matches (id, type, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO matches (id, type, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score, created_by, registered_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       ).bind(
         match.id,
         'group',
@@ -317,6 +321,7 @@ export async function createMatch(
         match.scores.nos,
         match.scores.ellos,
         access.userId,
+        new Date().toISOString(),
       ),
       ...players,
     ])

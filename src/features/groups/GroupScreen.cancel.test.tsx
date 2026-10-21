@@ -48,6 +48,7 @@ function buildMatch(id: string, overrides: Partial<Match> = {}): Match {
     scores: { nos: 30, ellos: 12 },
     syncedAt: '2026-03-05T21:00:00.000Z',
     createdBy: 'm2',
+    registeredAt: new Date().toISOString(),
     ...overrides,
   }
 }
@@ -121,7 +122,39 @@ describe('cancelar y restaurar partidas', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('quien registró la partida puede cancelarla aunque no sea administrador', async () => {
+  it('quien registró la partida pasada la hora ya no ve las opciones', async () => {
+    await saveGroup({ ...group, myMemberId: 'm2' })
+    await saveMatch(
+      buildMatch('p1', {
+        registeredAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      }),
+    )
+    stubServer(() => json({}))
+    renderGroup()
+
+    await screen.findByTestId('partida')
+    expect(
+      screen.queryByRole('button', { name: 'Opciones de la partida' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('el administrador ve las opciones aunque la partida sea vieja', async () => {
+    await saveMatch(
+      buildMatch('p1', {
+        registeredAt: new Date(
+          Date.now() - 90 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+      }),
+    )
+    stubServer(() => json({}))
+    renderGroup()
+
+    expect(
+      await screen.findByRole('button', { name: 'Opciones de la partida' }),
+    ).toBeInTheDocument()
+  })
+
+  it('quien registró la partida puede cancelarla dentro de la hora aunque no sea administrador', async () => {
     await saveGroup({ ...group, myMemberId: 'm2' })
     await saveMatch(buildMatch('p1'))
     stubServer(() => json({}))

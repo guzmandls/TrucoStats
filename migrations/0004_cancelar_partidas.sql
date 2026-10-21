@@ -1,6 +1,9 @@
 -- Cancelación de partidas. Una partida cancelada no se borra: queda en el
 -- historial marcada como cancelada y no cuenta para puntos ni estadísticas.
 -- Estas columnas guardan el estado actual.
+-- Cuándo recibió el servidor la partida: desde ahí corre el plazo para que quien
+-- la registró (si no es administrador) pueda cancelarla.
+ALTER TABLE matches ADD COLUMN registered_at TEXT;
 ALTER TABLE matches ADD COLUMN canceled_at TEXT;
 -- Cuenta (usuario) que la canceló.
 ALTER TABLE matches ADD COLUMN canceled_by TEXT;

@@ -49,6 +49,7 @@ interface MatchBody {
   match: {
     id: string
     createdBy?: string
+    registeredAt?: string
     canceled?: { at: string; by: string | null; reason: string | null }
   }
 }
@@ -245,5 +246,79 @@ describe('POST .../partidas/:id/restaurar', () => {
       { action: 'restore', reason: null },
       { action: 'cancel', reason: 'Otra vez' },
     ])
+  })
+})
+
+const HOUR = 60 * 60 * 1000
+const ago = (ms: number) => new Date(Date.now() - ms).toISOString()
+
+describe('plazo de una hora para quien no es administrador', () => {
+  it('quien registró la partida ya no puede cancelarla pasada la hora', async () => {
+    await env.DB.prepare('UPDATE matches SET registered_at = ?')
+      .bind(ago(HOUR + 60_000))
+      .run()
+
+    const response = await cancel('p1', pedroToken)
+
+    expect(response.status).toBe(403)
+    expect(((await response.json()) as { error: string }).error).toContain(
+      'Pasó la hora',
+    )
+    expect((await listed())[0].canceled).toBeUndefined()
+  })
+
+  it('dentro de la hora sí puede', async () => {
+    await env.DB.prepare('UPDATE matches SET registered_at = ?')
+      .bind(ago(HOUR - 60_000))
+      .run()
+
+    expect((await cancel('p1', pedroToken)).status).toBe(200)
+  })
+
+  it('el administrador cancela una partida de hace meses', async () => {
+    await env.DB.prepare('UPDATE matches SET registered_at = ?')
+      .bind(ago(60 * 24 * HOUR))
+      .run()
+
+    expect((await cancel('p1', adminToken)).status).toBe(200)
+  })
+
+  it('una partida sin fecha de registro se considera vencida para quien no es administrador', async () => {
+    await env.DB.prepare('UPDATE matches SET registered_at = NULL').run()
+
+    expect((await cancel('p1', pedroToken)).status).toBe(403)
+    expect((await cancel('p1', adminToken)).status).toBe(200)
+  })
+
+  it('quien canceló tiene una hora desde la cancelación para restaurar', async () => {
+    await cancel('p1', pedroToken)
+    await env.DB.prepare('UPDATE matches SET canceled_at = ?')
+      .bind(ago(HOUR + 60_000))
+      .run()
+
+    const response = await restore('p1', pedroToken)
+
+    expect(response.status).toBe(403)
+    expect((await listed())[0].canceled).toBeDefined()
+    expect((await restore('p1', adminToken)).status).toBe(200)
+  })
+
+  it('el plazo de restaurar cuenta desde la cancelación y no desde la partida', async () => {
+    await env.DB.prepare('UPDATE matches SET registered_at = ?')
+      .bind(ago(5 * HOUR))
+      .run()
+    await env.DB.prepare(
+      'UPDATE matches SET canceled_at = ?, canceled_by = (SELECT user_id FROM members WHERE id = ?)',
+    )
+      .bind(ago(60_000), 'm2')
+      .run()
+
+    expect((await restore('p1', pedroToken)).status).toBe(200)
+  })
+
+  it('las partidas informan cuándo las recibió el servidor', async () => {
+    const [first] = await listed()
+
+    expect(first.registeredAt).toMatch(/^\d{4}-\d{2}-\d{2}T/)
   })
 })

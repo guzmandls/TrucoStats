@@ -805,9 +805,11 @@ Hecho:
   "Cancelada" y el motivo si lo hay, y deja de contar para los puntos y las
   estadísticas.
 - Cada partida con permiso muestra un botón "⋯" con "Cancelar partida" o
-  "Restaurar partida". Si no tienes permiso, el botón no aparece. Cancelan el
-  administrador o quien registró la partida; restauran el administrador o quien
-  la canceló.
+  "Restaurar partida". Si no tienes permiso, el botón no aparece. El
+  administrador puede siempre; quien registró la partida (si no es
+  administrador) tiene 1 hora para cancelarla, y quien canceló tiene 1 hora para
+  restaurar. El plazo corre desde que el *servidor* recibe la partida, no desde
+  la hora que informa el celular, para que no se pueda adelantar el reloj.
 - Al cancelar se puede escribir un motivo (opcional). Se necesita conexión.
 - Servidor: `POST .../partidas/<id>/cancelar` y `.../restaurar`, migración 0004
   (estado en la partida y una tabla `match_events` con cada cancelación y

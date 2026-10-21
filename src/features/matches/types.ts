@@ -25,6 +25,9 @@ export interface Match {
   syncedAt?: string
   // Integrante que registró la partida (lo informa el servidor).
   createdBy?: string
+  // Cuándo recibió el servidor la partida (desde ahí corre el plazo de quien
+  // la registró para cancelarla).
+  registeredAt?: string
   // Presente solo si la partida fue cancelada: no cuenta para puntos ni
   // estadísticas, pero sigue en el historial.
   canceled?: Cancellation

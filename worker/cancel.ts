@@ -4,11 +4,21 @@ import { errorResponse, json } from './http'
 import { findGroupIdByCode, loadMatch } from './matches'
 
 const MAX_REASON_LENGTH = 200
+// Quien no es administrador solo puede cancelar la partida que registró durante
+// esta ventana (desde que el servidor la recibió) y restaurar lo que canceló
+// durante la misma (desde que la canceló). El administrador puede siempre.
+export const NON_ADMIN_WINDOW_MS = 60 * 60 * 1000
 
 interface MatchState {
   created_by: string | null
+  registered_at: string | null
   canceled_at: string | null
   canceled_by: string | null
+}
+
+function withinWindow(since: string | null, now: number): boolean {
+  // Sin fecha conocida se considera vencido.
+  return since !== null && now - Date.parse(since) <= NON_ADMIN_WINDOW_MS
 }
 
 // Cancela una partida: no se borra, queda marcada y deja de contar. La puede
@@ -51,7 +61,7 @@ async function changeMatch(
   }
 
   const state = await env.DB.prepare(
-    'SELECT created_by, canceled_at, canceled_by FROM matches WHERE id = ? AND group_id = ?',
+    'SELECT created_by, registered_at, canceled_at, canceled_by FROM matches WHERE id = ? AND group_id = ?',
   )
     .bind(matchId, groupId)
     .first<MatchState>()
@@ -60,20 +70,33 @@ async function changeMatch(
   }
 
   const { userId, membership } = access
-  const responsible = action === 'cancel' ? state.created_by : state.canceled_by
-  if (!membership.isAdmin && responsible !== userId) {
-    return errorResponse(
-      action === 'cancel'
-        ? 'Solo el administrador o quien registró la partida puede cancelarla'
-        : 'Solo el administrador o quien la canceló puede restaurarla',
-      403,
-    )
-  }
-
+  // Si la partida ya está como se pide, no hay nada que permitir ni que cambiar.
   const alreadyDone =
     action === 'cancel'
       ? state.canceled_at !== null
       : state.canceled_at === null
+  if (!alreadyDone && !membership.isAdmin) {
+    const responsible =
+      action === 'cancel' ? state.created_by : state.canceled_by
+    if (responsible !== userId) {
+      return errorResponse(
+        action === 'cancel'
+          ? 'Solo el administrador o quien registró la partida puede cancelarla'
+          : 'Solo el administrador o quien la canceló puede restaurarla',
+        403,
+      )
+    }
+    const since = action === 'cancel' ? state.registered_at : state.canceled_at
+    if (!withinWindow(since, Date.now())) {
+      return errorResponse(
+        action === 'cancel'
+          ? 'Pasó la hora de plazo: ahora solo el administrador puede cancelarla'
+          : 'Pasó la hora de plazo: ahora solo el administrador puede restaurarla',
+        403,
+      )
+    }
+  }
+
   if (!alreadyDone) {
     let reason: string | null = null
     if (action === 'cancel') {

@@ -23,6 +23,7 @@ function sameServerState(a: Match, b: Match): boolean {
   return (
     JSON.stringify(a.teams) === JSON.stringify(b.teams) &&
     a.createdBy === b.createdBy &&
+    a.registeredAt === b.registeredAt &&
     JSON.stringify(a.canceled ?? null) === JSON.stringify(b.canceled ?? null)
   )
 }
@@ -83,6 +84,7 @@ export async function pullGroup(groupId: string): Promise<boolean> {
         ...rest,
         teams: match.teams,
         ...(match.createdBy ? { createdBy: match.createdBy } : {}),
+        ...(match.registeredAt ? { registeredAt: match.registeredAt } : {}),
         ...(match.canceled ? { canceled: match.canceled } : {}),
       })
       changed = true

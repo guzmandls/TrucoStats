@@ -238,6 +238,7 @@ export function GroupScreen() {
         ...rest,
         syncedAt: match.syncedAt ?? new Date().toISOString(),
         ...(remote.createdBy ? { createdBy: remote.createdBy } : {}),
+        ...(remote.registeredAt ? { registeredAt: remote.registeredAt } : {}),
         ...(remote.canceled ? { canceled: remote.canceled } : {}),
       })
       closeAction()

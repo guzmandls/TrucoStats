@@ -197,8 +197,9 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 ### 4.6. Cancelación y anulación
 
 - Una partida en curso se puede cancelar o reiniciar libremente, sin dejar registro.
-- Una partida finalizada la pueden cancelar el administrador del grupo o quien la registró, en cualquier momento (no hay plazo).
-- La restauración la pueden hacer el administrador o quien la canceló.
+- Una partida finalizada la puede cancelar el administrador del grupo en cualquier momento. Quien la registró, si no es administrador, puede cancelarla solo durante 1 hora desde que el servidor la recibió (el plazo no depende de la hora que informa el celular).
+- La restauración la puede hacer el administrador siempre; quien canceló, si no es administrador, durante 1 hora desde la cancelación.
+- Pasado el plazo, el botón no aparece para quien no es administrador, y el servidor también lo rechaza.
 - En la lista del historial, cada partida sobre la que la persona tiene permiso muestra un botón "⋯" con la opción "Cancelar partida" o "Restaurar partida"; si no tiene permiso, el botón no aparece.
 - Al cancelar se puede escribir un motivo, que es opcional (hasta 200 caracteres).
 - Cancelar y restaurar necesitan conexión, porque el servidor valida los permisos; una partida que todavía no se envió se envía primero.
