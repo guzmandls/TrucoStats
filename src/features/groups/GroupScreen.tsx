@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ExitIcon,
@@ -57,7 +63,12 @@ import { isGroupAdmin } from './groupAdmin'
 import { InviteDialog } from './InviteDialog'
 import { MatchHistoryDialog } from './MatchHistoryDialog'
 import { pullGroup, syncGroup } from './groupsSync'
-import { isPending, syncPendingMatches } from './matchesSync'
+import {
+  getSyncProblem,
+  isPending,
+  subscribeSyncProblem,
+  syncPendingMatches,
+} from './matchesSync'
 import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints, pointChanges } from '../matches/points'
 import { removeMembership } from './membership'
@@ -85,6 +96,11 @@ export function GroupScreen() {
   const navigate = useNavigate()
   const { group, matches, allMatches, setGroup, reload } = useGroup(id)
   const session = useSession()
+  const syncProblem = useSyncExternalStore(
+    subscribeSyncProblem,
+    getSyncProblem,
+    () => null,
+  )
   const [game, setGame] = useState<PersistedGame | null>(null)
   // Partidas de grupo que están contando otros integrantes (se ven desde aquí);
   // la que cuenta esta misma persona no se muestra.
@@ -508,6 +524,21 @@ export function GroupScreen() {
         }
       />
       <ScreenContent flush>
+        {syncProblem && pendingCount > 0 && !link && (
+          <div className={styles.linkAlert}>
+            <Notice>
+              No se pudieron enviar{' '}
+              {pendingCount === 1 ? 'tu partida' : 'tus partidas'}:{' '}
+              {syncProblem}
+            </Notice>
+            <Button
+              variant="secondary"
+              onClick={() => void syncGroup(group.id).then(reload)}
+            >
+              Reintentar
+            </Button>
+          </div>
+        )}
         {link && !claiming && (
           <div className={styles.linkAlert}>
             <Notice>

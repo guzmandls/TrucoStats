@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
+  Button,
+  Dialog,
   EmptyNote,
   Figure,
   Figures,
@@ -16,7 +18,7 @@ import {
 import { avatarColors } from '../groups/avatar'
 import { EditableAvatar } from '../groups/EditableAvatar'
 import { fileToAvatarDataUrl } from '../groups/imageFile'
-import { setRemoteAvatar } from '../groups/groupsApi'
+import { shareAvatar } from '../groups/avatarSync'
 import { loadGroups, updateMemberAvatar } from '../groups/groupsStorage'
 import { PhotoDialog } from '../groups/PhotoDialog'
 import type { Group } from '../groups/types'
@@ -41,6 +43,7 @@ export function ProfileScreen() {
   const [groups, setGroups] = useState<Group[]>([])
   const [editingPhoto, setEditingPhoto] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [photoMessage, setPhotoMessage] = useState<string | null>(null)
   const groupCount = groups.length
 
   useEffect(() => {
@@ -73,14 +76,12 @@ export function ProfileScreen() {
     try {
       const updated: Group[] = []
       for (const { group, member } of mine) {
-        updated.push(await updateMemberAvatar(group, member.id, dataUrl))
-        if (group.inviteCode) {
-          // Si no hay conexión, el cambio queda solo en este celular.
-          void setRemoteAvatar(
-            group.inviteCode,
-            member.id,
-            dataUrl ?? null,
-          ).catch(() => undefined)
+        const next = await updateMemberAvatar(group, member.id, dataUrl)
+        updated.push(next)
+        // Si no llega al servidor, queda solo en este celular y se avisa.
+        const problem = await shareAvatar(next, member.id, dataUrl ?? null)
+        if (problem) {
+          setPhotoMessage(problem)
         }
       }
       setGroups((previous) =>
@@ -172,6 +173,11 @@ export function ProfileScreen() {
           </>
         )}
       </ScreenContent>
+      {photoMessage && (
+        <Dialog title={photoMessage} onClose={() => setPhotoMessage(null)}>
+          <Button onClick={() => setPhotoMessage(null)}>Entendido</Button>
+        </Dialog>
+      )}
       {editingPhoto && (
         <PhotoDialog
           hasPhoto={!!currentAvatar}

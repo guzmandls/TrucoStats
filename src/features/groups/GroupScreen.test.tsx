@@ -633,6 +633,52 @@ describe('GroupScreen', () => {
     })
   })
 
+  it('si las partidas no se pueden enviar, muestra el motivo y deja reintentar', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm1' })
+    await saveMatch(
+      buildMatch({ id: 'p-pend', playedAt: new Date().toISOString() }),
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL, init: RequestInit = {}) => {
+        const url = String(input)
+        if (init.method === 'POST') {
+          return new Response(
+            JSON.stringify({ error: 'No eres integrante de este grupo' }),
+            { status: 403 },
+          )
+        }
+        if (url.endsWith('/partidas')) {
+          return new Response(JSON.stringify({ matches: [] }), { status: 200 })
+        }
+        if (url.endsWith('/en-vivo')) {
+          return new Response(JSON.stringify({ live: [] }), { status: 200 })
+        }
+        return new Response(
+          JSON.stringify({
+            group,
+            inviteCode: 'abc123',
+            claimedMemberIds: ['m1'],
+            myMemberId: 'm1',
+          }),
+          { status: 200 },
+        )
+      }),
+    )
+    renderGroup()
+
+    expect(
+      await screen.findByText(/no está vinculada a ningún integrante/),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Reintentar' }),
+    ).toBeInTheDocument()
+  })
+
   it('ofrece agregar un integrante solo a los administradores', async () => {
     await saveGroup({
       ...group,

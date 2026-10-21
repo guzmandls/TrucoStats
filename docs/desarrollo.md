@@ -1247,3 +1247,19 @@ Agregado en la misma etapa: **el enlace de invitación pide una cuenta.** Sin se
 de unirse muestra "Necesitas una cuenta" con "Registrarse" e "Iniciar sesión" (vuelven al
 enlace al terminar) y, discreto, "Seguir sin cuenta". Se vio probando que quien entraba sin
 cuenta no sabía que le faltaba y no se sincronizaba como esperaba.
+
+## Etapa 45 — Que los fallos de sincronización se vean
+
+Después de probar con dos celulares seguía sin verse lo que hacía el otro. Cambios:
+
+- **`pullGroup` ya no se rinde entero:** pedía el grupo y las partidas juntos, y si las
+  partidas fallaban (por ejemplo, un 403 por no estar vinculado) tampoco se actualizaban
+  las fotos ni los nombres. Ahora se piden por separado (`Promise.allSettled`).
+- **La foto propia que no llegó se reintenta** y no la pisa lo que diga el servidor.
+  Cambiar la foto avisa si no se pudo compartir y por qué.
+- **El envío de partidas explica sus fallos:** la pantalla del grupo muestra el motivo
+  (sin sesión, cuenta sin vincular, servidor caído, sin conexión) con "Reintentar".
+
+Concepto nuevo: **`Promise.allSettled`.** Espera a que terminen todas las promesas, salgan
+bien o mal, y deja decidir qué hacer con cada resultado; `Promise.all` se rinde con la
+primera que falla.

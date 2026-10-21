@@ -10,6 +10,44 @@ export function isPending(match: Match): boolean {
   return match.type === 'group' && match.groupId !== null && !match.syncedAt
 }
 
+// Por qué no se pudieron enviar las partidas pendientes la última vez (null si
+// no hubo problema). Se muestra en la pantalla del grupo para que un fallo no
+// pase en silencio.
+let syncProblem: string | null = null
+const PROBLEM_EVENT = 'trucostats:syncProblem'
+
+function setSyncProblem(problem: string | null): void {
+  if (problem !== syncProblem) {
+    syncProblem = problem
+    window.dispatchEvent(new Event(PROBLEM_EVENT))
+  }
+}
+
+export function getSyncProblem(): string | null {
+  return syncProblem
+}
+
+export function subscribeSyncProblem(callback: () => void): () => void {
+  window.addEventListener(PROBLEM_EVENT, callback)
+  return () => window.removeEventListener(PROBLEM_EVENT, callback)
+}
+
+function describeProblem(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (error.status === 401) {
+      return 'Inicia sesión para enviar tus partidas al grupo.'
+    }
+    if (error.status === 403) {
+      return 'Tu cuenta no está vinculada a ningún integrante de este grupo, así que no se pueden enviar las partidas.'
+    }
+    if (error.status >= 500) {
+      return 'El servidor no responde. Se reintentará más tarde.'
+    }
+    return error.message
+  }
+  return 'Sin conexión con el servidor. Se reintentará cuando vuelva.'
+}
+
 // Sin conexión, sin sesión (401) o con el servidor caído conviene parar y
 // reintentar más tarde.
 // Un rechazo de la API (4xx) afecta solo a esa partida o a ese grupo.
@@ -67,6 +105,7 @@ async function syncOnce(): Promise<number> {
   }
   const groups = await loadGroups()
   let sent = 0
+  let problem: string | null = null
   for (const groupId of new Set(pending.map((match) => match.groupId))) {
     const group = groups.find((item) => item.id === groupId)
     if (!group) {
@@ -90,17 +129,21 @@ async function syncOnce(): Promise<number> {
           await saveMatch(confirmed)
           sent += 1
         } catch (error) {
+          problem = describeProblem(error)
           if (shouldStop(error)) {
             throw error
           }
         }
       }
     } catch (error) {
+      problem = describeProblem(error)
       if (shouldStop(error)) {
+        setSyncProblem(problem)
         return sent
       }
     }
   }
+  setSyncProblem(problem)
   return sent
 }
 
