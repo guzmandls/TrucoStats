@@ -395,7 +395,7 @@ export function GroupScreen() {
         ) : (
           <div data-testid="historial">
             {days.map((day) => (
-              <section key={day.key}>
+              <section key={day.key} className={styles.dayGroup}>
                 <h2 className={styles.day}>{day.label}</h2>
                 {day.matches.map((match) => (
                   <HistoryRow

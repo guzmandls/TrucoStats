@@ -229,15 +229,11 @@
 
 /* ---------- Pestañas ---------- */
 
-/* Pestañas en un solo control con margen: la activa va en crema, las demás en
-   negro. */
+/* Pestañas de borde a borde: la activa va en crema, las demás en negro. */
 .tabs {
   display: flex;
-  margin: var(--space-4) var(--space-4) 0;
   background: var(--ink);
-  border: var(--border-width) solid var(--ink);
-  border-radius: var(--radius);
-  overflow: hidden;
+  border-bottom: var(--rule-width) solid var(--paper);
 }
 
 .tab,
@@ -522,6 +518,27 @@
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--paper);
+}
+
+/* En las pantallas de borde a borde (estadísticas) la sección ocupa todo el
+   ancho, sin marco ni esquinas redondeadas. */
+.contentFlush .section {
+  border-width: 0 0 var(--border-width);
+  border-radius: 0;
+}
+
+.contentFlush .figures {
+  flex: 0 0 auto;
+  gap: 0;
+  margin: var(--space-4) 0;
+}
+
+.contentFlush .figure {
+  border-radius: 0;
+}
+
+.contentFlush .figure + .figure {
+  border-left: var(--rule-width) solid var(--paper);
 }
 
 .sectionHead {

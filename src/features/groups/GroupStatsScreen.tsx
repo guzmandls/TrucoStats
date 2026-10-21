@@ -92,7 +92,7 @@ export function GroupStatsScreen() {
         value={tab}
         onChange={setTab}
       />
-      <ScreenContent>
+      <ScreenContent flush>
         {matches.length === 0 ? (
           <EmptyNote>Todavía no hay partidas jugadas</EmptyNote>
         ) : tab === 'grupales' ? (
@@ -368,7 +368,7 @@ function MatchRecord({
   return (
     <div className={styles.recordItem}>
       <div className={styles.matchRecordHead}>
-        <span className={styles.recordLabel}>{label}</span>
+        <span className={styles.matchRecordLabel}>{label}</span>
         {value && <span className={styles.matchRecordValue}>{value}</span>}
       </div>
       <div className={styles.matchRecordBody}>

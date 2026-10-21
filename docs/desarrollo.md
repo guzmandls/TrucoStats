@@ -935,3 +935,27 @@ Conceptos nuevos:
   estilos.
 - Reglas de diseño por escrito: así los cambios futuros mantienen la identidad
   sin tener que volver a discutirla.
+
+## Etapa 29 — Historial como tablero y estadísticas a ancho completo
+
+Hecho:
+
+- Historial: cada partida es una tarjeta simétrica. Franja gris con los datos
+  (modalidad, objetivo, duración), dos renglones iguales (uno por equipo) con
+  avatares, nombres y puntaje, y una franja inferior solo si hay algo que contar
+  (sin enviar, cancelada con motivo, puntos sumados o restados). El puntaje
+  ganador va relleno de negro y el perdedor solo con borde, así el resultado se
+  lee sin depender del color.
+- Estadísticas: vuelven a ocupar todo el ancho (pestañas, secciones y totales de
+  borde a borde). Los totales quedan separados del podio y de la siguiente banda
+  con aire para que no se fundan los bloques negros.
+- Partidas (récords): la duración o diferencia va grande a la derecha del título.
+
+Conceptos nuevos:
+
+- Cuando una pantalla necesita una variante de un componente compartido (la
+  sección de borde a borde), se resuelve con un selector en el contenedor
+  (`.contentFlush .section`) en vez de duplicar el componente.
+- Un menú desplegable no puede vivir dentro de un contenedor con
+  `overflow: hidden`: lo recortaría; por eso la tarjeta redondea sus franjas por
+  separado.
