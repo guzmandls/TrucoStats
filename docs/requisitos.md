@@ -30,6 +30,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - La cuenta registrada (con usuario) es obligatoria solo para crear un grupo: el administrador necesita una identidad estable. El contador y la partida rápida funcionan sin cuenta.
 - Al crear un grupo, el integrante del creador aparece con su usuario como sugerencia de nombre y puede cambiarlo.
 - Unirse a un grupo con el enlace no exige cuenta: al unirse, el servidor crea automáticamente una cuenta invitada (sin correo ni contraseña, invisible para la persona) vinculada a su integrante. Con esa identidad solo ella o el administrador pueden cambiar su nombre, y puede registrar partidas.
+- El nombre de usuario puede tener de 1 a 20 caracteres (letras, números, punto, guion o guion bajo; no distingue mayúsculas).
 - Una cuenta invitada se puede convertir después en una cuenta registrada (usuario y contraseña) sin perder su integrante ni su historial. Si nunca lo hace, funciona igual en ese celular; si lo pierde, pierde esa identidad.
 - Si la sesión vence (dura 90 días) y el servidor rechaza un envío, la pantalla principal muestra un aviso "Tu sesión venció. Inicia sesión para enviar tus partidas." con un botón "Iniciar sesión"; el aviso desaparece al iniciar sesión de nuevo.
 - El menú de tres rayas de la pantalla principal muestra, en su primera línea, con qué usuario se inició sesión ("Invitado" si es una cuenta invitada).

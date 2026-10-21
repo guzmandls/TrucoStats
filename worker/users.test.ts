@@ -112,7 +112,7 @@ describe('POST /api/registro', () => {
   })
 
   it.each([
-    ['usuario corto', { username: 'ab' }],
+    ['usuario vacío', { username: '' }],
     ['usuario con espacios', { username: 'juan perez' }],
     ['usuario largo', { username: 'x'.repeat(21) }],
     ['correo inválido', { email: 'juan' }],
@@ -125,6 +125,19 @@ describe('POST /api/registro', () => {
 
     expect(response.status).toBe(400)
   })
+
+  it.each(['a', 'ab'])(
+    'permite un usuario de 1 o 2 caracteres (%s)',
+    async (username) => {
+      const response = await send('POST', '/api/registro', {
+        ...account,
+        username,
+        email: undefined,
+      })
+
+      expect(response.status).toBe(201)
+    },
+  )
 
   it('rechaza un JSON inválido y un método incorrecto', async () => {
     const invalid = await request(env, '/api/registro', {

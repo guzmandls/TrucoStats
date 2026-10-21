@@ -1152,3 +1152,9 @@ Hecho:
 
 Concepto nuevo: **descubribilidad.** Una función que existe pero está escondida no
 sirve; conviene ponerla donde la persona ya está mirando (la lista de integrantes).
+
+## Etapa 39 — Usuarios de 1 o 2 caracteres
+
+Hecho: el nombre de usuario ahora puede tener de 1 a 20 caracteres (antes, de 3 a 20).
+Solo cambió la validación del servidor (`worker/users.ts`); la app no limitaba el
+largo. Los usuarios ya registrados no se ven afectados.
