@@ -1174,3 +1174,10 @@ Hecho:
 Concepto nuevo: **migrar datos viejos sin perderlos.** En vez de borrar o ignorar los
 grupos anteriores, se agregó un camino para vincularlos a una cuenta, con una regla
 estricta (solo si nadie está vinculado) para que no se pueda usar para "robar" un lugar.
+
+## Etapa 41 — El usuario del menú abre el perfil
+
+Hecho: con sesión iniciada, la primera línea del menú (el usuario o "Invitado") pasa
+a ser un enlace en letra crema que abre el perfil, y se quita la opción "Ver perfil".
+Sin sesión se mantiene "Ver perfil". El componente `HeaderMenu` recibió `headingTo`
+para que esa primera línea pueda ser un enlace.

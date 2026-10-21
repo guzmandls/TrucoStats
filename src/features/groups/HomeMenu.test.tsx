@@ -47,7 +47,7 @@ describe('menú de la pantalla principal (cuenta)', () => {
     expect(screen.queryByText('Crear grupo')).not.toBeInTheDocument()
   })
 
-  it('con sesión el orden es crear grupo, ver perfil y cerrar sesión', () => {
+  it('con sesión el menú empieza con el usuario (que abre el perfil), y sigue con crear grupo y cerrar sesión', () => {
     saveSession({
       token: 'a'.repeat(64),
       user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
@@ -55,11 +55,37 @@ describe('menú de la pantalla principal (cuenta)', () => {
     renderHome()
     openMenu()
 
-    const items = within(screen.getByRole('banner'))
-      .getAllByText(/Crear grupo|Ver perfil|Cerrar sesión/)
-      .map((item) => item.textContent)
-    expect(items).toEqual(['Crear grupo', 'Ver perfil', 'Cerrar sesión'])
+    const labels = within(screen.getByRole('navigation'))
+      .getAllByRole('link')
+      .map((link) => link.textContent)
+    expect(labels).toEqual(['juan', 'Crear grupo'])
+    expect(
+      within(screen.getByRole('navigation')).getByRole('link', {
+        name: 'juan',
+      }),
+    ).toHaveAttribute('href', '/perfil')
+    expect(screen.queryByText('Ver perfil')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Cerrar sesión' }),
+    ).toBeInTheDocument()
     expect(screen.queryByText('Registrarse')).not.toBeInTheDocument()
+  })
+
+  it('una cuenta invitada abre su perfil desde la primera línea del menú, sin "Ver perfil" aparte', () => {
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u2', username: null, email: null, name: 'Pedro' },
+    })
+    renderHome()
+    openMenu()
+
+    const nav = within(screen.getByRole('navigation'))
+    expect(nav.getByRole('link', { name: 'Invitado' })).toHaveAttribute(
+      'href',
+      '/perfil',
+    )
+    expect(nav.queryByText('Ver perfil')).toBeNull()
+    expect(nav.getByRole('link', { name: 'Registrarse' })).toBeInTheDocument()
   })
 
   it('una cuenta invitada tampoco ve crear grupo', () => {

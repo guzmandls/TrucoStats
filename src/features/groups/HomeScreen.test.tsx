@@ -74,7 +74,7 @@ describe('HomeScreen', () => {
     clearSession()
   })
 
-  it('abre el menú y ofrece crear grupo y ver perfil con la sesión iniciada', async () => {
+  it('abre el menú y ofrece crear grupo y el perfil (en la línea del usuario) con la sesión iniciada', async () => {
     saveSession({
       token: 'a'.repeat(64),
       user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
@@ -83,7 +83,8 @@ describe('HomeScreen', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
 
     const create = screen.getByRole('link', { name: 'Crear grupo' })
-    const profile = screen.getByRole('link', { name: 'Ver perfil' })
+    const profile = screen.getByRole('link', { name: 'juan' })
+    expect(screen.queryByRole('link', { name: 'Ver perfil' })).toBeNull()
     expect(create).toHaveAttribute('href', '/crear-grupo')
     expect(profile).toHaveAttribute('href', '/perfil')
     expect(screen.getByRole('banner')).toContainElement(create)

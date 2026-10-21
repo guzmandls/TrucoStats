@@ -95,10 +95,17 @@ interface HeaderMenuProps {
   items: MenuItem[]
   extra?: ReactNode
   // Línea fija arriba del menú (por ejemplo, con qué usuario se inició sesión).
+  headingTo?: string
   heading?: ReactNode
 }
 
-export function HeaderMenu({ label, items, extra, heading }: HeaderMenuProps) {
+export function HeaderMenu({
+  label,
+  items,
+  extra,
+  heading,
+  headingTo,
+}: HeaderMenuProps) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -176,7 +183,18 @@ export function HeaderMenu({ label, items, extra, heading }: HeaderMenuProps) {
       </HeaderIconButton>
       {open && (
         <nav className={styles.headerMenuPanel} aria-label={label}>
-          {heading && <p className={styles.headerMenuHeading}>{heading}</p>}
+          {heading &&
+            (headingTo ? (
+              <Link
+                to={headingTo}
+                className={styles.headerMenuItem}
+                onClick={() => setOpen(false)}
+              >
+                {heading}
+              </Link>
+            ) : (
+              <p className={styles.headerMenuHeading}>{heading}</p>
+            ))}
           {items.map(renderItem)}
           {extra}
         </nav>
