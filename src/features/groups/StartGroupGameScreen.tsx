@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
+  Avatar,
   Button,
   HeaderIconButton,
   Notice,
@@ -17,6 +18,7 @@ import { clearGame, gameSlot } from '../counter/gameStorage'
 import type { GameContext } from '../counter/gameContext'
 import { MIN_TARGET, MAX_TARGET, clampTarget } from '../counter/useCounter'
 import type { Modality, Participant } from '../matches/types'
+import { avatarColors } from './avatar'
 import { loadGroups } from './groupsStorage'
 import type { Group } from './types'
 import styles from './StartGroupGameScreen.module.css'
@@ -146,6 +148,8 @@ export function StartGroupGameScreen() {
     setTargetOverride(clampTarget(value))
   }
 
+  const colors = avatarColors(members.map((member) => member.id))
+
   return (
     <Screen>
       <PageHeader
@@ -159,7 +163,7 @@ export function StartGroupGameScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent flush>
+      <ScreenContent>
         {problem && <Notice>{problem}</Notice>}
 
         <Section title="Objetivo">
@@ -188,7 +192,15 @@ export function StartGroupGameScreen() {
               return (
                 <div key={member.id} data-testid="integrante">
                   <div className={styles.memberRow}>
-                    <span className={styles.memberName}>{member.name}</span>
+                    <span className={styles.memberWho}>
+                      <Avatar
+                        name={member.name}
+                        color={colors[member.id]}
+                        src={member.avatar}
+                        size={36}
+                      />
+                      <span className={styles.memberName}>{member.name}</span>
+                    </span>
                     <span className={styles.memberActions}>
                       <button
                         type="button"

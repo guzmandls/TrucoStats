@@ -24,11 +24,37 @@ export function matchDate(match: Match): string {
   return new Date(match.playedAt).toLocaleDateString('es-UY')
 }
 
-export function matchMeta(match: Match): string {
+// Datos de la partida en líneas cortas para el bloque lateral del historial:
+// ["3v3", "40 pts", "10 min"].
+export function matchMetaParts(match: Match): string[] {
+  const parts = [match.modality, `${match.target} pts`]
+  if (match.durationSeconds !== null) {
+    parts.push(`${Math.round(match.durationSeconds / 60)} min`)
+  }
+  return parts.filter((part): part is string => part !== null)
+}
+
+// Duración en minutos para la línea de datos de una partida: "26 min" (null si
+// no se registró).
+export function matchDurationLabel(match: Match): string | null {
+  return match.durationSeconds === null
+    ? null
+    : `${Math.round(match.durationSeconds / 60)} min`
+}
+
+// Hora de la partida en el celular: "21:05".
+export function matchTime(match: Match): string {
+  const date = new Date(match.playedAt)
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+// Con `includeDate` en false se omite la fecha (el historial ya la muestra en el
+// título del día).
+export function matchMeta(match: Match, includeDate = true): string {
   const details = [
     match.modality ?? null,
     `${match.target} puntos`,
-    matchDate(match),
+    includeDate ? matchDate(match) : null,
   ]
   if (match.durationSeconds !== null) {
     details.push(`${Math.round(match.durationSeconds / 60)} min`)

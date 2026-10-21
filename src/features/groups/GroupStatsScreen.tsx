@@ -6,6 +6,7 @@ import {
   AvatarStack,
   EmptyNote,
   Figure,
+  Figures,
   HeaderIconButton,
   PageHeader,
   Screen,
@@ -14,12 +15,7 @@ import {
   Tabs,
   WinRateRing,
 } from '../../components/ui'
-import {
-  joinNames,
-  matchDate,
-  participantNames,
-  scoreDifferenceLabel,
-} from '../matches/format'
+import { joinNames, scoreDifferenceLabel } from '../matches/format'
 import { gridColumns } from '../matches/gridColumns'
 import {
   groupSummary,
@@ -35,6 +31,7 @@ import { formatDuration } from '../matches/stats'
 import type { Match } from '../matches/types'
 import { winRateColor } from '../matches/winRateColor'
 import { avatarColors } from './avatar'
+import { HistoryRow } from './HistoryRow'
 import type { Group } from './types'
 import { useGroup } from './useGroup'
 import styles from './GroupStatsScreen.module.css'
@@ -238,24 +235,23 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
         </Section>
       )}
 
-      <Section>
-        <div className={styles.figures}>
-          <Figure value={summary.totalMatches} label="partidas" />
-          <Figure
-            value={
-              summary.averageDurationSeconds === null
-                ? '—'
-                : formatDuration(summary.averageDurationSeconds)
-            }
-            label="promedio"
-          />
-        </div>
-      </Section>
+      <Figures>
+        <Figure value={summary.totalMatches} label="partidas" />
+        <Figure
+          value={
+            summary.averageDurationSeconds === null
+              ? '—'
+              : formatDuration(summary.averageDurationSeconds)
+          }
+          label="promedio"
+        />
+      </Figures>
 
       <Section title="Partidas">
         <div className={styles.recordList}>
           {summary.longestMatch && (
             <MatchRecord
+              group={group}
               label="Más larga"
               match={summary.longestMatch}
               value={
@@ -267,6 +263,7 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           )}
           {summary.shortestMatch && (
             <MatchRecord
+              group={group}
               label="Más corta"
               match={summary.shortestMatch}
               value={
@@ -278,6 +275,7 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           )}
           {summary.closestMatch && (
             <MatchRecord
+              group={group}
               label="Más pareja"
               match={summary.closestMatch}
               value={scoreDifferenceLabel(summary.closestMatch)}
@@ -285,6 +283,7 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           )}
           {summary.biggestBlowout && (
             <MatchRecord
+              group={group}
               label="Mayor diferencia"
               match={summary.biggestBlowout}
               value={scoreDifferenceLabel(summary.biggestBlowout)}
@@ -357,37 +356,21 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
 function MatchRecord({
   label,
   match,
+  group,
   value,
 }: {
   label: string
   match: Match
+  group: Group
   value: string | null
 }) {
-  const nos = participantNames(match.teams.nos)
-  const ellos = participantNames(match.teams.ellos)
-  const winnerIsNos = match.winner === 'nos'
   return (
     <div className={styles.recordItem}>
       <div className={styles.matchRecordHead}>
-        <span className={styles.recordLabel}>{label}</span>
+        <span className={styles.matchRecordLabel}>{label}</span>
         {value && <span className={styles.matchRecordValue}>{value}</span>}
       </div>
-      <span className={styles.matchRecordScore}>
-        <span className={winnerIsNos ? styles.scoreWin : styles.scoreLoss}>
-          {match.scores.nos}
-        </span>
-        <span className={styles.scoreDash}>–</span>
-        <span className={winnerIsNos ? styles.scoreLoss : styles.scoreWin}>
-          {match.scores.ellos}
-        </span>
-      </span>
-      {nos && ellos && (
-        <span className={styles.matchRecordTeams}>
-          <span>{nos}</span> <span className={styles.matchVs}>vs</span>{' '}
-          <span>{ellos}</span>
-        </span>
-      )}
-      <span className={styles.recordMeta}>{matchDate(match)}</span>
+      <HistoryRow match={match} group={group} compact />
     </div>
   )
 }

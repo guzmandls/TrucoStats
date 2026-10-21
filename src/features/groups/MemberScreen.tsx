@@ -117,14 +117,12 @@ export function MemberScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent flush>
-        <Section>
-          <MemberStatsFicha
-            member={member}
-            color={colors[member.id]}
-            stats={stats}
-          />
-        </Section>
+      <ScreenContent>
+        <MemberStatsFicha
+          member={member}
+          color={colors[member.id]}
+          stats={stats}
+        />
 
         <Section title="Foto">
           <div className={styles.photoActions}>

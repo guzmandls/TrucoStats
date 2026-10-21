@@ -354,20 +354,16 @@ export function useCounter(
                 'trucostats:pointsDelta',
                 changes.join(','),
               )
-            } catch {}
+            } catch {
+              // Sin almacenamiento de sesión, simplemente no se muestra el aviso
+              // de puntos al volver al grupo.
+            }
           }
         })()
       }
     }
     dispatch({ type: 'confirm' })
-  }, [
-    points,
-    state.context,
-    state.counter,
-    state.firstReached,
-    state.target,
-    state.timer,
-  ])
+  }, [points, state.context, state.counter, state.target, state.timer])
 
   const decline = useCallback(() => {
     dispatch({ type: 'decline' })

@@ -54,16 +54,13 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  border: var(--border-width) solid var(--ink);
-  border-bottom: 0;
   border-radius: var(--radius) var(--radius) 0 0;
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .podiumBase[data-place='1'] {
   height: 72px;
-  background: var(--ink);
-  color: var(--paper);
 }
 .podiumBase[data-place='2'] {
   height: 52px;
@@ -94,46 +91,23 @@
 
 /* ---------- Récords de partidas ---------- */
 
+/* Título del récord y su dato (duración o diferencia) en la misma línea, con la
+   misma letra. */
 .matchRecordHead {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-3);
 }
 
+.matchRecordLabel,
 .matchRecordValue {
-  font-size: var(--text-md);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-
-.matchRecordScore {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.scoreWin {
-  color: var(--ink);
-}
-
-.scoreLoss,
-.scoreDash,
-.matchVs {
-  color: var(--ink-muted);
-}
-
-.scoreDash {
-  font-size: var(--text-lg);
-}
-
-.matchRecordTeams {
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: 800;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .recordLabel {
@@ -252,10 +226,16 @@ a.recordMember:hover {
 
 .rankPos {
   grid-area: pos;
-  align-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
   font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--ink-muted);
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
@@ -312,28 +292,45 @@ a.recordMember:hover {
 
 /* ---------- Grilla simétrica de enfrentamientos ---------- */
 
+/* Una línea crema del grosor estándar separa la fila negra de avatares de las
+   pestañas, igual que en el resto de la app. */
 .gridWrap {
   overflow-x: hidden;
+  margin-top: var(--rule-width);
 }
 
+/* Cada celda dibuja solo su línea derecha y su línea de abajo (1 px, la misma
+   en columnas y filas), así no hay líneas que se corten ni se desfasen. Las
+   zonas negras usan línea crema tenue y las celdas, gris. Las alturas son fijas
+   para que las filas caigan en píxeles enteros. */
 .grid {
-  border-collapse: collapse;
+  --grid-head-height: 48px;
+  border-collapse: separate;
+  border-spacing: 0;
   width: 100%;
   table-layout: fixed;
   font-variant-numeric: tabular-nums;
 }
 
+.gridCorner,
+.gridColHead,
+.gridRowHead {
+  box-sizing: border-box;
+  background: var(--ink);
+  border-right: var(--hairline-width) solid var(--grid-line-paper);
+  border-bottom: var(--hairline-width) solid var(--grid-line-paper);
+}
+
 .gridCorner {
   width: 92px;
+  height: var(--grid-head-height);
   padding: 0;
   vertical-align: top;
-  background: var(--ink);
-  border-bottom: var(--rule-width) solid var(--paper);
 }
 
 .gridPagerButton {
   width: 50%;
-  height: var(--tap-min);
+  height: calc(var(--grid-head-height) - var(--hairline-width));
   display: inline-grid;
   place-items: center;
   padding: 0;
@@ -355,45 +352,42 @@ a.recordMember:hover {
 }
 
 .gridColHead {
-  padding: var(--space-2) var(--space-1);
+  height: var(--grid-head-height);
+  padding: 0 var(--space-1);
   text-align: center;
-  vertical-align: bottom;
-  background: var(--ink);
-  border-bottom: var(--rule-width) solid var(--paper);
-}
-
-.gridColHead + .gridColHead {
-  border-left: var(--hairline-width) solid var(--grid-line-paper);
-}
-
-.gridCorner + .gridColHead {
-  border-left: var(--hairline-width) solid var(--grid-line-paper);
+  vertical-align: middle;
 }
 
 .gridRowHead {
-  padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
+  height: var(--tap-height);
+  padding: 0 var(--space-3) 0 var(--space-4);
   text-align: left;
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--paper);
-  background: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-right: var(--hairline-width) solid var(--grid-line-paper);
-}
-
-tr + tr .gridRowHead {
-  border-top: var(--hairline-width) solid var(--grid-line-paper);
 }
 
 .gridCell {
+  box-sizing: border-box;
   height: var(--tap-height);
   padding: 0;
   text-align: center;
   vertical-align: middle;
-  border-top: var(--hairline-width) solid var(--line-thin);
-  border-left: var(--hairline-width) solid var(--line-thin);
+  border-right: var(--hairline-width) solid var(--line-thin);
+  border-bottom: var(--hairline-width) solid var(--line-thin);
+}
+
+/* Sin línea en los bordes exteriores de la tabla. */
+.grid th:last-child,
+.grid td:last-child {
+  border-right: 0;
+}
+
+.grid tbody tr:last-child > * {
+  border-bottom: 0;
 }
 
 .gridCell[data-empty='true'] {

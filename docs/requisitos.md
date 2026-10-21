@@ -32,7 +32,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Unirse a un grupo con el enlace no exige cuenta: al unirse, el servidor crea automáticamente una cuenta invitada (sin correo ni contraseña, invisible para la persona) vinculada a su integrante. Con esa identidad solo ella o el administrador pueden cambiar su nombre, y puede registrar partidas.
 - Una cuenta invitada se puede convertir después en una cuenta registrada (usuario y contraseña) sin perder su integrante ni su historial. Si nunca lo hace, funciona igual en ese celular; si lo pierde, pierde esa identidad.
 - Solo los integrantes vinculados a una cuenta (con correo o invitada) pueden registrar partidas del grupo. Un integrante ya elegido por otra persona no se puede elegir de nuevo; el administrador podrá liberarlo.
-- Desde el menú de las tres rayas de la pantalla principal hay opciones separadas "Iniciar sesión" y "Registrarse" (sin sesión, en ese orden, después de "Crear grupo" y "Ver perfil") y "Cerrar sesión" (con sesión). Crear un grupo pide la cuenta si hace falta.
+- El menú de las tres rayas de la pantalla principal cambia según la sesión. Sin cuenta registrada (o con una invitada): "Registrarse", "Iniciar sesión" y "Ver perfil", en ese orden, y no aparece "Crear grupo" porque exige cuenta. Con la sesión iniciada: "Crear grupo", "Ver perfil" y "Cerrar sesión", en ese orden.
 - Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
 ### 3.2. Integrantes
@@ -72,11 +72,13 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - La pantalla inicial mostrará los grupos de la lista de pertenencia del dispositivo; al salir de un grupo, este deja de mostrarse.
 - La pantalla inicial permitirá iniciar una partida rápida, sin grupo ni integrantes.
 - La pantalla de un grupo ofrecerá la opción de salir del grupo.
-- Los grupos se presentarán mediante tarjetas (cards).
+- Cada grupo se presenta como una tarjeta con borde redondeado y margen a los costados (no de borde a borde, para que se note que es un botón). Empieza con una banda negra con letra crema: a la izquierda el nombre del grupo (lo más grande) y a la derecha la posición de la persona y una flecha ">" que indica que se puede tocar. Debajo, sobre fondo crema: en una línea "N integrantes · M partidas jugadas" y, a la derecha de esa misma línea, la nube tachada con la cantidad de partidas sin enviar (solo si hay); los avatares de los 8 primeros del ranking de puntos, en orden y sin contador de "+N", con los puntos de la persona a la derecha ("105 Pts", en tamaño menor al nombre); y "Última partida: ayer 21:30" (día y hora, sin el resultado; "Sin partidas todavía" si no hay).
+- La posición va en la banda negra: con un trofeo dorado, plateado o de bronce si es 1º, 2º o 3º, y solo el número ("5º") del cuarto lugar en adelante. Sin partidas no hay posición ni puntos.
+- Si el grupo tiene partidas sin enviar, la nube tachada con la cantidad aparece junto al nombre.
 - Al seleccionar un grupo, se accederá a su historial de partidas. Las estadísticas y los participantes se consultan con botones de icono del sector superior, que llevan a sus propias pantallas.
 - La pantalla de estadísticas del grupo permitirá alternar entre estadísticas grupales, individuales y enfrentamientos. El sector superior se separa de las pestañas por una línea horizontal, y la pestaña activa se distingue solo por la inversión de colores.
 - Los enfrentamientos se muestran como una grilla simétrica: cada fila y cada columna corresponde a un integrante y cada celda, al resultado entre ambos.
-- La pantalla de participantes mostrará la lista de integrantes en renglones destacados con su foto y su nombre; al tocar uno se accede a sus estadísticas individuales dentro del grupo.
+- La pantalla de participantes no muestra estadísticas: es una lista de botones, uno por integrante, con su foto y su nombre sobre una tarjeta con margen y un bloque negro con ">" a la derecha. Al tocar uno se abre su ficha; las estadísticas de cada uno están en la pestaña de estadísticas individuales.
 - Existirá un perfil personal con las estadísticas del usuario.
 
 ## 4. Gestión de partidas
@@ -241,7 +243,14 @@ Cada grupo dispondrá de un historial de partidas finalizadas válidas. El histo
 
 Las partidas rápidas no generan historial: se juegan de forma rápida y solo cuentan para las estadísticas personales del usuario.
 
-### 5.1. Navegar y buscar
+### 5.1. Presentación
+
+- El historial se agrupa por día, con un título en una banda negra con letra crema: "Hoy", "Ayer" y después la fecha corta ("18 oct", y con el año si es de otro año).
+- Cada partida es una fila de ancho completo bajo la banda negra de su día, con una barra vertical negra a la izquierda. Lo único que lleva arriba es la tarjeta: un recuadro con contorno que une a los equipos con sus puntajes (a la izquierda un renglón por equipo, divididos por una línea fina, con avatares y nombres: ganador en negrita, perdedor atenuado; a la derecha el bloque negro con los dos puntajes en crema, separados por una línea fina crema, cada uno a la altura de su equipo). No se muestran la modalidad ni el objetivo. Debajo de la tarjeta, una única línea con la hora, la duración y, si corresponde, "Sin enviar" o "Cancelada"; a la derecha de esa misma línea van los puntos que la persona sumó o restó ("+12 Pts", "−8 Pts") y el menú de opciones. Solo el motivo de una cancelación, por ser largo, va en una línea aparte.
+- El motivo de una partida cancelada se muestra en una línea debajo de la partida.
+- Si la persona jugó, se muestra cuántos puntos sumó o restó en esa partida ("+12 Pts", "−8 Pts"). No se muestra si no jugó, si la partida fue cancelada o si el cambio fue de 0.
+
+### 5.2. Navegar y buscar
 
 - El historial se recorre deslizando hacia abajo. Carga las partidas por tandas: al llegar al final de las cargadas, trae las siguientes automáticamente (scroll infinito), sin botones de paginación.
 - El menú del grupo (las tres rayas) tendrá la opción "Búsqueda", con una lupa, para buscar partidas por fecha (número o mes), participantes, resultado, modalidad u otros datos. Cada palabra escrita debe aparecer en la partida.
@@ -534,6 +543,18 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 - Una lista sin datos usa `EmptyNote`; un aviso dentro de la pantalla usa `Notice`.
 - Varias fotos de integrantes juntas usan `AvatarStack`.
 - Dentro de un grupo no se repite el color por defecto de los avatares.
+
+### 12.11. Bandas, bloques y tarjetas
+
+- El contraste entre zonas oscuras (negro con letra crema) y claras es parte de la identidad: cada pantalla tiene al menos una banda o bloque negro; no se diseña todo en crema y gris.
+- Cada sección de una pantalla (formularios, perfil, ficha) es una tarjeta con margen a los costados, borde redondeado y una banda negra de título con letra crema. En las estadísticas del grupo las pestañas y las secciones ocupan todo el ancho (bandas negras de borde a borde); solo los totales son bloques con margen.
+- Los elementos que se tocan (grupos, participantes) tienen forma de botón: tarjeta con margen y una flecha ">" sobre fondo negro; no ocupan el ancho completo de la pantalla.
+- Las cifras principales (victorias, derrotas, jugadas, partidas, promedio) van en bloques negros con el número grande en crema y la etiqueta en mayúsculas.
+- Las pestañas ocupan todo el ancho, con la misma separación de la barra superior que las demás zonas: la activa va en crema y las demás en negro, y la activa lleva una línea negra arriba y abajo que la separa del crema que la rodea, y las líneas verticales entre las pestañas inactivas ocupan todo el alto de la barra.
+- En el podio, todos los escalones son negros y se apoyan en la base de su tarjeta (no flotan).
+- La posición en un ranking se muestra en un cuadro negro con el número en crema.
+- Los grosores de línea siguen una jerarquía de tres niveles y no se usan otros: **3 px** para las divisiones estructurales entre zonas negras grandes (entre la barra superior, las pestañas y las bandas de título, y los separadores verticales de la barra superior y de las pestañas); **2 px** para contornos (tarjetas, recuadros, botones, controles); **1 px** para las divisiones finas dentro de una zona (filas de listas, separación entre equipos y entre puntajes, celdas y separadores de la grilla de enfrentamientos, donde las divisiones entre columnas y entre filas miden lo mismo y llegan de borde a borde).
+- En los récords de partidas (estadísticas) cada récord muestra su título y su dato (duración o diferencia) en la misma línea y con la misma letra; debajo va la misma tarjeta de partida del historial y, debajo de ella, solo la fecha.
 
 ---
 

@@ -1,0 +1,112 @@
+/* Cada grupo es una tarjeta con margen, no de borde a borde: así se nota que es
+   un botón. */
+.row {
+  display: block;
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.row:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: calc(var(--border-width) * -1);
+}
+
+/* Banda negra con el nombre del grupo y tu posición. */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.nameLine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-2xl);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+}
+
+.pending {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.headEnd {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.countsLine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.position {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-lg);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.counts,
+.last {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.middle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.avatars {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+  min-width: 0;
+}
+
+.points {
+  flex: 0 0 auto;
+  font-size: var(--text-md);
+  font-variant-numeric: tabular-nums;
+}

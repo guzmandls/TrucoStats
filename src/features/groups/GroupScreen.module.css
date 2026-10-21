@@ -9,6 +9,19 @@
   border-top: var(--hairline-width) solid var(--line-thin);
 }
 
+/* Título de cada día del historial: banda negra con letra crema. */
+.day {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--ink);
+  color: var(--paper);
+  border-bottom: var(--rule-width) solid var(--paper);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-caps);
+}
+
 .matchCanceled .matchBody {
   opacity: 0.6;
 }

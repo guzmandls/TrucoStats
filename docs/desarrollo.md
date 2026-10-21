@@ -829,3 +829,166 @@ Conceptos nuevos:
   servidor lo vuelve a comprobar (la app nunca es la única barrera).
 - Menú desplegable por fila (`OverflowMenu`): reutilizable, se cierra al elegir,
   tocar afuera o con Escape.
+
+## Etapa 27 — Nuevo diseño del home y del historial
+
+Hecho:
+
+- Home: los grupos pasan de tarjetas a filas. El nombre va primero y grande;
+  debajo las cantidades, los avatares ordenados por ranking y la última
+  partida; a la derecha, tu posición (trofeo dorado, plateado o de bronce para
+  el 1º, 2º y 3º; solo el número del 4º en adelante) y tus puntos en tamaño
+  menor. La nube de "sin enviar" aparece junto al nombre.
+- Historial: partidas agrupadas por día (Hoy, Ayer, fecha corta); cada equipo en
+  su línea con avatares y puntaje, el ganador en negrita; una barra al costado
+  (llena si ganaste, hueca si perdiste, gris si no jugaste) y los puntos que
+  sumaste o restaste (+12 Pts, −8 Pts).
+- El diseño se eligió mirando una maqueta HTML con los colores y componentes
+  reales antes de escribir código.
+
+Conceptos nuevos:
+
+- Maqueta antes de implementar: una página HTML estática con los mismos tokens
+  del diseño permite comparar opciones sin tocar la app.
+- Tokens de color (`--trophy-gold`, `--trophy-silver`, `--trophy-bronze`): los
+  colores nuevos se declaran una vez en `index.css` y se reutilizan.
+- Funciones de resumen puras (`groupOverview`, `pointChanges`): el cálculo del
+  ranking, la última partida y los cambios de puntos está separado de la
+  pantalla, así se prueba sin dibujar nada.
+- Un solo recorrido para los puntos por partida: `pointChanges` reutiliza la
+  misma regla que `computePoints` y guarda cuánto cambió en cada paso, en lugar
+  de recalcular todo el historial para cada partida.
+
+### Ajuste de la etapa 27: recuperar el peso visual
+
+Al probarlo, el diseño en crema y gris había perdido el contraste que caracteriza
+a la app (fondos negros con letra crema). Se corrigió:
+
+- Home: cada grupo empieza con una banda negra con el nombre y la posición. Los
+  avatares son los 8 primeros del ranking, sin contador de "+N".
+- Historial: los títulos de día son bandas negras; cada puntaje va en un cuadro
+  negro (los dos); la barra del costado es siempre negra.
+- Menú del home: sin cuenta registrada muestra Registrarse, Iniciar sesión y Ver
+  perfil (sin "Crear grupo", que exige cuenta); con sesión, Crear grupo, Ver
+  perfil y Cerrar sesión.
+- Lección: el diseño de una app no es solo la distribución; el contraste entre
+  zonas claras y oscuras es parte de su identidad y hay que mantenerlo.
+
+### Limpieza de calidad
+
+- Se resolvieron los 4 problemas de lint que arrastrábamos: bloques `catch`
+  vacíos (ahora explican por qué se ignora el error), una dependencia sobrante
+  en un `useCallback` y un `setState` dentro de un efecto en el aviso de puntos
+  (ahora el valor se lee al crear el estado y el efecto solo lo borra y programa
+  su desaparición).
+- Prettier: `endOfLine: "auto"` acepta saltos de línea de Windows y de Linux, así
+  `prettier --check .` pasa en cualquier máquina.
+- Concepto: `eslint` encuentra errores de lógica y malas prácticas; `prettier`
+  solo da formato. Tenerlos en cero evita que la deuda se acumule.
+
+### Segundo ajuste de la etapa 27
+
+- Historial: los dos puntajes forman un solo bloque negro del alto de la partida,
+  con una línea crema en el medio, en lugar de dos cuadros sueltos.
+- Home: los grupos vuelven a ser tarjetas con margen y borde redondeado, para que
+  se note que son botones; la banda negra con el nombre se mantiene.
+- Lección: un elemento tocable necesita señales de que lo es (margen, borde,
+  forma de botón); ocupar todo el ancho lo hace parecer una fila de lista.
+
+### Tercer ajuste de la etapa 27
+
+- Home: la banda negra de cada grupo tiene una flecha ">" a la derecha, junto a la
+  posición, para indicar que es un botón. La nube de "sin enviar" pasó a la línea
+  de integrantes y partidas, alineada a la derecha. La última partida ahora dice
+  cuándo fue ("Última partida: ayer 21:30") en lugar de quién ganó.
+
+### Cuarto ajuste de la etapa 27: historial alineado
+
+- Los datos de la partida ("2v2", "30 pts", "26 min", "Sin enviar") y los puntos
+  que sumaste o restaste pasaron a un bloque negro vertical a la izquierda. Así la
+  partida tiene solo dos líneas (una por equipo) y cada puntaje, a la derecha,
+  queda a la altura de su equipo.
+- Técnica: tres columnas con `align-items: stretch` y los equipos y las celdas de
+  puntaje con `flex: 1`, para que se repartan el alto en partes iguales.
+
+## Etapa 28 — Rediseño de las demás pantallas
+
+Hecho (las pantallas que no son el home ni el historial):
+
+- Secciones de formularios, estadísticas y perfil: tarjetas con margen y banda
+  negra de título (un cambio en el componente compartido `Section`).
+- Participantes: sin estadísticas; solo botones con avatar, nombre y un bloque negro
+  con ">" a la derecha.
+- Ficha del participante y Perfil: cifras principales en bloques negros con
+  número grande (componente `Figure`, ahora negro, y `Figures` que los reparte).
+- Estadísticas: pestañas en un solo control con margen, podio con todos los
+  escalones negros apoyados en su tarjeta, totales en bloques negros, récords de
+  partidas con el bloque de puntajes del historial y posiciones del ranking en
+  cuadros negros.
+- Iniciar partida: avatares y nombres más grandes en cada integrante.
+- Las reglas de diseño quedaron escritas en requisitos §12.11.
+
+Conceptos nuevos:
+
+- Un componente compartido (`Section`, `Figure`) permite cambiar el aspecto de
+  muchas pantallas a la vez; por eso conviene reutilizarlos en lugar de repetir
+  estilos.
+- Reglas de diseño por escrito: así los cambios futuros mantienen la identidad
+  sin tener que volver a discutirla.
+
+## Etapa 29 — Historial más legible y estadísticas con secciones a ancho completo
+
+Hecho:
+
+- Historial: fila plana con barra vertical negra a la izquierda. Los datos
+  (modalidad, objetivo, duración, puntos y menú) van en una línea arriba; un
+  recuadro con contorno une a los equipos con el bloque negro de puntajes;
+  "Sin enviar" y "Cancelada" van debajo.
+- Estadísticas: pestañas y secciones de borde a borde, separadas de la barra
+  superior por una línea crema; los totales son bloques con margen.
+- Partidas (récords): la duración o diferencia va grande a la derecha del título.
+
+Conceptos nuevos:
+
+- Cuando una pantalla necesita una variante de un componente compartido (la
+  sección de borde a borde), se resuelve con un selector en el contenedor
+  (`.contentFlush .section`) en vez de duplicar el componente.
+- Al rediseñar, se cambia solo lo que se pidió: lo que ya gustó se conserva.
+
+## Etapa 30 — Revisión de diseño de toda la app
+
+Se recorrieron todas las pantallas con capturas y se corrigió lo que rompía la
+coherencia:
+
+- Enfrentamientos: la fila negra de avatares se pegaba a la barra negra de
+  pestañas; ahora hay aire entre ambas.
+- Avisos (`Notice`): esquinas redondeadas como el resto de las tarjetas; en
+  "Unirse a un grupo" tenían un margen doble.
+- Ficha del participante: avatar y porcentaje centrados (quedaba un hueco).
+- Récords de partidas: cada equipo queda a la altura de su celda de puntaje.
+
+Concepto nuevo: una revisión visual global (capturas de cada pantalla en el
+mismo tamaño) detecta inconsistencias que no se ven mirando una pantalla sola,
+como dos zonas negras que se tocan.
+
+Ajuste de grosores de línea: se definió una jerarquía de tres niveles (3 px
+divisiones estructurales entre zonas negras, 2 px contornos, 1 px divisiones
+finas internas; ver requisitos §12.11). Las divisiones de la grilla de
+enfrentamientos volvieron a ser finas, y la línea entre puntajes pasó a 1 px
+para igualar la que divide a los equipos.
+
+Récords de partidas: ahora reutilizan la tarjeta del historial (`HistoryRow` con la
+opción `compact`), sin modalidad ni objetivo y con duración, hora y "Sin enviar"
+en la línea de arriba. Reutilizar el mismo componente evita que las dos
+pantallas se desalineen con el tiempo.
+
+Ajustes finales de esta pasada:
+
+- Historial: la tarjeta va arriba y los datos (hora, duración, puntos, menú,
+  sin enviar) debajo; se quitó la línea de modalidad y objetivo.
+- Récords de partidas: título y dato con la misma letra; la tarjeta con la
+  fecha debajo.
+- Grilla de enfrentamientos: las líneas se veían cortadas y desfasadas porque
+  la tabla usaba bordes "colapsados" con filas de alto fraccionario. Ahora cada
+  celda dibuja solo su línea derecha y su línea de abajo (siempre 1 px) y las
+  alturas son fijas, así las líneas llegan de borde a borde y quedan alineadas.

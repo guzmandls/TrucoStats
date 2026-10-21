@@ -1,37 +1,51 @@
 .list {
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
 }
 
+/* Cada participante es un botón con forma de tarjeta: avatar y nombre sobre
+   crema y, a la derecha, un bloque negro con la flecha. */
 .member {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-height: var(--tap-height);
-  padding: var(--space-3) var(--space-4);
-  background: var(--ink);
-  color: var(--paper);
+  align-items: stretch;
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper);
+  color: var(--ink);
   text-decoration: none;
 }
 
-/* Dos filas negras contiguas se separan con una línea crema (reglas §12.2). */
-.member + .member {
-  border-top: var(--hairline-width) solid var(--paper);
+.member:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: 2px;
 }
 
-.member:focus-visible {
-  outline: var(--border-width) solid var(--paper);
-  outline-offset: calc(var(--border-width) * -2);
+.member > :first-child {
+  margin: var(--space-3) 0 var(--space-3) var(--space-4);
+  align-self: center;
 }
 
 .memberName {
   flex: 1;
-  font-size: var(--text-md);
-  font-weight: 600;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-xl);
+  font-weight: 800;
+  letter-spacing: var(--tracking-tight);
 }
 
-.chevron {
-  font-size: var(--text-xl);
-  line-height: 1;
-  opacity: 0.7;
+.go {
+  flex: 0 0 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  color: var(--paper);
 }

@@ -120,7 +120,7 @@ export function CreateGroupScreen() {
         }
       />
       <form className={styles.form} onSubmit={handleSubmit}>
-        <ScreenContent flush>
+        <ScreenContent>
           <Section title="Nombre del grupo">
             <div className={styles.groupName}>
               <TextInput

@@ -46,6 +46,10 @@
   /* Lo mismo, para texto crema sobre fondo negro. */
   --paper-muted: color-mix(in srgb, var(--paper) 70%, var(--ink));
   --disabled-opacity: 0.4;
+  /* Trofeos del ranking: oro, plata y bronce. */
+  --trophy-gold: #e2b83b;
+  --trophy-silver: #c9ced6;
+  --trophy-bronze: #c8803f;
   /* Fondo de barras y anillos de porcentaje. */
   --track: color-mix(in srgb, var(--ink) 14%, transparent);
 

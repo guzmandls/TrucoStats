@@ -1,7 +1,8 @@
 import 'fake-indexeddb/auto'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { clearSession, saveSession } from '../../lib/session'
 import {
   GAME_VERSION,
   QUICK_SLOT,
@@ -69,7 +70,15 @@ describe('HomeScreen', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('abre el menú y ofrece crear grupo y ver perfil', async () => {
+  afterEach(() => {
+    clearSession()
+  })
+
+  it('abre el menú y ofrece crear grupo y ver perfil con la sesión iniciada', async () => {
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+    })
     renderHome()
     fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
 

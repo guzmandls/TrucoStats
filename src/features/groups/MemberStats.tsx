@@ -1,4 +1,10 @@
-import { Avatar, StatRow, WinRateRing } from '../../components/ui'
+import {
+  Avatar,
+  Figure,
+  Figures,
+  StatRow,
+  WinRateRing,
+} from '../../components/ui'
 import type { MemberStats } from '../matches/groupStats'
 import type { Participant } from '../matches/types'
 import { formatDuration } from '../matches/stats'
@@ -52,24 +58,20 @@ export function MemberStatsFicha({
 
   return (
     <div className={styles.ficha}>
-      <Avatar name={member.name} color={color} src={member.avatar} size={72} />
-      <div className={styles.fichaMain}>
-        <WinRateRing percent={rate ?? 0} color={rateColor} size={58} />
-        <div className={styles.fichaFigures}>
-          <span className={styles.fichaFigure}>
-            <strong className={styles.fichaNumber}>{stats.wins}</strong>
-            <span className={styles.fichaFigureLabel}>victorias</span>
-          </span>
-          <span className={styles.fichaFigure}>
-            <strong className={styles.fichaNumber}>{stats.losses}</strong>
-            <span className={styles.fichaFigureLabel}>derrotas</span>
-          </span>
-          <span className={styles.fichaFigure}>
-            <strong className={styles.fichaNumber}>{total}</strong>
-            <span className={styles.fichaFigureLabel}>jugadas</span>
-          </span>
-        </div>
+      <div className={styles.fichaTop}>
+        <Avatar
+          name={member.name}
+          color={color}
+          src={member.avatar}
+          size={72}
+        />
+        <WinRateRing percent={rate ?? 0} color={rateColor} size={72} />
       </div>
+      <Figures>
+        <Figure value={stats.wins} label="victorias" />
+        <Figure value={stats.losses} label="derrotas" />
+        <Figure value={total} label="jugadas" />
+      </Figures>
     </div>
   )
 }
