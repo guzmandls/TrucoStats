@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Group } from '../groups/types'
-import { groupOverview, lastMatchText } from './groupOverview'
+import { groupOverview, matchWhen } from './groupOverview'
 import type { Match } from './types'
 
 const group: Group = {
@@ -129,23 +129,21 @@ describe('groupOverview', () => {
   })
 })
 
-describe('lastMatchText', () => {
-  it('si jugaste, dice ganaste o perdiste con tu resultado primero', () => {
-    const won = match('p1', ['m1', 'm2'], ['m3', 'm4'], [30, 21], at(21))
-    const lost = match('p2', ['m1'], ['m2'], [18, 30], at(20))
+describe('matchWhen', () => {
+  const atTime = (day: number, hour: number, minute: number) =>
+    new Date(2026, 9, day, hour, minute).toISOString()
 
-    expect(lastMatchText(won, 'm1', NOW)).toBe('ganaste 30 – 21 · hoy')
-    expect(lastMatchText(lost, 'm1', NOW)).toBe('perdiste 18 – 30 · ayer')
-    expect(lastMatchText(lost, 'm2', NOW)).toBe('ganaste 30 – 18 · ayer')
+  it('dice hoy o ayer con la hora', () => {
+    const today = match('p1', ['m1'], ['m2'], [30, 10], atTime(21, 9, 5))
+    const yesterday = match('p2', ['m1'], ['m2'], [30, 10], atTime(20, 21, 30))
+
+    expect(matchWhen(today, NOW)).toBe('hoy 09:05')
+    expect(matchWhen(yesterday, NOW)).toBe('ayer 21:30')
   })
 
-  it('si no jugaste, dice quién ganó', () => {
-    const doubles = match('p1', ['m2', 'm3'], ['m4', 'm1'], [30, 21], at(18))
-    const singles = match('p2', ['m2'], ['m3'], [25, 30], at(10))
+  it('usa la fecha corta para días anteriores', () => {
+    const older = match('p1', ['m1'], ['m2'], [30, 10], atTime(18, 18, 0))
 
-    expect(lastMatchText(doubles, undefined, NOW)).toBe(
-      'ganaron Pedro - Luis 30 – 21 · 18 oct',
-    )
-    expect(lastMatchText(singles, 'm1', NOW)).toBe('ganó Luis 30 – 25 · 10 oct')
+    expect(matchWhen(older, NOW)).toBe('18 oct 18:00')
   })
 })

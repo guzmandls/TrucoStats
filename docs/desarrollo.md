@@ -894,3 +894,10 @@ a la app (fondos negros con letra crema). Se corrigió:
   se note que son botones; la banda negra con el nombre se mantiene.
 - Lección: un elemento tocable necesita señales de que lo es (margen, borde,
   forma de botón); ocupar todo el ancho lo hace parecer una fila de lista.
+
+### Tercer ajuste de la etapa 27
+
+- Home: la banda negra de cada grupo tiene una flecha ">" a la derecha, junto a la
+  posición, para indicar que es un botón. La nube de "sin enviar" pasó a la línea
+  de integrantes y partidas, alineada a la derecha. La última partida ahora dice
+  cuándo fue ("Última partida: ayer 21:30") en lugar de quién ganó.

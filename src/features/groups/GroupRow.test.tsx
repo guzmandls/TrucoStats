@@ -27,7 +27,8 @@ const last: Match = {
   type: 'group',
   groupId: 'g1',
   modality: '1v1',
-  playedAt: new Date().toISOString(),
+  // Hoy a las 14:05, hora local.
+  playedAt: new Date(new Date().setHours(14, 5, 0, 0)).toISOString(),
   durationSeconds: 600,
   target: 30,
   winner: 'nos',
@@ -105,12 +106,27 @@ describe('GroupRow', () => {
     expect(screen.getAllByRole('img')).toHaveLength(6)
   })
 
-  it('muestra la última partida', () => {
+  it('dice cuándo fue la última partida, con día y hora', () => {
     renderRow(overview())
 
-    expect(
-      screen.getByText('Última: ganaste 30 – 21 · hoy'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Última partida: hoy 14:05')).toBeInTheDocument()
+  })
+
+  it('tiene una flecha que indica que es un botón, junto a la posición', () => {
+    const { container } = renderRow(overview())
+
+    const head = container.querySelector('a > span:first-child')
+    expect(head?.querySelectorAll('svg').length).toBeGreaterThanOrEqual(2)
+    expect(head).toHaveTextContent('1º')
+  })
+
+  it('la nube de sin enviar va en la línea de las cantidades', () => {
+    renderRow(overview(), 2)
+
+    const line = screen.getByText(/integrantes/).parentElement
+    expect(line).toContainElement(
+      screen.getByRole('status', { name: '2 partidas sin enviar' }),
+    )
   })
 
   it('sin partidas dice que todavía no hay y no muestra puntos ni posición', () => {

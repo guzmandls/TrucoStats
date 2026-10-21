@@ -1,7 +1,6 @@
 import type { Group, Member } from '../groups/types'
 import { dayLabel } from './dayLabel'
-import { participantNames } from './format'
-import { podium, sideOf } from './groupStats'
+import { podium } from './groupStats'
 import { computePoints } from './points'
 import { activeMatches } from './status'
 import type { Match } from './types'
@@ -58,22 +57,10 @@ export function groupOverview(group: Group, matches: Match[]): GroupOverview {
   }
 }
 
-// "ganaste 30 – 21 · hoy" si la persona jugó; si no, quién ganó:
-// "ganó Pedro 30 – 21 · ayer". La palabra "Última" la pone la pantalla.
-export function lastMatchText(
-  match: Match,
-  myMemberId: string | undefined,
-  now: Date = new Date(),
-): string {
-  const when = dayLabel(match.playedAt, now).toLowerCase()
-  const mySide = myMemberId ? sideOf(match, myMemberId) : null
-  if (mySide) {
-    const other = mySide === 'nos' ? 'ellos' : 'nos'
-    const verb = match.winner === mySide ? 'ganaste' : 'perdiste'
-    return `${verb} ${match.scores[mySide]} – ${match.scores[other]} · ${when}`
-  }
-  const loser = match.winner === 'nos' ? 'ellos' : 'nos'
-  const winners = match.teams[match.winner]
-  const verb = winners.length === 1 ? 'ganó' : 'ganaron'
-  return `${verb} ${participantNames(winners) ?? ''} ${match.scores[match.winner]} – ${match.scores[loser]} · ${when}`
+// Cuándo fue la partida: "hoy 21:05", "ayer 18:30", "18 oct 21:00" (con el año si
+// es de otro año). La hora es la del celular.
+export function matchWhen(match: Match, now: Date = new Date()): string {
+  const date = new Date(match.playedAt)
+  const time = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  return `${dayLabel(match.playedAt, now).toLowerCase()} ${time}`
 }

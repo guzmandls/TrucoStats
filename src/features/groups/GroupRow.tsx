@@ -1,7 +1,11 @@
 import { Link } from 'react-router-dom'
-import { CloudOffIcon, TrophyIcon } from '../../components/Icons'
+import {
+  ChevronRightIcon,
+  CloudOffIcon,
+  TrophyIcon,
+} from '../../components/Icons'
 import { AvatarStack } from '../../components/ui'
-import { lastMatchText, type GroupOverview } from '../matches/groupOverview'
+import { matchWhen, type GroupOverview } from '../matches/groupOverview'
 import { avatarColors } from './avatar'
 import type { Group } from './types'
 import styles from './GroupRow.module.css'
@@ -30,10 +34,11 @@ function PositionBadge({ position }: { position: number }) {
   )
 }
 
-// Un grupo en la pantalla principal: una banda negra con el nombre (y, a la
-// derecha, tu posición con trofeo en el podio); debajo, en crema, las
-// cantidades, los avatares de los 8 primeros del ranking con tus puntos, y la
-// última partida.
+// Un grupo en la pantalla principal: una banda negra con el nombre y, a la
+// derecha, tu posición (con trofeo en el podio) y una flecha ">" que indica que
+// es un botón. Debajo, en crema: las cantidades (con la nube de partidas sin
+// enviar a la derecha), los avatares de los 8 primeros del ranking con tus
+// puntos, y cuándo fue la última partida.
 export function GroupRow({ group, overview, pending }: GroupRowProps) {
   const colors = avatarColors(group.members.map((member) => member.id))
   const visible = overview.ranking.slice(0, MAX_AVATARS)
@@ -43,6 +48,17 @@ export function GroupRow({ group, overview, pending }: GroupRowProps) {
       <span className={styles.head}>
         <span className={styles.nameLine}>
           <span className={styles.name}>{group.name}</span>
+        </span>
+        <span className={styles.headEnd}>
+          {overview.position !== null && (
+            <PositionBadge position={overview.position} />
+          )}
+          <ChevronRightIcon size={24} />
+        </span>
+      </span>
+      <span className={styles.info}>
+        <span className={styles.countsLine}>
+          <span className={styles.counts}>{countsLabel(overview)}</span>
           {pending > 0 && (
             <span
               className={styles.pending}
@@ -54,12 +70,6 @@ export function GroupRow({ group, overview, pending }: GroupRowProps) {
             </span>
           )}
         </span>
-        {overview.position !== null && (
-          <PositionBadge position={overview.position} />
-        )}
-      </span>
-      <span className={styles.info}>
-        <span className={styles.counts}>{countsLabel(overview)}</span>
         <span className={styles.middle}>
           <span className={styles.avatars}>
             <AvatarStack
@@ -80,7 +90,7 @@ export function GroupRow({ group, overview, pending }: GroupRowProps) {
         </span>
         <span className={styles.last}>
           {overview.last
-            ? `Última: ${lastMatchText(overview.last, group.myMemberId)}`
+            ? `Última partida: ${matchWhen(overview.last)}`
             : 'Sin partidas todavía'}
         </span>
       </span>
