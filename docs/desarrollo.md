@@ -1281,3 +1281,10 @@ primera que falla.
 - **Recuperarlos:** el servidor tiene un endpoint nuevo `GET /api/mis-grupos`; al iniciar sesión la app lo usa para volver a bajar los grupos de la cuenta.
 - **Versión vieja:** una PWA abierta en segundo plano puede seguir con código viejo. Al volver a verla compara el archivo principal con el publicado y se recarga si cambió.
 - **Lugar "Ya elegido":** si tu integrante lo eligió otra cuenta (por ejemplo, una que creaste antes), el servidor no deja tomarlo. Ahora se explica qué hacer: iniciar sesión con esa cuenta o pedir al administrador que lo libere.
+
+## Etapa 49 — Invitado que inicia sesión, y qué versión corre
+
+- **El hueco:** quien se unía como invitado (cuenta invitada, dueña de su lugar) y después iniciaba sesión con una cuenta que ya tenía quedaba con el lugar "huérfano": el servidor lo veía tomado por otra cuenta y la persona no podía vincularse ni enviar partidas. Registrarse ya convertía la invitada en la cuenta; iniciar sesión no. Ahora `login` pasa los lugares y partidas de la invitada a la cuenta.
+- **Los tres puntitos de un nombre sin vínculo:** salían porque el celular recordaba "yo soy este integrante" de otra sesión. Con sesión iniciada manda el servidor (fuente de verdad), así que ese dato viejo se descarta.
+- **Probar de verdad:** esta vez se reprodujo el flujo con un servidor local y un Chrome real (enlace sin sesión, registro, unirse, cerrar sesión, volver al enlace, iniciar sesión, invitado que inicia sesión). Los tests de unidad no lo habían detectado.
+- **Versión visible:** se muestra la fecha de compilación al pie de la pantalla principal (Vite la inyecta con `define`), para distinguir "no se arregló" de "el celular tiene la app vieja".

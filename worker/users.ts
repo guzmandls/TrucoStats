@@ -289,7 +289,37 @@ export async function login(request: Request, env: Env): Promise<Response> {
     email: row.email,
     name: row.name,
   }
+  // Quien jugó como invitado y ahora inicia sesión con una cuenta que ya tenía no
+  // pierde sus lugares: pasan a esa cuenta.
+  const guest = await authenticate(request, env)
+  if (guest && guest.username === null && guest.id !== row.id) {
+    await moveGuestToAccount(guest.id, row.id, env)
+  }
   return json({ token: await openSession(row.id, env), user })
+}
+
+// Pasa a `userId` los integrantes y las partidas de la cuenta invitada, salvo en
+// los grupos donde la cuenta ya tiene su propio lugar.
+async function moveGuestToAccount(
+  guestId: string,
+  userId: string,
+  env: Env,
+): Promise<void> {
+  await env.DB.batch([
+    env.DB.prepare(
+      `UPDATE members SET user_id = ? WHERE user_id = ?
+       AND group_id NOT IN (SELECT group_id FROM members WHERE user_id = ?)`,
+    ).bind(userId, guestId, userId),
+    env.DB.prepare(
+      'UPDATE matches SET created_by = ? WHERE created_by = ?',
+    ).bind(userId, guestId),
+    env.DB.prepare(
+      'UPDATE matches SET canceled_by = ? WHERE canceled_by = ?',
+    ).bind(userId, guestId),
+    env.DB.prepare(
+      'UPDATE match_events SET user_id = ? WHERE user_id = ?',
+    ).bind(userId, guestId),
+  ])
 }
 
 export async function currentUser(

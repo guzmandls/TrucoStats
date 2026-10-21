@@ -1,3 +1,4 @@
+import { getSession, isSessionExpired } from '../../lib/session'
 import { loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { fetchGroupByCode, fetchRemoteMatches } from './groupsApi'
@@ -75,7 +76,10 @@ export async function pullGroup(groupId: string): Promise<boolean> {
   // El servidor sabe qué integrante es esta persona: si el celular no lo tenía
   // guardado (grupos anteriores a las cuentas), se completa para habilitar las
   // opciones que dependen de eso (por ejemplo, las de administrador).
-  const me = remoteMe ?? local.myMemberId
+  // Con la sesión iniciada manda el servidor: si dice que la cuenta no es ningún
+  // integrante, lo que quedó guardado en el celular (de otra sesión) ya no vale.
+  const serverDecides = getSession() !== null && !isSessionExpired()
+  const me = serverDecides ? remoteMe : (remoteMe ?? local.myMemberId)
   if (
     remote.name !== local.name ||
     me !== local.myMemberId ||
@@ -83,8 +87,10 @@ export async function pullGroup(groupId: string): Promise<boolean> {
       JSON.stringify(local.adminMemberIds) ||
     !sameMembers(remote.members, local.members)
   ) {
+    const { myMemberId: previous, ...rest } = local
+    void previous
     await saveGroup({
-      ...local,
+      ...rest,
       name: remote.name,
       adminMemberIds: remote.adminMemberIds,
       members: remote.members,
