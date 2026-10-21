@@ -1269,3 +1269,8 @@ primera que falla.
 - **Pausar solo detiene el tiempo.** Se quitó el cartel "Partida pausada" y el bloqueo: se puede seguir sumando y navegando. Sumar puntos reanuda el cronómetro; deshacer no.
 - **Pausa automática a los 60 segundos.** Mientras el contador está abierto guarda cada 10 segundos "última vez activo" (`lastActiveAt`), y también al ocultarse la app. Al volver a abrir, `settleTimer` compara: si pasó más de un minuto con el cronómetro corriendo, lo deja pausado en ese instante límite, así no se cuentan 45 minutos de una partida abandonada.
 - **Por qué un latido y no un temporizador:** si la app se cierra, el navegador ya no ejecuta código; por eso se guarda la última marca y se decide al reabrir.
+
+## Etapa 47 — El enlace de invitación ya no se salta la elección
+
+- **El error:** al abrir el enlace, si el grupo ya estaba guardado en el celular, la app entraba directo. Pero ese grupo podía ser de una sesión anterior (o de antes de tener cuenta): sin cuenta vinculada el servidor rechaza enviar y recibir partidas, y el grupo ni aparecía en el inicio.
+- **La regla ahora:** se entra directo solo si el servidor confirma quién es esta cuenta. Si no hay sesión se pide registrarse o iniciar sesión; si hay sesión pero sin vínculo, se elige el integrante. Concepto: la fuente de verdad es el servidor, no lo que quedó guardado en el celular.

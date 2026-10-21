@@ -62,21 +62,17 @@ export function JoinGroupScreen() {
     let active = true
     void fetchGroupByCode(code)
       .then(async ({ group: remote, claimedMemberIds, myMemberId }) => {
-        // Si ya está en este celular, se abre directamente.
-        const existing = (await loadGroups()).find(
-          (item) => item.id === remote.id,
-        )
         if (!active) {
           return
         }
-        if (existing) {
-          navigate(`/grupo/${existing.id}`, { replace: true })
-          return
-        }
-        // Con la sesión iniciada en otro celular, el servidor ya sabe quién es
-        // la persona: no hace falta preguntar.
+        // Solo se salta la pregunta si el servidor ya sabe quién es esta cuenta.
+        // Que el grupo esté guardado en el celular no alcanza: pudo quedar de una
+        // sesión anterior (o sin cuenta) y entonces hay que volver a elegir.
         if (myMemberId) {
-          await saveGroup({ ...remote, myMemberId })
+          const existing = (await loadGroups()).find(
+            (item) => item.id === remote.id,
+          )
+          await saveGroup({ ...(existing ?? remote), ...remote, myMemberId })
           addMembership(remote.id)
           navigate(`/grupo/${remote.id}`, { replace: true })
           return
