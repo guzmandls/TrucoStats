@@ -6,7 +6,7 @@ import { avatarColors } from './avatar'
 import type { Group } from './types'
 import styles from './GroupRow.module.css'
 
-const MAX_AVATARS = 4
+const MAX_AVATARS = 8
 
 interface GroupRowProps {
   group: Group
@@ -30,17 +30,17 @@ function PositionBadge({ position }: { position: number }) {
   )
 }
 
-// Un grupo en la pantalla principal: el nombre primero; debajo las cantidades,
-// los avatares por orden de ranking y la última partida; a la derecha, tu
-// posición (con trofeo en el podio) y tus puntos.
+// Un grupo en la pantalla principal: una banda negra con el nombre (y, a la
+// derecha, tu posición con trofeo en el podio); debajo, en crema, las
+// cantidades, los avatares de los 8 primeros del ranking con tus puntos, y la
+// última partida.
 export function GroupRow({ group, overview, pending }: GroupRowProps) {
   const colors = avatarColors(group.members.map((member) => member.id))
   const visible = overview.ranking.slice(0, MAX_AVATARS)
-  const hidden = overview.ranking.length - visible.length
   const showPoints = overview.points !== null && overview.matchCount > 0
   return (
     <Link className={styles.row} to={`/grupo/${group.id}`}>
-      <span className={styles.main}>
+      <span className={styles.head}>
         <span className={styles.nameLine}>
           <span className={styles.name}>{group.name}</span>
           {pending > 0 && (
@@ -54,18 +54,29 @@ export function GroupRow({ group, overview, pending }: GroupRowProps) {
             </span>
           )}
         </span>
+        {overview.position !== null && (
+          <PositionBadge position={overview.position} />
+        )}
+      </span>
+      <span className={styles.info}>
         <span className={styles.counts}>{countsLabel(overview)}</span>
-        <span className={styles.avatars}>
-          <AvatarStack
-            size={30}
-            members={visible.map((member) => ({
-              id: member.id,
-              name: member.name,
-              color: colors[member.id],
-              src: member.avatar,
-            }))}
-          />
-          {hidden > 0 && <span className={styles.more}>+{hidden}</span>}
+        <span className={styles.middle}>
+          <span className={styles.avatars}>
+            <AvatarStack
+              size={30}
+              members={visible.map((member) => ({
+                id: member.id,
+                name: member.name,
+                color: colors[member.id],
+                src: member.avatar,
+              }))}
+            />
+          </span>
+          {showPoints && (
+            <span className={styles.points}>
+              <b>{overview.points}</b> Pts
+            </span>
+          )}
         </span>
         <span className={styles.last}>
           {overview.last
@@ -73,18 +84,6 @@ export function GroupRow({ group, overview, pending }: GroupRowProps) {
             : 'Sin partidas todavía'}
         </span>
       </span>
-      {(overview.position !== null || showPoints) && (
-        <span className={styles.side}>
-          {overview.position !== null && (
-            <PositionBadge position={overview.position} />
-          )}
-          {showPoints && (
-            <span className={styles.points}>
-              <b>{overview.points}</b> Pts
-            </span>
-          )}
-        </span>
-      )}
     </Link>
   )
 }

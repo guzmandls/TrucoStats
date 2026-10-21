@@ -1,9 +1,6 @@
 .row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
-  border-bottom: var(--hairline-width) solid var(--line-thin);
+  display: block;
+  border-bottom: var(--border-width) solid var(--ink);
   color: var(--ink);
   text-decoration: none;
 }
@@ -13,12 +10,15 @@
   outline-offset: calc(var(--border-width) * -1);
 }
 
-.main {
-  flex: 1;
-  min-width: 0;
+/* Banda negra con el nombre del grupo y tu posición. */
+.head {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .nameLine {
@@ -49,34 +49,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.counts,
-.last {
-  font-size: var(--text-sm);
-  color: var(--ink-muted);
-}
-
-.avatars {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.more {
-  font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--ink-muted);
-}
-
-.side {
-  flex: 0 0 auto;
-  min-width: calc(var(--tap-min) + var(--space-3));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-}
-
 .position {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
@@ -85,7 +59,35 @@
   font-variant-numeric: tabular-nums;
 }
 
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.counts,
+.last {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.middle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.avatars {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: var(--space-1);
+  min-width: 0;
+}
+
 .points {
+  flex: 0 0 auto;
   font-size: var(--text-md);
   font-variant-numeric: tabular-nums;
 }

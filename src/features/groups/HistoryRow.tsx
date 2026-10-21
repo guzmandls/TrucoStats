@@ -1,6 +1,5 @@
 import { AvatarStack, OverflowMenu } from '../../components/ui'
 import { matchMeta, participantNames } from '../matches/format'
-import { sideOf } from '../matches/groupStats'
 import type { Match, Participant } from '../matches/types'
 import { avatarColor, avatarColors } from './avatar'
 import { availableActions, type MatchAction } from './matchActions'
@@ -59,14 +58,6 @@ export function HistoryRow({
   pointChange,
   onAction,
 }: HistoryRowProps) {
-  const me = group.myMemberId
-  const mySide = me ? sideOf(match, me) : null
-  const flag =
-    mySide === null
-      ? styles.flagNone
-      : mySide === match.winner
-        ? styles.flagWon
-        : styles.flagLost
   const actions = availableActions(match, group)
   const details = [
     matchMeta(match, false),
@@ -80,7 +71,7 @@ export function HistoryRow({
       data-testid="partida"
       className={`${styles.row} ${match.canceled ? styles.canceled : ''}`}
     >
-      <span className={`${styles.flag} ${flag}`} aria-hidden="true" />
+      <span className={styles.flag} aria-hidden="true" />
       <div className={styles.body}>
         <TeamLine
           team={match.teams.nos}

@@ -6,25 +6,11 @@
   border-bottom: var(--hairline-width) solid var(--line-thin);
 }
 
-/* La barra de costado dice cómo te fue: llena si ganaste, hueca si perdiste,
-   gris si no jugaste. */
+/* Barra negra al costado de cada partida. */
 .flag {
   flex: 0 0 6px;
   border-radius: var(--radius-pill);
   background: var(--ink);
-}
-
-.flagWon {
-  background: var(--ink);
-}
-
-.flagLost {
-  background: transparent;
-  border: var(--border-width) solid var(--ink);
-}
-
-.flagNone {
-  background: color-mix(in srgb, var(--ink) 25%, var(--paper));
 }
 
 .body {
@@ -50,15 +36,29 @@
   font-size: var(--text-md);
 }
 
+/* Cada puntaje va en un cuadro negro con número crema; el del ganador resalta. */
 .score {
-  min-width: 34px;
-  text-align: right;
+  flex: 0 0 auto;
+  min-width: 44px;
+  height: 36px;
+  padding: 0 var(--space-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--ink);
+  color: var(--paper-muted);
   font-size: var(--text-xl);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
-.won .names,
+.won .names {
+  font-weight: 800;
+}
+
 .won .score {
+  color: var(--paper);
   font-weight: 800;
 }
 

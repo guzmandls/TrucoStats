@@ -93,15 +93,19 @@ export function HomeScreen() {
         trailing={
           <HeaderMenu
             label="Menú"
-            items={[
-              {
-                label: 'Crear grupo',
-                to: '/crear-grupo',
-                icon: <GroupPlusIcon />,
-              },
-              { label: 'Ver perfil', to: '/perfil', icon: <PersonIcon /> },
-              ...(loggedIn
+            items={
+              loggedIn
                 ? [
+                    {
+                      label: 'Crear grupo',
+                      to: '/crear-grupo',
+                      icon: <GroupPlusIcon />,
+                    },
+                    {
+                      label: 'Ver perfil',
+                      to: '/perfil',
+                      icon: <PersonIcon />,
+                    },
                     {
                       label: 'Cerrar sesión',
                       onClick: () => void logoutAccount(),
@@ -109,18 +113,25 @@ export function HomeScreen() {
                     },
                   ]
                 : [
+                    // Sin cuenta registrada no se puede crear un grupo, así que
+                    // esa opción ni aparece.
+                    {
+                      label: 'Registrarse',
+                      to: '/registrarse',
+                      icon: <UserPlusIcon />,
+                    },
                     {
                       label: 'Iniciar sesión',
                       to: '/iniciar-sesion',
                       icon: <LoginIcon />,
                     },
                     {
-                      label: 'Registrarse',
-                      to: '/registrarse',
-                      icon: <UserPlusIcon />,
+                      label: 'Ver perfil',
+                      to: '/perfil',
+                      icon: <PersonIcon />,
                     },
-                  ]),
-            ]}
+                  ]
+            }
           />
         }
       />

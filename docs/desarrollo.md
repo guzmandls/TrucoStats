@@ -858,3 +858,18 @@ Conceptos nuevos:
 - Un solo recorrido para los puntos por partida: `pointChanges` reutiliza la
   misma regla que `computePoints` y guarda cuánto cambió en cada paso, en lugar
   de recalcular todo el historial para cada partida.
+
+### Ajuste de la etapa 27: recuperar el peso visual
+
+Al probarlo, el diseño en crema y gris había perdido el contraste que caracteriza
+a la app (fondos negros con letra crema). Se corrigió:
+
+- Home: cada grupo empieza con una banda negra con el nombre y la posición. Los
+  avatares son los 8 primeros del ranking, sin contador de "+N".
+- Historial: los títulos de día son bandas negras; cada puntaje va en un cuadro
+  negro (los dos); la barra del costado es siempre negra.
+- Menú del home: sin cuenta registrada muestra Registrarse, Iniciar sesión y Ver
+  perfil (sin "Crear grupo", que exige cuenta); con sesión, Crear grupo, Ver
+  perfil y Cerrar sesión.
+- Lección: el diseño de una app no es solo la distribución; el contraste entre
+  zonas claras y oscuras es parte de su identidad y hay que mantenerlo.

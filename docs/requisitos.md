@@ -32,7 +32,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Unirse a un grupo con el enlace no exige cuenta: al unirse, el servidor crea automáticamente una cuenta invitada (sin correo ni contraseña, invisible para la persona) vinculada a su integrante. Con esa identidad solo ella o el administrador pueden cambiar su nombre, y puede registrar partidas.
 - Una cuenta invitada se puede convertir después en una cuenta registrada (usuario y contraseña) sin perder su integrante ni su historial. Si nunca lo hace, funciona igual en ese celular; si lo pierde, pierde esa identidad.
 - Solo los integrantes vinculados a una cuenta (con correo o invitada) pueden registrar partidas del grupo. Un integrante ya elegido por otra persona no se puede elegir de nuevo; el administrador podrá liberarlo.
-- Desde el menú de las tres rayas de la pantalla principal hay opciones separadas "Iniciar sesión" y "Registrarse" (sin sesión, en ese orden, después de "Crear grupo" y "Ver perfil") y "Cerrar sesión" (con sesión). Crear un grupo pide la cuenta si hace falta.
+- El menú de las tres rayas de la pantalla principal cambia según la sesión. Sin cuenta registrada (o con una invitada): "Registrarse", "Iniciar sesión" y "Ver perfil", en ese orden, y no aparece "Crear grupo" porque exige cuenta. Con la sesión iniciada: "Crear grupo", "Ver perfil" y "Cerrar sesión", en ese orden.
 - Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
 ### 3.2. Integrantes
@@ -72,8 +72,8 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - La pantalla inicial mostrará los grupos de la lista de pertenencia del dispositivo; al salir de un grupo, este deja de mostrarse.
 - La pantalla inicial permitirá iniciar una partida rápida, sin grupo ni integrantes.
 - La pantalla de un grupo ofrecerá la opción de salir del grupo.
-- Cada grupo se presenta como una fila (no como tarjeta), con el nombre primero y más grande. Debajo, en gris, "N integrantes · M partidas jugadas"; luego los avatares de los integrantes (hasta 4 y "+N") ordenados por posición en el ranking de puntos; y la última partida ("Última: ganaste 30 – 21 · hoy", o quién ganó si la persona no jugó; "Sin partidas todavía" si no hay).
-- A la derecha de la fila va la posición de la persona en el grupo: con un trofeo dorado, plateado o de bronce si es 1º, 2º o 3º, y solo el número ("5º") del cuarto lugar en adelante. Debajo, sus puntos ("105 Pts") en tamaño menor al nombre. Sin partidas no hay posición ni puntos.
+- Cada grupo se presenta como una fila de lado a lado (no como tarjeta redondeada) que empieza con una banda negra con letra crema: a la izquierda el nombre del grupo (lo más grande de la fila, con la nube de partidas sin enviar al lado) y a la derecha la posición de la persona. Debajo, sobre fondo crema: "N integrantes · M partidas jugadas"; los avatares de los 8 primeros del ranking de puntos, en orden y sin contador de "+N", con los puntos de la persona a la derecha ("105 Pts", en tamaño menor al nombre); y la última partida ("Última: ganaste 30 – 21 · hoy", o quién ganó si la persona no jugó; "Sin partidas todavía" si no hay).
+- La posición va en la banda negra: con un trofeo dorado, plateado o de bronce si es 1º, 2º o 3º, y solo el número ("5º") del cuarto lugar en adelante. Sin partidas no hay posición ni puntos.
 - Si el grupo tiene partidas sin enviar, la nube tachada con la cantidad aparece junto al nombre.
 - Al seleccionar un grupo, se accederá a su historial de partidas. Las estadísticas y los participantes se consultan con botones de icono del sector superior, que llevan a sus propias pantallas.
 - La pantalla de estadísticas del grupo permitirá alternar entre estadísticas grupales, individuales y enfrentamientos. El sector superior se separa de las pestañas por una línea horizontal, y la pestaña activa se distingue solo por la inversión de colores.
@@ -245,9 +245,9 @@ Las partidas rápidas no generan historial: se juegan de forma rápida y solo cu
 
 ### 5.1. Presentación
 
-- El historial se agrupa por día, con un título: "Hoy", "Ayer" y después la fecha corta ("18 oct", y con el año si es de otro año).
-- Cada partida muestra a cada equipo en su línea, con sus avatares, los nombres y su puntaje a la derecha; el equipo ganador va resaltado en negrita y el perdedor atenuado.
-- La barra del costado indica cómo le fue a la persona: llena si ganó, hueca si perdió, gris si no jugó.
+- El historial se agrupa por día, con un título en una banda negra con letra crema: "Hoy", "Ayer" y después la fecha corta ("18 oct", y con el año si es de otro año).
+- Cada partida muestra a cada equipo en su línea, con sus avatares, los nombres y su puntaje a la derecha dentro de un cuadro negro con número crema; el equipo ganador va resaltado (nombre en negrita y número en crema pleno) y el perdedor atenuado.
+- Una barra negra vertical al costado de cada partida.
 - Si la persona jugó, se muestra cuántos puntos sumó o restó en esa partida ("+12 Pts", "−8 Pts"). No se muestra si no jugó, si la partida fue cancelada o si el cambio fue de 0.
 
 ### 5.2. Navegar y buscar

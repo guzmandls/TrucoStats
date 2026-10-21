@@ -77,11 +77,32 @@ describe('GroupRow', () => {
     ).toBeInTheDocument()
   })
 
-  it('muestra hasta 4 avatares y cuántos quedan', () => {
+  it('muestra hasta 8 avatares, en el orden del ranking, y sin contador', () => {
+    const many = Array.from({ length: 12 }, (_, index) => ({
+      id: `x${index}`,
+      name: `Jugador ${index}`,
+    }))
+    render(
+      <MemoryRouter>
+        <GroupRow
+          group={{ ...group, members: many }}
+          overview={overview({ ranking: many, memberCount: 12 })}
+          pending={0}
+        />
+      </MemoryRouter>,
+    )
+
+    const avatars = screen.getAllByRole('img')
+    expect(avatars).toHaveLength(8)
+    expect(avatars[0]).toHaveAccessibleName('Jugador 0')
+    expect(avatars[7]).toHaveAccessibleName('Jugador 7')
+    expect(screen.queryByText(/^[+]/)).not.toBeInTheDocument()
+  })
+
+  it('muestra todos los avatares si son 8 o menos', () => {
     renderRow(overview())
 
-    expect(screen.getAllByRole('img')).toHaveLength(4)
-    expect(screen.getByText('+2')).toBeInTheDocument()
+    expect(screen.getAllByRole('img')).toHaveLength(6)
   })
 
   it('muestra la última partida', () => {
