@@ -234,7 +234,8 @@ Las partidas rápidas no generan historial: se juegan de forma rápida y solo cu
 ### 5.1. Navegar y buscar
 
 - El historial se recorre deslizando hacia abajo. Carga las partidas por tandas: al llegar al final de las cargadas, trae las siguientes automáticamente (scroll infinito), sin botones de paginación.
-- El encabezado del historial tendrá una lupa para buscar partidas por fecha, participantes, resultado u otros datos de la partida.
+- El menú del grupo (las tres rayas) tendrá la opción "Búsqueda", con una lupa, para buscar partidas por fecha (número o mes), participantes, resultado, modalidad u otros datos. Cada palabra escrita debe aparecer en la partida.
+- El aviso de partidas sin enviar (nube tachada con la cantidad) queda en el encabezado, a la izquierda de los puntos. El encabezado se mantiene despejado para que el nombre del grupo no se corte.
 - La búsqueda cubre todo el historial del grupo, no solo las partidas ya cargadas.
 
 Para cada partida se guardará:

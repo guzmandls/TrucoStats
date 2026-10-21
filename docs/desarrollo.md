@@ -683,3 +683,27 @@ Conceptos nuevos:
 - Fusionar (`merge`): en lugar de reemplazar todo, se actualiza lo que cambió y
   se conserva lo que solo existe en el celular (como el código de invitación).
 - Pedidos en paralelo (`Promise.all`): el grupo y sus partidas se piden a la vez.
+
+## Etapa 22 — Búsqueda y scroll infinito en el historial
+
+Hecho:
+
+- Opción "Búsqueda" (con lupa) en el menú de las tres rayas del grupo.
+  Así el encabezado queda despejado y el nombre del grupo no se corta. Al elegirla aparece un campo para buscar por jugador, fecha ("20/10" o
+  "octubre"), resultado ("30-21") o modalidad. Se pueden combinar palabras:
+  "juan 30" muestra las partidas de Juan con un 30. No distingue mayúsculas ni
+  tildes.
+- El historial muestra 20 partidas y carga 20 más al acercarse al final.
+- Probado con 45 partidas: abre con 20, al deslizar llega a 40, y el filtro
+  reduce la lista.
+
+Conceptos nuevos:
+
+- `IntersectionObserver`: avisa cuándo un elemento entra en pantalla. Se usa
+  un elemento invisible al final de la lista para saber que hay que cargar más
+  (scroll infinito), sin escuchar cada movimiento del scroll.
+- Normalizar texto (`normalize('NFD')`): separa las letras de sus tildes para
+  poder quitarlas y comparar sin importar acentos.
+- Buscar en el celular, no en el servidor: tras sincronizar, todas las partidas
+  del grupo ya están en el celular, así la búsqueda funciona también sin
+  conexión.

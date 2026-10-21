@@ -67,6 +67,7 @@
 
 .headerInfo {
   display: flex;
+  padding-left: var(--space-2);
   align-items: center;
   gap: var(--space-3);
 }
@@ -77,6 +78,11 @@
   gap: var(--space-1);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
+}
+
+.searchBar {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--hairline-width) solid var(--line-thin);
 }
 
 .headerPoints {
