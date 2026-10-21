@@ -62,7 +62,13 @@ describe('POST /api/grupos', () => {
     }
 
     expect(response.status).toBe(201)
-    expect(body.group).toEqual(validGroup)
+    expect(body.group).toEqual({
+      id: validGroup.id,
+      name: validGroup.name,
+      adminMemberIds: [validGroup.adminMemberId],
+      createdAt: validGroup.createdAt,
+      members: validGroup.members,
+    })
     expect(body.inviteCode).toMatch(/^[0-9a-f]{32}$/)
   })
 
@@ -167,7 +173,13 @@ describe('GET /api/grupos/:código', () => {
     }
 
     expect(response.status).toBe(200)
-    expect(body.group).toEqual(validGroup)
+    expect(body.group).toEqual({
+      id: validGroup.id,
+      name: validGroup.name,
+      adminMemberIds: [validGroup.adminMemberId],
+      createdAt: validGroup.createdAt,
+      members: validGroup.members,
+    })
     expect(body.inviteCode).toBe(created.inviteCode)
   })
 
