@@ -2,6 +2,7 @@ import { loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { fetchGroupByCode, fetchRemoteMatches } from './groupsApi'
 import { loadGroups, saveGroup } from './groupsStorage'
+import { retryPendingAvatar } from './avatarSync'
 import { syncPendingMatches } from './matchesSync'
 import type { Group, Member } from './types'
 
@@ -42,17 +43,28 @@ export async function pullGroup(groupId: string): Promise<boolean> {
 
   let remote: Group
   let remoteMe: string | null
-  let remoteMatches: Match[]
+  let remoteMatches: Match[] = []
+  // Si la foto propia no había llegado al servidor, se reintenta antes de traer
+  // el grupo (si no, lo que dice el servidor pisaría la foto nueva).
   try {
-    const [response, matches] = await Promise.all([
+    await retryPendingAvatar(local)
+    // El grupo y las partidas se piden por separado: aunque las partidas fallen
+    // (por ejemplo, si la cuenta todavía no está vinculada a un integrante), los
+    // nombres, las fotos y los integrantes se actualizan igual.
+    const [response, matches] = await Promise.allSettled([
       fetchGroupByCode(local.inviteCode),
       fetchRemoteMatches(local.inviteCode),
     ])
-    remote = response.group
-    remoteMe = response.myMemberId
-    remoteMatches = matches
+    if (response.status === 'rejected') {
+      // Sin conexión: se muestra lo que hay en el celular.
+      return false
+    }
+    remote = response.value.group
+    remoteMe = response.value.myMemberId
+    if (matches.status === 'fulfilled') {
+      remoteMatches = matches.value
+    }
   } catch {
-    // Sin conexión: se muestra lo que hay en el celular.
     return false
   }
   if (remote.id !== local.id) {

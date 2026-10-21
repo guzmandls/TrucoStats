@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  AWAY_LIMIT_MS,
   createTimer,
   elapsedSeconds,
   formatClock,
   isPaused,
   pauseTimer,
   resumeTimer,
+  settleTimer,
 } from './gameTimer'
 
 describe('gameTimer', () => {
@@ -58,5 +60,28 @@ describe('gameTimer', () => {
 
   it('formatea con horas cuando corresponde', () => {
     expect(formatClock(3661)).toBe('1:01:01')
+  })
+})
+
+describe('settleTimer (contador cerrado sin pausar)', () => {
+  it('si se volvió dentro del minuto, el cronómetro sigue como estaba', () => {
+    const running = createTimer(0)
+    const settled = settleTimer(running, 10_000, 10_000 + AWAY_LIMIT_MS)
+    expect(settled).toBe(running)
+  })
+
+  it('si pasó más de un minuto, queda pausado en el límite (no cuenta el resto)', () => {
+    const running = createTimer(0)
+    const settled = settleTimer(running, 100_000, 100_000 + 45 * 60_000)
+    expect(isPaused(settled)).toBe(true)
+    // 100 s jugados + 60 s de gracia, no 45 minutos más.
+    expect(elapsedSeconds(settled, 100_000 + 45 * 60_000)).toBe(160)
+  })
+
+  it('un cronómetro ya pausado no cambia, ni uno sin última vez conocida', () => {
+    const paused = pauseTimer(createTimer(0), 5_000)
+    expect(settleTimer(paused, 0, 10 * 60_000)).toBe(paused)
+    const running = createTimer(0)
+    expect(settleTimer(running, undefined, 10 * 60_000)).toBe(running)
   })
 })

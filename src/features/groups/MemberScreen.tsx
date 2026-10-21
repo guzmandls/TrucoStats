@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
+  Button,
+  Dialog,
   HeaderIconButton,
   PageHeader,
   Screen,
@@ -11,9 +13,9 @@ import {
 import { memberStats } from '../matches/groupStats'
 import { avatarColors } from './avatar'
 import { fileToAvatarDataUrl } from './imageFile'
-import { setRemoteAvatar } from './groupsApi'
 import { updateMemberAvatar } from './groupsStorage'
 import { MemberStatsFicha, MemberStatsRows } from './MemberStats'
+import { shareAvatar } from './avatarSync'
 import { isGroupAdmin } from './groupAdmin'
 import { PhotoDialog } from './PhotoDialog'
 import { useGroup } from './useGroup'
@@ -26,6 +28,7 @@ export function MemberScreen() {
   const { group, matches, setGroup } = useGroup(id)
   const [busy, setBusy] = useState(false)
   const [editingPhoto, setEditingPhoto] = useState(false)
+  const [photoMessage, setPhotoMessage] = useState<string | null>(null)
   const member = group?.members.find((item) => item.id === memberId) ?? null
   const memberPoints = useMemo(() => {
     if (!group || !matches || !member) {
@@ -79,7 +82,7 @@ export function MemberScreen() {
       const dataUrl = await fileToAvatarDataUrl(file)
       const updated = await updateMemberAvatar(group, member!.id, dataUrl)
       setGroup(updated)
-      shareAvatar(dataUrl)
+      await shareAvatar(updated, member!.id, dataUrl).then(setPhotoMessage)
     } finally {
       setBusy(false)
     }
@@ -91,17 +94,7 @@ export function MemberScreen() {
     }
     const updated = await updateMemberAvatar(group, member!.id, undefined)
     setGroup(updated)
-    shareAvatar(null)
-  }
-
-  // Aviso al servidor para que los demás celulares vean la foto. Si no hay
-  // conexión, el cambio queda solo en este celular.
-  function shareAvatar(avatar: string | null) {
-    if (group?.inviteCode) {
-      void setRemoteAvatar(group.inviteCode, member!.id, avatar).catch(
-        () => undefined,
-      )
-    }
+    setPhotoMessage(await shareAvatar(updated, member!.id, null))
   }
 
   return (
@@ -156,6 +149,11 @@ export function MemberScreen() {
           />
         </Section>
       </ScreenContent>
+      {photoMessage && (
+        <Dialog title={photoMessage} onClose={() => setPhotoMessage(null)}>
+          <Button onClick={() => setPhotoMessage(null)}>Entendido</Button>
+        </Dialog>
+      )}
       {editingPhoto && (
         <PhotoDialog
           hasPhoto={!!member.avatar}

@@ -92,6 +92,79 @@ describe('pullGroup', () => {
     expect((await loadGroups())[0].myMemberId).toBe('m1')
   })
 
+  it('trae los cambios del grupo (como una foto nueva) aunque las partidas no se puedan traer', async () => {
+    const withPhoto: Group = {
+      ...local,
+      members: [
+        local.members[0],
+        { ...local.members[1], avatar: 'data:image/jpeg;base64,AAA' },
+      ],
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async (input) =>
+        String(input).endsWith('/partidas')
+          ? json({ error: 'No eres integrante de este grupo' }, 403)
+          : json({ group: withPhoto, inviteCode: CODE, myMemberId: 'm1' }),
+      ),
+    )
+
+    expect(await pullGroup('g1')).toBe(true)
+
+    const [saved] = await loadGroups()
+    expect(saved.members[1].avatar).toBe('data:image/jpeg;base64,AAA')
+  })
+
+  it('reintenta enviar la foto propia que no había llegado, sin que el servidor la pise', async () => {
+    const mine = {
+      ...local,
+      members: [
+        { ...local.members[0], avatar: 'data:image/jpeg;base64,NUEVA' },
+        local.members[1],
+      ],
+    }
+    await saveGroup(mine)
+    localStorage.setItem('trucostats.pendingAvatar.g1', '1')
+    const calls: { method: string; url: string }[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async (input, init) => {
+        const url = String(input)
+        calls.push({ method: init?.method ?? 'GET', url })
+        if (init?.method === 'PATCH') {
+          return json({ member: {} })
+        }
+        return url.endsWith('/partidas')
+          ? json({ matches: [] })
+          : json({
+              group: {
+                ...local,
+                members: [
+                  {
+                    ...local.members[0],
+                    avatar: 'data:image/jpeg;base64,NUEVA',
+                  },
+                  local.members[1],
+                ],
+              },
+              inviteCode: CODE,
+              myMemberId: 'm1',
+            })
+      }),
+    )
+
+    await pullGroup('g1')
+
+    expect(calls[0]).toEqual({
+      method: 'PATCH',
+      url: `/api/grupos/${CODE}/integrantes/m1`,
+    })
+    expect(localStorage.getItem('trucostats.pendingAvatar.g1')).toBeNull()
+    expect((await loadGroups())[0].members[0].avatar).toBe(
+      'data:image/jpeg;base64,NUEVA',
+    )
+  })
+
   it('trae las partidas que registraron otros celulares', async () => {
     stubServer(local, [match('a', '2026-10-02T10:00:00.000Z')])
 

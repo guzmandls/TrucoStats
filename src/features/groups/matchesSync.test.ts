@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
-import { isPending, syncPendingMatches } from './matchesSync'
+import { getSyncProblem, isPending, syncPendingMatches } from './matchesSync'
 import type { Group } from './types'
 
 const CODE = 'abc123'
@@ -186,6 +186,38 @@ describe('syncPendingMatches', () => {
     const [stored] = await loadMatches()
     expect(isPending(stored)).toBe(false)
     expect(stored.canceled).toBeUndefined()
+  })
+
+  it('si el servidor rechaza por falta de vínculo (403), deja dicho por qué', async () => {
+    await saveMatch(match('a', '2026-10-02T10:00:00.000Z'))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () =>
+        json({ error: 'No eres integrante de este grupo' }, 403),
+      ),
+    )
+
+    await syncPendingMatches()
+
+    expect(getSyncProblem()).toMatch(/no está vinculada/)
+    expect((await loadMatches()).filter(isPending)).toHaveLength(1)
+  })
+
+  it('sin conexión también deja dicho el problema, y se borra cuando todo sale bien', async () => {
+    await saveMatch(match('a', '2026-10-02T10:00:00.000Z'))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new TypeError('sin red'))),
+    )
+    await syncPendingMatches()
+    expect(getSyncProblem()).toMatch(/Sin conexión/)
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => json({ match: {} }, 201)),
+    )
+    await syncPendingMatches()
+    expect(getSyncProblem()).toBeNull()
   })
 
   it('no reenvía las que ya llegaron', async () => {

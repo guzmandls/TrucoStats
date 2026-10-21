@@ -233,8 +233,9 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - Cada partida tendrá un timer que mide su duración.
 - El timer comienza al iniciar la partida y termina al confirmar la finalización.
 - El tiempo se mostrará en pantalla durante la partida.
-- La partida podrá pausarse; mientras esté pausada, el timer se detendrá y aparecerá un aviso "Partida pausada".
-- Mientras la partida esté pausada no se podrá sumar ni restar puntos, hasta reanudarla.
+- La partida podrá pausarse: pausar solo detiene el timer. No aparece ningún aviso ni se bloquea nada; se puede seguir usando el contador y navegar por la app.
+- Una partida pausada se reanuda con el botón del timer o al sumar puntos. Deshacer no la reanuda.
+- Si el contador se cierra (o la app pasa a segundo plano) sin pausar, la partida se pausa sola 60 segundos después de la última vez que estuvo abierto, para que no quede corriendo el tiempo mientras nadie juega. Al volver dentro de esos 60 segundos sigue corriendo normalmente.
 - El tiempo en pausa no contará para la duración.
 - Solamente el anotador podrá pausar y reanudar.
 - La duración se guarda junto con el resultado al finalizar la partida.
@@ -442,7 +443,9 @@ TrucoStats tendrá un funcionamiento offline-first.
 - Permitirá consultar el historial y las estadísticas disponibles en el dispositivo.
 - Los datos pendientes se sincronizarán cuando vuelva a existir conexión.
 - La sincronización se intentará al recuperar la conexión y al volver a abrir la aplicación. Mientras la pantalla de un grupo está abierta, además, se sincroniza cada 10 segundos y al volver a la app desde otra, para ver las partidas que registraron los demás.
-- Se mostrará claramente si existen partidas pendientes de sincronización.
+- Se mostrará claramente si existen partidas pendientes de sincronización. Si no se pueden enviar, la pantalla del grupo dice por qué (sin sesión, cuenta sin vincular a un integrante, servidor sin respuesta o sin conexión) y ofrece "Reintentar"; un fallo nunca pasa en silencio.
+- Los cambios del grupo (nombres, fotos, integrantes, apodos) se traen aunque las partidas no se puedan traer.
+- Si la foto propia no llega al servidor (sin conexión o sin vínculo), la app lo avisa, la conserva en el celular y reintenta enviarla en cada sincronización sin que lo que dice el servidor la pise.
 - No se dependerá exclusivamente de sincronización automática en segundo plano.
 
 Cada partida tendrá un único anotador responsable para evitar modificaciones simultáneas desde distintos dispositivos.

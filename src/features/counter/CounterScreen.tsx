@@ -114,22 +114,6 @@ export function CounterScreen() {
 
       <Counter counter={counter} drawingRef={drawingRef} />
 
-      {counter.paused && (
-        <div className={styles.pauseOverlay} role="status">
-          <div className={styles.pauseCard}>
-            <PauseIcon size={28} />
-            <p className={styles.pauseText}>Partida pausada</p>
-            <button
-              type="button"
-              className={styles.pauseResume}
-              onClick={counter.togglePause}
-            >
-              Reanudar
-            </button>
-          </div>
-        </div>
-      )}
-
       {counter.awaitingConfirmation && winner && (
         <ConfirmDialog
           title={`¿El equipo ganador es “${TEAM_LABELS[winner]}”?`}
@@ -145,10 +129,7 @@ export function CounterScreen() {
         />
       )}
 
-      <BottomBar
-        counter={counter}
-        locked={counter.awaitingConfirmation || counter.paused}
-      />
+      <BottomBar counter={counter} locked={counter.awaitingConfirmation} />
     </div>
   )
 }
