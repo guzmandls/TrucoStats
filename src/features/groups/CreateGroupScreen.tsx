@@ -83,6 +83,7 @@ export function CreateGroupScreen() {
       members,
       adminMemberId: adminId,
       createdAt: now,
+      myMemberId: adminId,
     }
     await saveGroup(group)
     addMembership(group.id)

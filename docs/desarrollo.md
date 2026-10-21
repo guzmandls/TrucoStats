@@ -588,3 +588,35 @@ Conceptos y herramientas nuevos:
   (WhatsApp, etc.); si no existe, queda el botón de copiar.
 - Fallar sin romper: lo que depende de la red se atrapa (`catch`) y se
   comunica con un mensaje claro, en lugar de dejar la app trabada.
+
+## Etapa 19 — Unirse a un grupo con el enlace (5b)
+
+Hecho:
+
+- Pantalla `/unirse/<código>`: trae el grupo del servidor y pregunta "¿Cuál de
+  los integrantes eres?". Al elegir uno aparece su nombre para cambiarlo por el
+  tuyo. Al confirmar, el grupo se guarda en el celular y se abre.
+- Ruta nueva en el servidor: `PATCH /api/grupos/<código>/integrantes/<id>`
+  cambia el nombre de un integrante (también en las partidas ya guardadas).
+- La app recuerda qué integrante es cada persona en cada grupo (`myMemberId`,
+  solo en el celular). Con eso el encabezado del grupo vuelve a mostrar tus
+  puntos; antes dependía de un dato que nunca se guardaba.
+- Casos cubiertos: enlace inexistente, sin conexión (con "Reintentar"), grupo
+  que ya estaba en el celular, nombre vacío y fallo al guardar el nombre.
+- Probado con dos "celulares" (dos perfiles de Chrome): uno crea el grupo, el
+  otro se une, se renombra y el servidor refleja el cambio.
+
+Conceptos y herramientas nuevos:
+
+- `PATCH`: método HTTP para modificar una parte de algo que ya existe (`POST`
+  crea, `GET` lee, `PATCH` cambia un campo).
+- Parámetro en la ruta del servidor: `/integrantes/<id>` indica a cuál se
+  refiere, igual que `:code` en las rutas de la app.
+- Identidad por celular: sin cuentas, el celular recuerda "yo soy este
+  integrante". Se guarda dentro del grupo local y nunca se envía al servidor.
+- Accesibilidad (`radiogroup` y `aria-label`): la lista de integrantes se marca
+  como grupo de opciones para que los lectores de pantalla la entiendan.
+- Dependencias de un efecto: al reintentar, cambiar un contador (`attempt`) hace
+  que el efecto vuelva a ejecutarse.
+- Probar con dos clientes: abrir dos perfiles de navegador es la forma más simple
+  de simular dos celulares distintos.

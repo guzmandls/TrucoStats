@@ -43,15 +43,13 @@ export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { group, matches, setGroup } = useGroup(id)
-  const userId =
-    typeof localStorage !== 'undefined'
-      ? localStorage.getItem('trucostats:profileId')
-      : null
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [pointsDelta, setPointsDelta] = useState<string | null>(null)
+  // Qué integrante es la persona de este celular (null si no se sabe).
+  const userId = group?.myMemberId ?? null
   const myPoints = useMemo(() => {
     if (!group || !matches || !userId) {
       return null

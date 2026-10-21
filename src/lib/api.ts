@@ -35,6 +35,10 @@ export async function apiRequest<T>(
   return (await response.json()) as T
 }
 
+export function patchJson<T>(path: string, body: unknown): Promise<T> {
+  return apiRequest<T>(path, { method: 'PATCH', body: JSON.stringify(body) })
+}
+
 export function postJson<T>(path: string, body: unknown): Promise<T> {
   return apiRequest<T>(path, { method: 'POST', body: JSON.stringify(body) })
 }

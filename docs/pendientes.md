@@ -32,6 +32,14 @@ No son requisitos nuevos: son notas para no olvidarlas.
 - El primer integrante se guarda en el servidor con el nombre "Administrador".
   Debe usar el nombre de quien crea el grupo cuando existan las cuentas.
 
+- Un integrante que entra por el enlace no es el administrador, pero `leaveGroup`
+  sigue suponiendo que este celular es el administrador. Al salir, transfiere la
+  administración en la copia local aunque no corresponda. Revisar con las cuentas.
+- Los cambios de nombre se envían al servidor, pero los otros celulares todavía no
+  los reciben: se verán cuando exista la sincronización de grupos (5d).
+- El nombre se puede cambiar sin controles: cualquiera con el enlace puede
+  renombrar a cualquier integrante (ver requisitos §3.2).
+
 ## Modelo de datos
 
 - Al salir del grupo siendo el único integrante, se borra el grupo pero **no** sus

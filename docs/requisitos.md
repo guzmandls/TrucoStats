@@ -37,7 +37,9 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - La foto de perfil se podrá elegir, cambiar o quitar desde la ficha del integrante dentro del grupo.
 - Un integrante sin cuenta vinculada es igualmente válido: acumula partidas y estadísticas dentro de su grupo.
 - Un integrante sin cuenta no tiene estadísticas individuales globales, porque no tiene una identidad por fuera del grupo.
-- Al ingresar a un grupo, un usuario elegirá a cuál de los integrantes existentes corresponde.
+- Al ingresar a un grupo con el enlace de invitación, se pregunta "¿Cuál de los integrantes eres?" y el usuario elige a cuál de los integrantes existentes corresponde.
+- Al elegir, el usuario puede cambiar el nombre del integrante por el suyo; el cambio lo ven todos los integrantes del grupo y también se actualiza en las partidas ya guardadas.
+- Mientras no existan las cuentas, cualquier persona con el enlace del grupo puede cambiar el nombre de un integrante; después, ese permiso quedará limitado al administrador y al propio integrante.
 - El vínculo entre cuenta e integrante es auto-declarado y no verificado; el administrador podrá corregirlo.
 - Desvincular una cuenta no modifica las partidas ya registradas; solo afecta a los vínculos futuros.
 
