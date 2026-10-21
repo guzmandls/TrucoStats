@@ -544,12 +544,6 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 - Varias fotos de integrantes juntas usan `AvatarStack`.
 - Dentro de un grupo no se repite el color por defecto de los avatares.
 
----
-
-**Estado:** Requisitos funcionales en elaboración.
-
-**Objetivo de desarrollo:** construir una aplicación funcional mientras se adquiere experiencia con TypeScript, React, SQL, Git y desarrollo web.
-
 ### 12.11. Bandas, bloques y tarjetas
 
 - El contraste entre zonas oscuras (negro con letra crema) y claras es parte de la identidad: cada pantalla tiene al menos una banda o bloque negro; no se diseña todo en crema y gris.
@@ -560,3 +554,9 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 - En el podio, todos los escalones son negros y se apoyan en la base de su tarjeta (no flotan).
 - La posición en un ranking se muestra en un cuadro negro con el número en crema.
 - El bloque de puntajes (dos números separados por una línea crema, en un bloque negro) es el mismo en el historial y en los récords de partidas.
+
+---
+
+**Estado:** Requisitos funcionales en elaboración.
+
+**Objetivo de desarrollo:** construir una aplicación funcional mientras se adquiere experiencia con TypeScript, React, SQL, Git y desarrollo web.
