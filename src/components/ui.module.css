@@ -51,6 +51,33 @@
   box-shadow: var(--shadow-raised);
 }
 
+.dialogHeadRow {
+  display: flex;
+  align-items: stretch;
+  background: var(--ink);
+}
+
+.dialogHeadRow > :first-child {
+  flex: 1;
+}
+
+.dialogClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: var(--ink);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.dialogClose:focus-visible {
+  outline: var(--border-width) solid var(--paper);
+  outline-offset: calc(var(--border-width) * -1);
+}
+
 .confirmActions {
   display: flex;
   flex-direction: column;

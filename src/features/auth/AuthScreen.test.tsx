@@ -74,10 +74,10 @@ describe('AuthScreen (registrarse)', () => {
       screen.getByRole('button', { name: '¿Para qué sirve el correo?' }),
     )
     expect(screen.getByRole('dialog')).toHaveTextContent(
-      'El correo sirve para recuperar tu contraseña si la olvidas.',
+      'Sirve para recuperar tu contraseña',
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Entendido' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 

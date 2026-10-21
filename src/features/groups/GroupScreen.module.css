@@ -81,8 +81,35 @@
 }
 
 .searchBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border-bottom: var(--hairline-width) solid var(--line-thin);
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.searchClose {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.searchClose:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: -2px;
 }
 
 .headerPoints {

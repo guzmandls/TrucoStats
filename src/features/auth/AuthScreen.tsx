@@ -154,11 +154,10 @@ export function AuthScreen({ mode }: AuthScreenProps) {
       </form>
       {emailHelp && (
         <Dialog
-          title="El correo sirve para recuperar tu contraseña si la olvidas."
+          title="Sirve para recuperar tu contraseña"
           onClose={() => setEmailHelp(false)}
-        >
-          <Button onClick={() => setEmailHelp(false)}>Entendido</Button>
-        </Dialog>
+          closeButton
+        />
       )}
     </Screen>
   )

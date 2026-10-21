@@ -790,6 +790,9 @@ Conceptos nuevos:
 - `localStorage` para la sesión y `useSyncExternalStore`: el hook `useSession`
   se suscribe a los cambios de la sesión, así el menú se actualiza solo al
   iniciar o cerrar sesión.
+- Diálogos de mensaje: `Dialog` acepta `closeButton` para mostrar una X arriba a
+  la derecha en lugar de botones (la ayuda del correo). La búsqueda del historial
+  también tiene su X a la derecha del campo.
 - Encabezado `Authorization: Bearer <token>` agregado en un único lugar
   (`apiRequest`), para que ninguna llamada se olvide de él.
 - Redirigir con "a dónde volver": `navigate('/registrarse', { state: { from } })`.

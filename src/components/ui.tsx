@@ -5,7 +5,7 @@ import type {
   ReactNode,
 } from 'react'
 import { Link, type LinkProps } from 'react-router-dom'
-import { AvatarSilhouette, MenuIcon } from './Icons'
+import { AvatarSilhouette, CloseIcon, MenuIcon } from './Icons'
 import styles from './ui.module.css'
 
 function cx(...values: Array<string | false | undefined>): string {
@@ -630,11 +630,19 @@ export function ScreenFooter({ children }: ScreenFooterProps) {
 interface DialogProps {
   title: string
   onClose: () => void
-  children: ReactNode
+  // Muestra una X arriba a la derecha para cerrarlo; sirve para mensajes que
+  // no necesitan botones.
+  closeButton?: boolean
+  children?: ReactNode
 }
 
 // Diálogo modal superpuesto: título negro y contenido. Escape lo cierra.
-export function Dialog({ title, onClose, children }: DialogProps) {
+export function Dialog({
+  title,
+  onClose,
+  closeButton = false,
+  children,
+}: DialogProps) {
   const titleId = useId()
 
   useEffect(() => {
@@ -655,8 +663,22 @@ export function Dialog({ title, onClose, children }: DialogProps) {
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <PanelHeader id={titleId}>{title}</PanelHeader>
-        <div className={styles.confirmActions}>{children}</div>
+        {closeButton ? (
+          <div className={styles.dialogHeadRow}>
+            <PanelHeader id={titleId}>{title}</PanelHeader>
+            <button
+              type="button"
+              className={styles.dialogClose}
+              aria-label="Cerrar"
+              onClick={onClose}
+            >
+              <CloseIcon size={20} />
+            </button>
+          </div>
+        ) : (
+          <PanelHeader id={titleId}>{title}</PanelHeader>
+        )}
+        {children && <div className={styles.confirmActions}>{children}</div>}
       </div>
     </div>
   )
