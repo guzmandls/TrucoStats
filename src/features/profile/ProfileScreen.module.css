@@ -3,3 +3,9 @@
   align-items: center;
   gap: var(--space-4);
 }
+
+/* Tu foto, arriba y centrada; al tocarla se edita. */
+.photo {
+  display: flex;
+  justify-content: center;
+}

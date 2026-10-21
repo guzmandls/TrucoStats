@@ -164,7 +164,7 @@ export function ParticipantsScreen() {
           ]
         : []),
       {
-        label: 'Dar de baja',
+        label: 'Eliminar del grupo',
         onClick: () => setPending({ kind: 'remove', member }),
       },
     ]
@@ -231,8 +231,8 @@ export function ParticipantsScreen() {
       </ScreenContent>
       {pending?.kind === 'remove' && (
         <ConfirmDialog
-          title={`¿Dar de baja a ${pending.member.name}? Dejará de aparecer en el grupo, pero sus partidas se conservan.`}
-          confirmLabel="Dar de baja"
+          title={`¿Eliminar a ${pending.member.name} del grupo? Dejará de aparecer, pero sus partidas se conservan.`}
+          confirmLabel="Eliminar"
           onConfirm={() =>
             void run(() => removeRemoteMember(inviteCode!, pending.member.id))
           }

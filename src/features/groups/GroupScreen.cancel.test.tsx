@@ -13,6 +13,7 @@ import type { Match } from '../matches/types'
 import { GroupScreen } from './GroupScreen'
 import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
 import { clearMembership } from './membership'
+import { START_POINTS } from '../matches/points'
 import type { Group } from './types'
 
 const CODE = 'abc123'
@@ -343,7 +344,8 @@ describe('cancelar y restaurar partidas', () => {
     renderGroup()
 
     await screen.findByTestId('partida')
-    expect(screen.getByText('0 Pts')).toBeInTheDocument()
+    // La partida cancelada no cuenta: quedan los puntos de inicio.
+    expect(screen.getByText(`${START_POINTS} Pts`)).toBeInTheDocument()
   })
 
   it('restaura una partida cancelada', async () => {

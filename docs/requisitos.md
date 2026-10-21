@@ -44,7 +44,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Cada grupo tendrá una lista de integrantes.
 - Cada integrante tendrá un nombre y, opcionalmente, una cuenta de usuario vinculada.
 - Cada integrante podrá tener una foto de perfil. Si no la tiene, se mostrará una foto por defecto (una silueta sobre un fondo de color derivado del integrante, distinto dentro del grupo).
-- La foto de perfil se podrá elegir, cambiar o quitar desde la ficha del integrante dentro del grupo.
+- La foto de perfil se edita tocando la foto: en la ficha del integrante (la edita él mismo o un administrador) y en el perfil propio (la cambia en todos los grupos donde se sabe quién es la persona). Al tocarla se abre una ventana "Editar foto" con "Agregar foto" o "Cambiar foto" y, si ya hay una, "Quitar foto". Una pequeña insignia con un lápiz sobre la foto avisa que se puede editar.
 - Un integrante sin cuenta vinculada es igualmente válido: acumula partidas y estadísticas dentro de su grupo.
 - Un integrante sin cuenta no tiene estadísticas individuales globales, porque no tiene una identidad por fuera del grupo.
 - Al ingresar a un grupo con el enlace de invitación, se pregunta "¿Cuál de los integrantes eres?" y el usuario elige a cuál de los integrantes existentes corresponde.
@@ -68,7 +68,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Partida en vivo: cuando un integrante cuenta una partida de grupo con conexión y sesión, el contador publica automáticamente cómo va (equipos, puntos, objetivo, tiempo y si está pausada) cada vez que cambia y cada 20 segundos. Los demás integrantes del grupo ven en la pantalla del grupo, arriba del historial, una tarjeta "En vivo" por partida con los equipos y el marcador; al tocarla se abre una pantalla de solo lectura con los mismos puntos y el mismo dibujo que ve quien cuenta, el cronómetro y una barra inferior que dice si se mira en vivo, si está pausada o quién ganó. La pantalla se actualiza sola cada 3 segundos. Solo los integrantes del grupo pueden mirarla; no hay enlaces ni se comparte la partida rápida. Al salir del contador o terminar la partida deja de mostrarse (y si nadie la actualiza durante 5 minutos, se ignora). Puede haber varias partidas en vivo a la vez en el mismo grupo (cada celular que cuenta una partida tiene la suya, con su propio identificador): la pantalla del grupo muestra una tarjeta "En vivo" por cada una, salvo la que cuenta la propia persona. Hasta 20 a la vez por grupo.
 - En Participantes, un escudo de contorno con una tilde adentro, junto al nombre, marca a los administradores.
 - Cada integrante puede cambiar su propio nombre desde el menú "⋯" de su tarjeta en Participantes ("Cambiar nombre"); en ese menú cada integrante ve solo las opciones de su propia tarjeta ("Cambiar nombre" y "Editar apodos"), y los administradores las de todas. Un administrador puede cambiar el nombre de un integrante que todavía nadie eligió; el de quien ya eligió su lugar solo lo cambia esa persona. El nombre se actualiza también en las partidas ya guardadas. Necesita conexión.
-- Dar de baja a un integrante con partidas jugadas lo ocultará de la lista sin borrar sus partidas ni sus estadísticas.
+- Eliminar a un integrante del grupo (opción "Eliminar del grupo" del menú "⋯" de su tarjeta, con confirmación) lo oculta de la lista sin borrar sus partidas ni sus estadísticas.
 - El administrador tendrá acceso a las funciones de administración y podrá cancelar y restaurar partidas del grupo.
 - Si el grupo se queda sin administradores (porque el último se fue, fue dado de baja o liberado), el rol pasa automáticamente al integrante con cuenta más antiguo; si ninguno tiene cuenta, al integrante más antiguo.
 - Mientras no exista el sistema de cuentas, el dispositivo tendrá una lista local de pertenencia: los grupos que aparecen en la pantalla inicial.
@@ -355,16 +355,35 @@ Se presenta como una grilla simétrica: el eje de filas muestra los nombres y el
 
 ### 6.4. Sistema de puntos (Pts)
 
-Cada integrante acumula puntos (Pts) dentro de cada grupo, según los resultados de las partidas de grupo. Los puntos se calculan a partir de las partidas ya guardadas, procesándolas en orden cronológico (del más antigua al más reciente), porque la ganancia y la pérdida de cada partida dependen del puntaje acumulado en ese momento.
+Cada integrante acumula puntos (Pts) dentro de cada grupo, según los resultados de las partidas de grupo. Es una variante simple del sistema Elo: cada partida es un **intercambio** de puntos entre los dos equipos, y lo que se mueve depende de qué tan esperado era el resultado. Los puntos se calculan a partir de las partidas ya guardadas, procesándolas en orden cronológico (de la más antigua a la más reciente). Los Pts solo se calculan para partidas de grupo, porque las partidas rápidas no tienen integrantes asociados, y los jugadores invitados no suman ni restan.
 
-- Una partida vale, como base, el objetivo de la partida (a 40 puntos, 40; a 30 puntos, 30; a 20 puntos, 20).
-- La diferencia de puntos de la partida ajusta el movimiento: golear (por ejemplo 40 a 0) mueve el máximo y ganar ajustado (por ejemplo 40 a 39) mueve menos. El factor va de 0,75 (partida ajustada) a 1,0 (goleada).
-- La diferencia de puntaje acumulado entre los dos equipos (promedio de cada equipo) ajusta el movimiento: si el ganador tiene muchos más puntos que el perdedor, gana menos puntos (y, simétricamente, el perdedor resta menos); si el ganador tiene menos puntos, gana más. Este ajuste va de 0,6 a 1,4.
-- Ayuda por puntaje bajo: cuanto menos puntos tiene un integrante, más fácil le resulta sumar. En 0 puntos sus victorias valen x1,8 y a partir de 200 puntos valen x1, disminuyendo gradualmente en el medio.
-- Las derrotas son menos negativas que las victorias: un integrante con poco puntaje resta poco (x0,25 en 0 puntos), subiendo gradualmente (más rápido al principio) hasta x1 a partir de 200 puntos.
-- Ningún integrante puede quedar con puntaje negativo: el total nunca baja de 0.
+**Constantes**
 
-Los Pts solo se calculan para partidas de grupo, porque las partidas rápidas no tienen integrantes asociados.
+| Nombre | Valor | Qué es |
+|---|---|---|
+| Puntos de inicio | 1200 | Con lo que empieza todo integrante. Es el punto de partida del promedio del grupo. |
+| K | 50 | Lo máximo que se mueve en una partida a 30 puntos con un resultado totalmente inesperado. |
+| Escala | 1000 | Qué tan ancha es la curva de "resultado esperado". |
+| Parte mínima | 0,25 | Una victoria nunca mueve menos de esta parte del máximo. |
+| Bonus de constancia | 3 | Puntos que suma cada integrante por jugar una partida, gane o pierda. |
+
+**Cómo se calcula una partida**
+
+1. Puntos de cada equipo: el promedio de los puntos de sus integrantes (solo integrantes del grupo).
+2. Resultado esperado del ganador: `E = 1 / (1 + 10^((puntos del perdedor − puntos del ganador) / 1000))`. Con los mismos puntos es 50%; con 200 puntos de ventaja, 61%; con 400, 72%; con 1000, 91%.
+3. Sorpresa: `1 − E`, pero nunca menos de 0,25. Cuanto más inesperada la victoria, más se mueve.
+4. Factor de objetivo: `objetivo / 30`, entre 0,5 y 1,5 (una partida a 40 mueve 1,33 veces; a 15 o menos, la mitad).
+5. Factor de diferencia: de 0,75 (ganar muy ajustado) a 1,25 (golear por todo el objetivo): `0,75 + 0,5 × diferencia / objetivo`.
+6. Puntos que cambian de manos: `T = redondear(K × factor de objetivo × factor de diferencia × sorpresa)`.
+7. Cada integrante del equipo ganador suma `T` y cada integrante del perdedor resta `T`. Además, todos los que jugaron suman el bonus de constancia (+3). Nadie baja de 0.
+
+**Qué se espera de este sistema**
+
+- Es un intercambio: lo que gana un equipo lo pierde el otro (más el bonus de constancia). Por eso el promedio del grupo se mantiene cerca de los 1200 y solo sube de a poco por la constancia (3 puntos por cada partida que juega cada integrante).
+- La diferencia entre dos integrantes tiende a un valor de equilibrio que depende de cuánto más gana uno que otro: con 60% de victorias de uno contra otro la brecha ronda los 180 puntos; con 70%, unos 370; con 80%, unos 600. Como en el truco influye mucho la suerte, la escala es ancha y los resultados no son casi seguros.
+- Al que tiene más puntos le sigue convendo ganar: una victoria nunca vale menos de la parte mínima (entre 9 y 16 puntos en una partida a 30, según la diferencia) más el bonus, así que seguir jugando siempre suma. Para mantenerse arriba hace falta ganar más de lo que se espera de su nivel.
+- Todos empiezan en 1200: quien se suma tarde está abajo del promedio de un grupo con historia, pero sube rápido si gana, porque las victorias contra quienes tienen más puntos mueven más.
+- Los puntos se recalculan siempre desde las partidas: si se cancela o se restaura una partida, o se corrige un apodo, todo se recalcula.
 
 ### 6.5. Perfil personal
 

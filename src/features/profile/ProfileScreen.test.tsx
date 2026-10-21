@@ -1,5 +1,11 @@
 import 'fake-indexeddb/auto'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
@@ -108,5 +114,61 @@ describe('ProfileScreen', () => {
     renderProfile()
     fireEvent.click(await screen.findByRole('button', { name: 'Volver' }))
     expect(await screen.findByText('inicio')).toBeInTheDocument()
+  })
+})
+
+describe('foto del perfil', () => {
+  beforeEach(async () => {
+    for (const existing of await loadMatches()) {
+      await deleteMatch(existing.id)
+    }
+    for (const existing of await loadGroups()) {
+      await deleteGroup(existing.id)
+    }
+  })
+
+  it('sin grupos donde se sepa quién eres no hay foto para editar', async () => {
+    await saveGroup({
+      ...group,
+      inviteCode: undefined,
+      myMemberId: undefined,
+      adminMemberIds: [],
+    })
+    renderProfile()
+
+    await screen.findByText('Todavía no jugaste ninguna partida')
+    expect(screen.queryByRole('button', { name: 'Editar foto' })).toBeNull()
+  })
+
+  it('al tocar tu foto se edita y se quita en todos tus grupos', async () => {
+    await saveGroup({
+      ...group,
+      myMemberId: 'm1',
+      members: [
+        { id: 'm1', name: 'Juan', avatar: 'data:image/jpeg;base64,AAA' },
+      ],
+    })
+    await saveGroup({
+      ...group,
+      id: 'g2',
+      name: 'Otros',
+      myMemberId: 'm1',
+      members: [
+        { id: 'm1', name: 'Juan', avatar: 'data:image/jpeg;base64,AAA' },
+      ],
+    })
+    renderProfile()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar foto' }))
+    const dialog = await screen.findByRole('dialog')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Quitar foto' }))
+
+    await waitFor(async () => {
+      const groups = await loadGroups()
+      expect(groups.map((item) => item.members[0].avatar)).toEqual([
+        undefined,
+        undefined,
+      ])
+    })
   })
 })

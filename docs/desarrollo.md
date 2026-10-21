@@ -1181,3 +1181,28 @@ Hecho: con sesión iniciada, la primera línea del menú (el usuario o "Invitado
 a ser un enlace en letra crema que abre el perfil, y se quita la opción "Ver perfil".
 Sin sesión se mantiene "Ver perfil". El componente `HeaderMenu` recibió `headingTo`
 para que esa primera línea pueda ser un enlace.
+
+## Etapa 42 — Puntos tipo Elo, foto por toque y "Eliminar del grupo"
+
+Hecho:
+
+- **Nuevo sistema de puntos** (`src/features/matches/points.ts`; reglas y constantes en
+  requisitos §6.4): intercambio de puntos entre equipos según el resultado esperado
+  (como el Elo), empezando todos en 1200, con un bonus de constancia de +3 por partida
+  jugada, una parte mínima para que ganar siempre sume algo y una escala ancha porque el
+  truco depende mucho de la suerte. Reemplaza al sistema anterior, cuyos puntos subían
+  sin límite y no convergían a nada.
+- **Foto:** el botón "Elige foto" de la ficha se quitó. Ahora se toca la foto (con una
+  insignia de lápiz) y se abre "Editar foto". El perfil propio también tiene foto
+  editable, que se aplica en todos los grupos donde se sabe quién eres.
+- "Dar de baja" pasa a llamarse "Eliminar del grupo".
+
+Conceptos nuevos:
+
+- **Elo:** cada jugador tiene un puntaje y, antes de cada partida, se calcula la
+  probabilidad esperada de ganar según la diferencia de puntajes; lo que se mueve
+  depende de qué tan sorprendente fue el resultado.
+- **Suma cero y ancla:** si lo que gana uno lo pierde otro, el promedio no se infla; el
+  único aporte "de la nada" es el bonus de constancia, que es chico y se conoce.
+- **Simular antes de cambiar:** antes de decidir los números se simularon miles de
+  partidas con el código real para ver a dónde convergen los puntos.

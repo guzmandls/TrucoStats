@@ -9,6 +9,7 @@ import type { MemberStats } from '../matches/groupStats'
 import type { Participant } from '../matches/types'
 import { formatDuration } from '../matches/stats'
 import { winRateColor } from '../matches/winRateColor'
+import { EditableAvatar } from './EditableAvatar'
 import type { Member } from './types'
 import styles from './MemberStats.module.css'
 
@@ -47,10 +48,13 @@ export function MemberStatsFicha({
   member,
   color,
   stats,
+  onEditPhoto,
 }: {
   member: Member
   color: string
   stats: MemberStats
+  // Si se pasa, tocar la foto abre la edición.
+  onEditPhoto?: () => void
 }) {
   const rate = stats.winRate
   const rateColor = rate === null ? 'var(--line-strong)' : winRateColor(rate)
@@ -59,12 +63,22 @@ export function MemberStatsFicha({
   return (
     <div className={styles.ficha}>
       <div className={styles.fichaTop}>
-        <Avatar
-          name={member.name}
-          color={color}
-          src={member.avatar}
-          size={72}
-        />
+        {onEditPhoto ? (
+          <EditableAvatar
+            name={member.name}
+            color={color}
+            src={member.avatar}
+            size={72}
+            onEdit={onEditPhoto}
+          />
+        ) : (
+          <Avatar
+            name={member.name}
+            color={color}
+            src={member.avatar}
+            size={72}
+          />
+        )}
         <WinRateRing percent={rate ?? 0} color={rateColor} size={72} />
       </div>
       <Figures>

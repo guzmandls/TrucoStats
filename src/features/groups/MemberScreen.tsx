@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
-  Button,
   HeaderIconButton,
   PageHeader,
   Screen,
@@ -15,6 +14,8 @@ import { fileToAvatarDataUrl } from './imageFile'
 import { setRemoteAvatar } from './groupsApi'
 import { updateMemberAvatar } from './groupsStorage'
 import { MemberStatsFicha, MemberStatsRows } from './MemberStats'
+import { isGroupAdmin } from './groupAdmin'
+import { PhotoDialog } from './PhotoDialog'
 import { useGroup } from './useGroup'
 import { computePoints } from '../matches/points'
 import styles from './MemberScreen.module.css'
@@ -24,7 +25,7 @@ export function MemberScreen() {
   const navigate = useNavigate()
   const { group, matches, setGroup } = useGroup(id)
   const [busy, setBusy] = useState(false)
-  const fileRef = useRef<HTMLInputElement>(null)
+  const [editingPhoto, setEditingPhoto] = useState(false)
   const member = group?.members.find((item) => item.id === memberId) ?? null
   const memberPoints = useMemo(() => {
     if (!group || !matches || !member) {
@@ -62,6 +63,10 @@ export function MemberScreen() {
     )
   }
 
+  // Cada uno cambia su foto y los administradores, la de cualquiera (el servidor
+  // lo comprueba). En un grupo que todavía está solo en este celular, cualquiera.
+  const canEditPhoto =
+    !group.inviteCode || member.id === group.myMemberId || isGroupAdmin(group)
   const stats = memberStats(member, matches)
   const colors = avatarColors(group.members.map((item) => item.id))
 
@@ -122,39 +127,8 @@ export function MemberScreen() {
           member={member}
           color={colors[member.id]}
           stats={stats}
+          onEditPhoto={canEditPhoto ? () => setEditingPhoto(true) : undefined}
         />
-
-        <Section title="Foto">
-          <div className={styles.photoActions}>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className={styles.fileInput}
-              aria-label="Elige foto"
-              onChange={(event) => {
-                void handleFile(event.target.files?.[0])
-                event.target.value = ''
-              }}
-            />
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => fileRef.current?.click()}
-            >
-              {member.avatar ? 'Cambiar foto' : 'Elige foto'}
-            </Button>
-            {member.avatar && (
-              <Button
-                variant="secondary"
-                disabled={busy}
-                onClick={handleRemove}
-              >
-                Quitar foto
-              </Button>
-            )}
-          </div>
-        </Section>
 
         {(member.aliases ?? []).length > 0 && (
           <Section title="Apodos">
@@ -182,6 +156,19 @@ export function MemberScreen() {
           />
         </Section>
       </ScreenContent>
+      {editingPhoto && (
+        <PhotoDialog
+          hasPhoto={!!member.avatar}
+          busy={busy}
+          onFile={(file) => {
+            void handleFile(file).then(() => setEditingPhoto(false))
+          }}
+          onRemove={() => {
+            void handleRemove().then(() => setEditingPhoto(false))
+          }}
+          onClose={() => setEditingPhoto(false)}
+        />
+      )}
     </Screen>
   )
 }

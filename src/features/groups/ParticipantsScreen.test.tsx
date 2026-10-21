@@ -1,5 +1,11 @@
 import 'fake-indexeddb/auto'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
@@ -175,7 +181,9 @@ describe('ParticipantsScreen (administración)', () => {
     expect(
       screen.getByRole('menuitem', { name: 'Editar apodos' }),
     ).toBeInTheDocument()
-    expect(screen.queryByRole('menuitem', { name: 'Dar de baja' })).toBeNull()
+    expect(
+      screen.queryByRole('menuitem', { name: 'Eliminar del grupo' }),
+    ).toBeNull()
   })
 
   it('el administrador cambia el nombre de un integrante que nadie eligió', async () => {
@@ -256,7 +264,7 @@ describe('ParticipantsScreen (administración)', () => {
     )
   })
 
-  it('pide confirmación antes de dar de baja a un integrante', async () => {
+  it('pide confirmación antes de eliminar a un integrante del grupo', async () => {
     await saveGroup(adminGroup)
     renderParticipants()
 
@@ -264,10 +272,10 @@ describe('ParticipantsScreen (administración)', () => {
       await screen.findByRole('button', { name: 'Opciones de Luis' }),
     )
     fireEvent.click(
-      await screen.findByRole('menuitem', { name: 'Dar de baja' }),
+      await screen.findByRole('menuitem', { name: 'Eliminar del grupo' }),
     )
     expect(calls.some((call) => call.method === 'DELETE')).toBe(false)
-    fireEvent.click(await screen.findByRole('button', { name: 'Dar de baja' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Eliminar' }))
 
     await waitFor(() =>
       expect(calls).toContainEqual({
@@ -342,11 +350,54 @@ describe('MemberScreen', () => {
     expect(screen.queryByText('Sin apodos')).toBeNull()
   })
 
-  it('permite elegir una foto aunque todavía no haya jugado', async () => {
+  it('al tocar la foto se abre la edición, también si todavía no jugó', async () => {
     renderMember()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar foto' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toHaveTextContent('Editar foto')
     expect(
-      await screen.findByRole('button', { name: 'Elige foto' }),
+      within(dialog).getByRole('button', { name: 'Agregar foto' }),
     ).toBeInTheDocument()
-    expect(await screen.findByText('Detalle')).toBeInTheDocument()
+    // Sin foto no hay nada que quitar.
+    expect(
+      within(dialog).queryByRole('button', { name: 'Quitar foto' }),
+    ).toBeNull()
+    // Ya no existe el botón "Elige foto" ocupando lugar en la pantalla.
+    expect(screen.queryByText('Elige foto')).toBeNull()
+  })
+
+  it('con foto ofrece cambiarla o quitarla', async () => {
+    await deleteGroup(group.id)
+    await saveGroup({
+      ...group,
+      members: [
+        { id: 'm1', name: 'Juan', avatar: 'data:image/jpeg;base64,AAA' },
+        ...group.members.slice(1),
+      ],
+    })
+    renderMember()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Editar foto' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByRole('button', { name: 'Cambiar foto' }),
+    ).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Quitar foto' }))
+    await waitFor(async () => {
+      const [stored] = await loadGroups()
+      expect(stored.members[0].avatar).toBeUndefined()
+    })
+  })
+
+  it('en un grupo del servidor solo edita la foto quien es ese integrante o un administrador', async () => {
+    await deleteGroup(group.id)
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+    renderMember()
+
+    await screen.findByText('Detalle')
+    expect(screen.queryByRole('button', { name: 'Editar foto' })).toBeNull()
   })
 })
