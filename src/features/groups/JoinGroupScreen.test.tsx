@@ -368,14 +368,23 @@ describe('JoinGroupScreen', () => {
     expect(loadMembership()).toContain('g1')
   })
 
-  it('abre el grupo directamente si ya está en este celular', async () => {
+  it('aunque el grupo esté guardado en el celular, sin sesión pide una cuenta', async () => {
+    await saveGroup({ ...remoteGroup, inviteCode: CODE, myMemberId: 'm1' })
+    clearSession()
+    stubServer(serverWithGroup)
+    renderJoin()
+
+    expect(await screen.findByText('Necesitas una cuenta')).toBeInTheDocument()
+  })
+
+  it('aunque el grupo esté guardado, con sesión sin vínculo pide elegir integrante', async () => {
     await saveGroup({ ...remoteGroup, inviteCode: CODE, myMemberId: 'm1' })
     stubServer(serverWithGroup)
     renderJoin()
 
-    await waitFor(() =>
-      expect(screen.getByTestId('location')).toHaveTextContent('/grupo/g1'),
-    )
+    expect(
+      await screen.findByRole('radio', { name: 'Pedro' }),
+    ).toBeInTheDocument()
   })
 
   it('avisa si el código no corresponde a ningún grupo', async () => {
