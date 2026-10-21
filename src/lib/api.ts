@@ -1,7 +1,7 @@
 // Cliente de la API del backend (Worker). Toda llamada puede fallar si no hay
 // conexión: quien la usa decide qué hacer en ese caso.
 
-import { getToken } from './session'
+import { getToken, markSessionExpired } from './session'
 
 const TIMEOUT_MS = 8000
 
@@ -31,6 +31,16 @@ export async function apiRequest<T>(
     },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   })
+  if (
+    !response.ok &&
+    response.status === 401 &&
+    token &&
+    !path.startsWith('/api/sesion') &&
+    !path.startsWith('/api/registro')
+  ) {
+    // Con un token guardado, un 401 significa que la sesión venció o ya no vale.
+    markSessionExpired()
+  }
   if (!response.ok) {
     let message = `Error ${response.status}`
     try {

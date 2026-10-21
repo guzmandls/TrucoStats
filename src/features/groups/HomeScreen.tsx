@@ -3,6 +3,7 @@ import {
   ButtonLink,
   EmptyNote,
   HeaderMenu,
+  Notice,
   PageHeader,
   Screen,
   ScreenContent,
@@ -16,7 +17,7 @@ import {
   UserPlusIcon,
 } from '../../components/Icons'
 import { logoutAccount } from '../auth/authApi'
-import { useSession } from '../../lib/session'
+import { useSession, useSessionExpired } from '../../lib/session'
 import {
   QUICK_SLOT,
   gameScore,
@@ -40,6 +41,7 @@ export function HomeScreen() {
   const [matches, setMatches] = useState<Match[]>([])
   const session = useSession()
   const loggedIn = session?.user.username != null
+  const sessionExpired = useSessionExpired()
 
   useEffect(() => {
     let active = true
@@ -94,6 +96,14 @@ export function HomeScreen() {
         trailing={
           <HeaderMenu
             label="Menú"
+            heading={
+              session ? (
+                <>
+                  <PersonIcon size={20} />
+                  {session.user.username ?? 'Invitado'}
+                </>
+              ) : undefined
+            }
             items={
               loggedIn
                 ? [
@@ -137,6 +147,16 @@ export function HomeScreen() {
         }
       />
       <ScreenContent>
+        {sessionExpired && (
+          <div className={styles.expired}>
+            <Notice>
+              Tu sesión venció. Inicia sesión para enviar tus partidas.
+            </Notice>
+            <ButtonLink to="/iniciar-sesion" variant="secondary">
+              Iniciar sesión
+            </ButtonLink>
+          </div>
+        )}
         {groups.length === 0 ? (
           <EmptyNote>Aún no hay grupos</EmptyNote>
         ) : (

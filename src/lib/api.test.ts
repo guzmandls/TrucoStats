@@ -100,3 +100,52 @@ describe('apiRequest con sesión', () => {
     ).toBeUndefined()
   })
 })
+
+describe('sesión vencida', () => {
+  const session = {
+    token: 'a'.repeat(64),
+    user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+  }
+
+  afterEach(() => {
+    clearSession()
+  })
+
+  it('un 401 con sesión guardada la marca como vencida', async () => {
+    saveSession(session)
+    mockFetch(jsonResponse({ error: 'No iniciaste sesión' }, 401))
+
+    await expect(apiRequest('/api/yo')).rejects.toBeInstanceOf(ApiError)
+
+    expect(localStorage.getItem('trucostats.sessionExpired')).toBe('1')
+  })
+
+  it('un 401 al iniciar sesión (contraseña incorrecta) no la marca como vencida', async () => {
+    saveSession(session)
+    mockFetch(jsonResponse({ error: 'Usuario o contraseña incorrectos' }, 401))
+
+    await expect(
+      postJson('/api/sesion', { username: 'juan', password: 'x' }),
+    ).rejects.toBeInstanceOf(ApiError)
+
+    expect(localStorage.getItem('trucostats.sessionExpired')).toBeNull()
+  })
+
+  it('sin sesión guardada un 401 no marca nada', async () => {
+    mockFetch(jsonResponse({ error: 'No iniciaste sesión' }, 401))
+
+    await expect(apiRequest('/api/yo')).rejects.toBeInstanceOf(ApiError)
+
+    expect(localStorage.getItem('trucostats.sessionExpired')).toBeNull()
+  })
+
+  it('al iniciar sesión de nuevo el aviso se borra', async () => {
+    saveSession(session)
+    mockFetch(jsonResponse({}, 401))
+    await expect(apiRequest('/api/yo')).rejects.toBeInstanceOf(ApiError)
+
+    saveSession(session)
+
+    expect(localStorage.getItem('trucostats.sessionExpired')).toBeNull()
+  })
+})

@@ -18,6 +18,7 @@ export interface Session {
 }
 
 const STORAGE_KEY = 'trucostats.session'
+const EXPIRED_KEY = 'trucostats.sessionExpired'
 const CHANGE_EVENT = 'trucostats:session'
 
 function isSession(value: unknown): value is Session {
@@ -70,9 +71,32 @@ export function isRegistered(session: Session | null): boolean {
   return session?.user.username != null
 }
 
+function readExpired(): boolean {
+  try {
+    return localStorage.getItem(EXPIRED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+// El servidor rechazó el token (venció o ya no es válido): se recuerda para
+// avisarle a la persona que inicie sesión de nuevo.
+export function markSessionExpired(): void {
+  if (!getToken() || readExpired()) {
+    return
+  }
+  try {
+    localStorage.setItem(EXPIRED_KEY, '1')
+  } catch {
+    // Sin almacenamiento no se puede recordar el aviso.
+  }
+  window.dispatchEvent(new Event(CHANGE_EVENT))
+}
+
 export function saveSession(session: Session): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session))
+    localStorage.removeItem(EXPIRED_KEY)
   } catch {
     // Sin almacenamiento la sesión no se puede recordar: se pedirá de nuevo.
   }
@@ -82,6 +106,7 @@ export function saveSession(session: Session): void {
 export function clearSession(): void {
   try {
     localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(EXPIRED_KEY)
   } catch {
     // Nada que borrar.
   }
@@ -95,6 +120,12 @@ function subscribe(callback: () => void): () => void {
     window.removeEventListener(CHANGE_EVENT, callback)
     window.removeEventListener('storage', callback)
   }
+}
+
+// true si hay una sesión guardada que el servidor ya no acepta.
+export function useSessionExpired(): boolean {
+  const expired = useSyncExternalStore(subscribe, readExpired, () => false)
+  return expired && getToken() !== null
 }
 
 // Sesión actual; la pantalla se actualiza sola al iniciar o cerrar sesión.

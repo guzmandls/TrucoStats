@@ -3,3 +3,10 @@
   flex-direction: column;
   gap: var(--space-3);
 }
+
+/* Aviso de sesión vencida: el mensaje y, debajo, el botón para iniciar sesión. */
+.expired {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

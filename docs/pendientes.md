@@ -96,14 +96,9 @@ No son requisitos nuevos: son notas para no olvidarlas.
 
 ## Cuentas
 
-- La sesión dura 90 días en el servidor. Si vence, los envíos de partidas quedan
-  pendientes (401) y la app no avisa nada: hay que avisar y pedir iniciar sesión.
 - Quien tiene una cuenta invitada y luego inicia sesión en otra cuenta existente
   abandona la identidad invitada (y su integrante queda vinculado a esa cuenta
-  invitada, que ya no se usa). Falta que el administrador pueda liberar ese
-  integrante.
-- La app no muestra con qué usuario se inició sesión (el menú solo ofrece cerrar
-  sesión).
+  invitada, que ya no se usa). El administrador puede liberar ese integrante.
 - Los errores al subir una foto o cambiar un nombre sin permiso se ignoran en
   silencio.
 
@@ -111,5 +106,3 @@ No son requisitos nuevos: son notas para no olvidarlas.
   en el servidor) no tienen ningún integrante vinculado a una cuenta, así que
   nadie puede enviar partidas ni cambiar nombres en ellos. Hace falta un camino
   para que el creador "reclame" su integrante de administrador.
-- El administrador todavía no puede liberar un integrante elegido por error por
-  otra persona ni transferir la administración (requisitos §3.2 y §3.3).

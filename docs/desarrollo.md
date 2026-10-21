@@ -1035,3 +1035,18 @@ Hecho:
 Concepto nuevo: **orden de operaciones entre servidor y celular**. Primero se
 confirma en el servidor y recién después se cambia lo local; así los dos lados no
 quedan contradiciéndose si falla la conexión.
+
+## Etapa 33 — Aviso de sesión vencida y usuario en el menú
+
+Hecho:
+
+- Cuando el servidor responde 401 a un pedido que llevaba un token guardado (salvo
+  en iniciar sesión o registrarse, donde un 401 es "contraseña incorrecta"), la
+  app recuerda que la sesión venció. La pantalla principal muestra el aviso con un
+  botón para iniciar sesión; se borra al iniciar sesión de nuevo.
+- El menú de tres rayas muestra con qué usuario se inició sesión en su primera
+  línea ("Invitado" si es una cuenta invitada).
+
+Concepto nuevo: **un mismo código de error con significados distintos**. Un 401
+puede ser "no hay sesión válida" o "credenciales incorrectas"; por eso el aviso solo
+se activa cuando había un token y el pedido no era de inicio de sesión.

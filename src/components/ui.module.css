@@ -203,6 +203,20 @@
   cursor: pointer;
 }
 
+/* Línea fija del menú (no se toca): muestra con qué usuario se inició sesión. */
+.headerMenuHeading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--header-height);
+  margin: 0;
+  padding: 0 var(--space-5);
+  color: var(--paper-muted);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
 .headerMenuIcon {
   display: flex;
   align-items: center;
