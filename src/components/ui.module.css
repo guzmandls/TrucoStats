@@ -229,13 +229,12 @@
 
 /* ---------- Pestañas ---------- */
 
-/* Pestañas de borde a borde: la activa va en crema y las demás en negro. Una
-   línea negra arriba y abajo separa a la activa del crema que la rodea. */
+/* Pestañas de borde a borde: la activa va en crema y las demás en negro. La
+   activa lleva una línea negra arriba y abajo que la separa del crema que la
+   rodea; así las líneas verticales entre las otras ocupan todo el alto. */
 .tabs {
   display: flex;
   background: var(--ink);
-  border-top: var(--rule-width) solid var(--ink);
-  border-bottom: var(--rule-width) solid var(--ink);
 }
 
 .tab,
@@ -263,6 +262,8 @@
 }
 
 .tabActive {
+  border-top: var(--rule-width) solid var(--ink);
+  border-bottom: var(--rule-width) solid var(--ink);
   background: var(--paper);
   color: var(--ink);
 }

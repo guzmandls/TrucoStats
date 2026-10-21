@@ -377,7 +377,7 @@ a.recordMember:hover {
   padding: 0;
   vertical-align: top;
   background: var(--ink);
-  border-bottom: var(--rule-width) solid var(--paper);
+  border-bottom: var(--hairline-width) solid var(--grid-line-paper);
 }
 
 .gridPagerButton {
@@ -408,7 +408,7 @@ a.recordMember:hover {
   text-align: center;
   vertical-align: bottom;
   background: var(--ink);
-  border-bottom: var(--rule-width) solid var(--paper);
+  border-bottom: var(--hairline-width) solid var(--grid-line-paper);
 }
 
 .gridColHead + .gridColHead {
