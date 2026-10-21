@@ -233,7 +233,7 @@ export function GroupScreen() {
             label="Menú"
             items={[
               {
-                label: searching ? 'Cerrar búsqueda' : 'Buscar partidas',
+                label: searching ? 'Cerrar búsqueda' : 'Búsqueda',
                 onClick: toggleSearch,
                 icon: <SearchIcon />,
               },

@@ -188,7 +188,7 @@ describe('GroupScreen', () => {
     expect(screen.queryByLabelText('Buscar en el historial')).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Buscar partidas' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Búsqueda' }))
     fireEvent.change(screen.getByLabelText('Buscar en el historial'), {
       target: { value: '12' },
     })

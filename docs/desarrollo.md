@@ -688,7 +688,7 @@ Conceptos nuevos:
 
 Hecho:
 
-- Opción "Buscar partidas" (con lupa) en el menú de las tres rayas del grupo.
+- Opción "Búsqueda" (con lupa) en el menú de las tres rayas del grupo.
   Así el encabezado queda despejado y el nombre del grupo no se corta. Al elegirla aparece un campo para buscar por jugador, fecha ("20/10" o
   "octubre"), resultado ("30-21") o modalidad. Se pueden combinar palabras:
   "juan 30" muestra las partidas de Juan con un 30. No distingue mayúsculas ni
