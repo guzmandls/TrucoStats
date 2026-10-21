@@ -212,6 +212,7 @@ export function HomeScreen() {
             ))}
           </div>
         )}
+        <p className={styles.version}>Versión {__BUILD__}</p>
       </ScreenContent>
       <ScreenFooter>
         {score ? (

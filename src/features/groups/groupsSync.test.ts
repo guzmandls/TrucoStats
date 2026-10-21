@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { clearSession, saveSession } from '../../lib/session'
 import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
@@ -90,6 +91,26 @@ describe('pullGroup', () => {
     expect(await pullGroup('g1')).toBe(true)
 
     expect((await loadGroups())[0].myMemberId).toBe('m1')
+  })
+
+  it('con sesión, si el servidor dice que la cuenta no es ningún integrante, se olvida el que quedó guardado', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'beto', email: null, name: 'beto' },
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async (input) =>
+        String(input).endsWith('/partidas')
+          ? json({ error: 'No eres integrante' }, 403)
+          : json({ group: local, inviteCode: CODE, myMemberId: null }),
+      ),
+    )
+
+    await pullGroup('g1')
+    clearSession()
+
+    expect((await loadGroups())[0].myMemberId).toBeUndefined()
   })
 
   it('trae los cambios del grupo (como una foto nueva) aunque las partidas no se puedan traer', async () => {

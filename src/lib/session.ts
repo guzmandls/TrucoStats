@@ -79,6 +79,10 @@ function readExpired(): boolean {
   }
 }
 
+export function isSessionExpired(): boolean {
+  return readExpired()
+}
+
 // El servidor rechazó el token (venció o ya no es válido): se recuerda para
 // avisarle a la persona que inicie sesión de nuevo.
 export function markSessionExpired(): void {

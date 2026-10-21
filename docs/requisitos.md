@@ -40,6 +40,9 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - El menú de las tres rayas de la pantalla principal cambia según la sesión. Sin cuenta registrada (o con una invitada): "Registrarse", "Iniciar sesión" y "Ver perfil", en ese orden, y no aparece "Crear grupo" porque exige cuenta. Con la sesión iniciada: "Crear grupo", "Ver perfil" y "Cerrar sesión", en ese orden.
 - Al cerrar sesión se quitan del celular los grupos y las partidas de grupo de esa cuenta (la partida rápida se conserva); si hay partidas de grupo sin enviar, antes se avisa que se perderían. Al iniciar sesión o registrarse, los grupos de la cuenta se recuperan desde el servidor.
 - Si la app quedó abierta en segundo plano con una versión vieja, al volver a verla se recarga sola cuando hay una versión nueva.
+- Quien se unió a un grupo como invitado y luego inicia sesión con una cuenta que ya tenía conserva su lugar: el servidor pasa los integrantes y partidas de la cuenta invitada a esa cuenta (salvo en grupos donde la cuenta ya tiene su propio lugar).
+- Con la sesión iniciada, quién es la persona en cada grupo lo decide el servidor: si dice que la cuenta no es ningún integrante, se olvida el integrante que había quedado guardado en el celular y se pregunta quién es.
+- La pantalla principal muestra, al final y en chico, la fecha y hora de la versión instalada de la app ("Versión …"), para poder comprobar que se actualizó.
 - Al elegir integrante (enlace de invitación o vínculo de la cuenta), si algún lugar figura como "Ya elegido" se indica que hay que iniciar sesión con la cuenta que lo eligió o pedir al administrador que lo libere.
 - Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
