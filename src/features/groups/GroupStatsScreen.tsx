@@ -6,6 +6,7 @@ import {
   AvatarStack,
   EmptyNote,
   Figure,
+  Figures,
   HeaderIconButton,
   PageHeader,
   Screen,
@@ -238,19 +239,17 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
         </Section>
       )}
 
-      <Section>
-        <div className={styles.figures}>
-          <Figure value={summary.totalMatches} label="partidas" />
-          <Figure
-            value={
-              summary.averageDurationSeconds === null
-                ? '—'
-                : formatDuration(summary.averageDurationSeconds)
-            }
-            label="promedio"
-          />
-        </div>
-      </Section>
+      <Figures>
+        <Figure value={summary.totalMatches} label="partidas" />
+        <Figure
+          value={
+            summary.averageDurationSeconds === null
+              ? '—'
+              : formatDuration(summary.averageDurationSeconds)
+          }
+          label="promedio"
+        />
+      </Figures>
 
       <Section title="Partidas">
         <div className={styles.recordList}>
@@ -372,21 +371,26 @@ function MatchRecord({
         <span className={styles.recordLabel}>{label}</span>
         {value && <span className={styles.matchRecordValue}>{value}</span>}
       </div>
-      <span className={styles.matchRecordScore}>
-        <span className={winnerIsNos ? styles.scoreWin : styles.scoreLoss}>
-          {match.scores.nos}
-        </span>
-        <span className={styles.scoreDash}>–</span>
-        <span className={winnerIsNos ? styles.scoreLoss : styles.scoreWin}>
-          {match.scores.ellos}
-        </span>
-      </span>
-      {nos && ellos && (
-        <span className={styles.matchRecordTeams}>
-          <span>{nos}</span> <span className={styles.matchVs}>vs</span>{' '}
-          <span>{ellos}</span>
-        </span>
-      )}
+      <div className={styles.matchRecordBody}>
+        <div className={styles.matchRecordScores}>
+          <span className={winnerIsNos ? styles.scoreWin : undefined}>
+            {match.scores.nos}
+          </span>
+          <span className={winnerIsNos ? undefined : styles.scoreWin}>
+            {match.scores.ellos}
+          </span>
+        </div>
+        {nos && ellos && (
+          <div className={styles.matchRecordTeams}>
+            <span className={winnerIsNos ? styles.teamWin : styles.teamLoss}>
+              {nos}
+            </span>
+            <span className={winnerIsNos ? styles.teamLoss : styles.teamWin}>
+              {ellos}
+            </span>
+          </div>
+        )}
+      </div>
       <span className={styles.recordMeta}>{matchDate(match)}</span>
     </div>
   )

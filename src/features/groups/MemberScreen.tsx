@@ -118,13 +118,11 @@ export function MemberScreen() {
         }
       />
       <ScreenContent>
-        <Section>
-          <MemberStatsFicha
-            member={member}
-            color={colors[member.id]}
-            stats={stats}
-          />
-        </Section>
+        <MemberStatsFicha
+          member={member}
+          color={colors[member.id]}
+          stats={stats}
+        />
 
         <Section title="Foto">
           <div className={styles.photoActions}>

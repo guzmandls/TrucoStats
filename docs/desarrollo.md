@@ -910,3 +910,28 @@ a la app (fondos negros con letra crema). Se corrigió:
   queda a la altura de su equipo.
 - Técnica: tres columnas con `align-items: stretch` y los equipos y las celdas de
   puntaje con `flex: 1`, para que se repartan el alto en partes iguales.
+
+## Etapa 28 — Rediseño de las demás pantallas
+
+Hecho (las pantallas que no son el home ni el historial):
+
+- Secciones de formularios, estadísticas y perfil: tarjetas con margen y banda
+  negra de título (un cambio en el componente compartido `Section`).
+- Participantes: sin estadísticas; solo botones con avatar, nombre y un bloque negro
+  con ">" a la derecha.
+- Ficha del participante y Perfil: cifras principales en bloques negros con
+  número grande (componente `Figure`, ahora negro, y `Figures` que los reparte).
+- Estadísticas: pestañas en un solo control con margen, podio con todos los
+  escalones negros apoyados en su tarjeta, totales en bloques negros, récords de
+  partidas con el bloque de puntajes del historial y posiciones del ranking en
+  cuadros negros.
+- Iniciar partida: avatares y nombres más grandes en cada integrante.
+- Las reglas de diseño quedaron escritas en requisitos §12.11.
+
+Conceptos nuevos:
+
+- Un componente compartido (`Section`, `Figure`) permite cambiar el aspecto de
+  muchas pantallas a la vez; por eso conviene reutilizarlos en lugar de repetir
+  estilos.
+- Reglas de diseño por escrito: así los cambios futuros mantienen la identidad
+  sin tener que volver a discutirla.

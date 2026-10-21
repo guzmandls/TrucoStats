@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { BackIcon } from '../../components/Icons'
+import { BackIcon, ChevronRightIcon } from '../../components/Icons'
 import {
   Avatar,
   HeaderIconButton,
@@ -50,7 +50,7 @@ export function ParticipantsScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent flush>
+      <ScreenContent>
         <div className={styles.list}>
           {group.members.map((member) => (
             <Link
@@ -62,10 +62,12 @@ export function ParticipantsScreen() {
                 name={member.name}
                 color={colors[member.id]}
                 src={member.avatar}
-                size={44}
+                size={48}
               />
               <span className={styles.memberName}>{member.name}</span>
-              <span className={styles.chevron}>›</span>
+              <span className={styles.go}>
+                <ChevronRightIcon size={24} />
+              </span>
             </Link>
           ))}
         </div>

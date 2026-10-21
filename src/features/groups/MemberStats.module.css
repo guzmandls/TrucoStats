@@ -1,47 +1,17 @@
 .ficha {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-4);
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
-.fichaMain {
-  flex: 1;
+.fichaTop {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-}
-
-.fichaFigures {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
 .person {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.fichaFigure {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-}
-
-.fichaNumber {
-  font-size: var(--text-xl);
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-.fichaFigureLabel {
-  font-size: var(--text-xs);
-  letter-spacing: var(--tracking-tight);
-  text-transform: uppercase;
-  color: var(--ink-muted);
 }

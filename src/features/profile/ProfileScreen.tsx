@@ -4,6 +4,7 @@ import { BackIcon } from '../../components/Icons'
 import {
   EmptyNote,
   Figure,
+  Figures,
   HeaderIconButton,
   PageHeader,
   Screen,
@@ -66,23 +67,21 @@ export function ProfileScreen() {
 
         {summary && summary.total > 0 && (
           <>
-            <Section>
-              <div className={styles.hero}>
-                <WinRateRing
-                  percent={summary.winRate ?? 0}
-                  color={
-                    summary.winRate === null
-                      ? 'var(--line-strong)'
-                      : winRateColor(summary.winRate)
-                  }
-                  size={92}
-                />
-                <div className={styles.heroFigures}>
-                  <Figure value={summary.wins} label="victorias" />
-                  <Figure value={summary.total} label="jugadas" />
-                </div>
-              </div>
-            </Section>
+            <div className={styles.hero}>
+              <WinRateRing
+                percent={summary.winRate ?? 0}
+                color={
+                  summary.winRate === null
+                    ? 'var(--line-strong)'
+                    : winRateColor(summary.winRate)
+                }
+                size={92}
+              />
+              <Figures>
+                <Figure value={summary.wins} label="victorias" />
+                <Figure value={summary.total} label="jugadas" />
+              </Figures>
+            </div>
 
             <Section title="Resumen">
               <StatRow label="Derrotas" value={summary.losses} />

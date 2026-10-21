@@ -325,18 +325,21 @@ export function Section({ title, help, children }: SectionProps) {
 interface FigureProps {
   value: ReactNode
   label: string
-  accent?: string
 }
 
-export function Figure({ value, label, accent }: FigureProps) {
+// Una cifra principal: bloque negro con el número grande en crema y su etiqueta.
+export function Figure({ value, label }: FigureProps) {
   return (
     <div className={styles.figure}>
-      <span className={styles.figureValue} style={{ color: accent }}>
-        {value}
-      </span>
+      <span className={styles.figureValue}>{value}</span>
       <span className={styles.figureLabel}>{label}</span>
     </div>
   )
+}
+
+// Reparte varias cifras en bloques del mismo ancho.
+export function Figures({ children }: { children: ReactNode }) {
+  return <div className={styles.figures}>{children}</div>
 }
 
 interface EmptyNoteProps {

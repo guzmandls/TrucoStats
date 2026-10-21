@@ -78,7 +78,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Al seleccionar un grupo, se accederá a su historial de partidas. Las estadísticas y los participantes se consultan con botones de icono del sector superior, que llevan a sus propias pantallas.
 - La pantalla de estadísticas del grupo permitirá alternar entre estadísticas grupales, individuales y enfrentamientos. El sector superior se separa de las pestañas por una línea horizontal, y la pestaña activa se distingue solo por la inversión de colores.
 - Los enfrentamientos se muestran como una grilla simétrica: cada fila y cada columna corresponde a un integrante y cada celda, al resultado entre ambos.
-- La pantalla de participantes mostrará la lista de integrantes en renglones destacados con su foto y su nombre; al tocar uno se accede a sus estadísticas individuales dentro del grupo.
+- La pantalla de participantes no muestra estadísticas: es una lista de botones, uno por integrante, con su foto y su nombre sobre una tarjeta con margen y un bloque negro con ">" a la derecha. Al tocar uno se abre su ficha; las estadísticas de cada uno están en la pestaña de estadísticas individuales.
 - Existirá un perfil personal con las estadísticas del usuario.
 
 ## 4. Gestión de partidas
@@ -549,3 +549,14 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 **Estado:** Requisitos funcionales en elaboración.
 
 **Objetivo de desarrollo:** construir una aplicación funcional mientras se adquiere experiencia con TypeScript, React, SQL, Git y desarrollo web.
+
+### 12.11. Bandas, bloques y tarjetas
+
+- El contraste entre zonas oscuras (negro con letra crema) y claras es parte de la identidad: cada pantalla tiene al menos una banda o bloque negro; no se diseña todo en crema y gris.
+- Cada sección de una pantalla (formularios, estadísticas, perfil) es una tarjeta con margen a los costados, borde redondeado y una banda negra de título con letra crema.
+- Los elementos que se tocan (grupos, participantes) tienen forma de botón: tarjeta con margen y una flecha ">" sobre fondo negro; no ocupan el ancho completo de la pantalla.
+- Las cifras principales (victorias, derrotas, jugadas, partidas, promedio) van en bloques negros con el número grande en crema y la etiqueta en mayúsculas.
+- Las pestañas son un solo control con margen y borde redondeado: la activa en crema y las demás en negro.
+- En el podio, todos los escalones son negros y se apoyan en la base de su tarjeta (no flotan).
+- La posición en un ranking se muestra en un cuadro negro con el número en crema.
+- El bloque de puntajes (dos números separados por una línea crema, en un bloque negro) es el mismo en el historial y en los récords de partidas.

@@ -54,16 +54,13 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  border: var(--border-width) solid var(--ink);
-  border-bottom: 0;
   border-radius: var(--radius) var(--radius) 0 0;
-  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .podiumBase[data-place='1'] {
   height: 72px;
-  background: var(--ink);
-  color: var(--paper);
 }
 .podiumBase[data-place='2'] {
   height: 52px;
@@ -107,33 +104,58 @@
   font-variant-numeric: tabular-nums;
 }
 
-.matchRecordScore {
+.matchRecordBody {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  line-height: 1;
+  align-items: stretch;
+  gap: var(--space-3);
+}
+
+/* Bloque negro con los dos puntajes, como en el historial. */
+.matchRecordScores {
+  flex: 0 0 56px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.matchRecordScores > span {
+  flex: 1;
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--paper-muted);
+  font-size: var(--text-lg);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
-.scoreWin {
-  color: var(--ink);
+.matchRecordScores > span + span {
+  border-top: var(--border-width) solid var(--paper);
 }
 
-.scoreLoss,
-.scoreDash,
-.matchVs {
-  color: var(--ink-muted);
-}
-
-.scoreDash {
-  font-size: var(--text-lg);
+.matchRecordScores > .scoreWin {
+  color: var(--paper);
+  font-weight: 800;
 }
 
 .matchRecordTeams {
-  font-size: var(--text-sm);
-  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: var(--text-md);
+}
+
+.teamWin {
+  font-weight: 800;
+}
+
+.teamLoss {
+  color: var(--ink-muted);
 }
 
 .recordLabel {
@@ -252,10 +274,16 @@ a.recordMember:hover {
 
 .rankPos {
   grid-area: pos;
-  align-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--paper);
   font-size: var(--text-sm);
-  font-weight: 700;
-  color: var(--ink-muted);
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
