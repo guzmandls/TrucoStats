@@ -18,10 +18,6 @@ No son requisitos nuevos: son notas para no olvidarlas.
   (localStorage). Cuando existan cuentas, migrar esta lista a un modelo por
   usuario.
 
-- **Nombre del creador en Crear grupo**: hoy el integrante 1 aparece fijo como
-  "Administrador" (`src/features/groups/CreateGroupScreen.tsx`) porque todavía no
-  hay cuentas ni perfil. Cuando existan, debe aparecer ahí el nombre del usuario
-  que crea el grupo.
 
 ## Sincronización
 
@@ -29,8 +25,6 @@ No son requisitos nuevos: son notas para no olvidarlas.
   de invitación (por ejemplo, se cerró justo en ese momento), al invitar el
   servidor responde que el grupo ya existe (409) y no hay forma de recuperar el
   código. Cuando existan las cuentas, el administrador podrá pedirlo de nuevo.
-- El primer integrante se guarda en el servidor con el nombre "Administrador".
-  Debe usar el nombre de quien crea el grupo cuando existan las cuentas.
 
 - Un integrante que entra por el enlace no es el administrador, pero `leaveGroup`
   sigue suponiendo que este celular es el administrador. Al salir, transfiere la
@@ -95,6 +89,17 @@ No son requisitos nuevos: son notas para no olvidarlas.
   están permitidos a propósito (requisitos §12.6). No convertirlos en tokens.
 
 ## Cuentas
+
+- La sesión dura 90 días en el servidor. Si vence, los envíos de partidas quedan
+  pendientes (401) y la app no avisa nada: hay que avisar y pedir iniciar sesión.
+- Quien tiene una cuenta invitada y luego inicia sesión en otra cuenta existente
+  abandona la identidad invitada (y su integrante queda vinculado a esa cuenta
+  invitada, que ya no se usa). Falta que el administrador pueda liberar ese
+  integrante.
+- La app no muestra con qué usuario se inició sesión (el menú solo ofrece cerrar
+  sesión).
+- Los errores al subir una foto o cambiar un nombre sin permiso se ignoran en
+  silencio.
 
 - Los grupos creados antes de existir las cuentas (si alguno llegó a registrarse
   en el servidor) no tienen ningún integrante vinculado a una cuenta, así que

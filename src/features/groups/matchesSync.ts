@@ -10,10 +10,13 @@ export function isPending(match: Match): boolean {
   return match.type === 'group' && match.groupId !== null && !match.syncedAt
 }
 
-// Sin conexión o con el servidor caído conviene parar y reintentar más tarde.
+// Sin conexión, sin sesión (401) o con el servidor caído conviene parar y
+// reintentar más tarde.
 // Un rechazo de la API (4xx) afecta solo a esa partida o a ese grupo.
 function shouldStop(error: unknown): boolean {
-  return !(error instanceof ApiError) || error.status >= 500
+  return (
+    !(error instanceof ApiError) || error.status === 401 || error.status >= 500
+  )
 }
 
 async function inviteCodeOf(group: Group): Promise<string> {

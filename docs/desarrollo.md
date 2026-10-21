@@ -765,3 +765,31 @@ Conceptos nuevos:
   pedir datos reales solo cuando hacen falta.
 - Los tests de permisos prueban a quien no debería poder: sin sesión, de
   afuera del grupo, otro integrante.
+
+## Etapa 25 — Cuentas en la app (6c)
+
+Hecho:
+
+- Pantallas "Registrarse" (usuario, contraseña y correo opcional con la
+  aclaración de que sirve para recuperar la contraseña) e "Iniciar sesión" (con
+  usuario o correo). Se abren desde el menú de las tres rayas de la pantalla
+  principal, que ofrece "Cerrar sesión" cuando hay sesión.
+- Crear grupo pide una cuenta registrada: si falta, manda a registrarse y vuelve.
+  Tu integrante aparece con tu usuario como sugerencia de nombre (editable).
+- Unirse con el enlace no pide cuenta: se eligen integrantes que no estén
+  tomados (los demás dicen "Ya elegido"), y el servidor crea la cuenta invitada
+  en segundo plano. Quien ya tiene sesión en otro celular entra directo.
+- Toda llamada al servidor lleva el token de la sesión. Sin sesión (401), los
+  envíos de partidas quedan pendientes.
+- Probado con dos celulares reales: A se registra y crea el grupo; B entra sin
+  cuenta, elige a Pedro y lo renombra; B registra una partida y A la ve; B no puede
+  renombrar al administrador (403) ni ver partidas sin sesión (401).
+
+Conceptos nuevos:
+
+- `localStorage` para la sesión y `useSyncExternalStore`: el hook `useSession`
+  se suscribe a los cambios de la sesión, así el menú se actualiza solo al
+  iniciar o cerrar sesión.
+- Encabezado `Authorization: Bearer <token>` agregado en un único lugar
+  (`apiRequest`), para que ninguna llamada se olvide de él.
+- Redirigir con "a dónde volver": `navigate('/registrarse', { state: { from } })`.

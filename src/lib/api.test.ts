@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ApiError, apiRequest, postJson } from './api'
+import { clearSession, saveSession } from './session'
 
 function mockFetch(response: Response | Error) {
   const fetchMock = vi.fn(async () => {
@@ -68,5 +69,34 @@ describe('postJson', () => {
     expect(new Headers(init.headers).get('content-type')).toBe(
       'application/json',
     )
+  })
+})
+
+describe('apiRequest con sesión', () => {
+  it('envía el token en cada pedido cuando hay sesión', async () => {
+    const fetchMock = mockFetch(jsonResponse({ ok: true }))
+    saveSession({
+      token: 'c'.repeat(64),
+      user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+    })
+
+    await apiRequest('/api/yo')
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect((init.headers as Record<string, string>).authorization).toBe(
+      `Bearer ${'c'.repeat(64)}`,
+    )
+    clearSession()
+  })
+
+  it('no envía autorización sin sesión', async () => {
+    const fetchMock = mockFetch(jsonResponse({ ok: true }))
+
+    await apiRequest('/api/salud')
+
+    const [, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
+    expect(
+      (init.headers as Record<string, string>).authorization,
+    ).toBeUndefined()
   })
 })

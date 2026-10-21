@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JoinGroupScreen } from './JoinGroupScreen'
 import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
+import { clearSession, getSession } from '../../lib/session'
 import { clearMembership, loadMembership } from './membership'
 import type { Group } from './types'
 
@@ -52,17 +53,30 @@ function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), { status })
 }
 
+const guest = { id: 'u9', username: null, email: null, name: 'Pedro' }
+
 const serverWithGroup: Handler = (url, init) => {
-  if (init?.method === 'PATCH') {
-    return json({ member: { id: 'm2', name: 'x' } })
+  if (init?.method === 'POST') {
+    return json({
+      user: guest,
+      token: 't'.repeat(64),
+      memberId: 'm2',
+      member: { id: 'm2', name: 'x' },
+    })
   }
   return url === `/api/grupos/${CODE}`
-    ? json({ group: remoteGroup, inviteCode: CODE })
+    ? json({
+        group: remoteGroup,
+        inviteCode: CODE,
+        claimedMemberIds: ['m1'],
+        myMemberId: null,
+      })
     : json({ error: 'No encontrado' }, 404)
 }
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  clearSession()
 })
 
 describe('JoinGroupScreen', () => {
@@ -82,7 +96,7 @@ describe('JoinGroupScreen', () => {
     ).toBeInTheDocument()
     expect(
       screen.getAllByRole('radio').map((radio) => radio.textContent),
-    ).toEqual(['Juan', 'Pedro', 'Luis'])
+    ).toEqual(['JuanYa elegido', 'Pedro', 'Luis'])
     expect(
       screen.getByRole('button', { name: 'Unirme al grupo' }),
     ).toBeDisabled()
@@ -101,7 +115,7 @@ describe('JoinGroupScreen', () => {
     ).toBeEnabled()
   })
 
-  it('se une con el nombre original sin pedirle nada más al servidor', async () => {
+  it('se une con el nombre original y guarda la cuenta invitada', async () => {
     const fetchMock = stubServer(serverWithGroup)
     renderJoin()
 
@@ -111,14 +125,23 @@ describe('JoinGroupScreen', () => {
     await waitFor(() =>
       expect(screen.getByTestId('location')).toHaveTextContent('/grupo/g1'),
     )
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[1] as unknown as [
+      string,
+      RequestInit,
+    ]
+    expect(url).toBe(`/api/grupos/${CODE}/unirse`)
+    expect(JSON.parse(init.body as string)).toEqual({
+      memberId: 'm2',
+      name: 'Pedro',
+    })
+    expect(getSession()).toEqual({ token: 't'.repeat(64), user: guest })
     const [saved] = await loadGroups()
     expect(saved.myMemberId).toBe('m2')
     expect(saved.inviteCode).toBe(CODE)
     expect(loadMembership()).toContain('g1')
   })
 
-  it('cambia el nombre del integrante en el servidor y en el celular', async () => {
+  it('envía el nombre nuevo al servidor y lo guarda en el celular', async () => {
     const fetchMock = stubServer(serverWithGroup)
     renderJoin()
 
@@ -135,9 +158,12 @@ describe('JoinGroupScreen', () => {
       string,
       RequestInit,
     ]
-    expect(url).toBe(`/api/grupos/${CODE}/integrantes/m2`)
-    expect(init.method).toBe('PATCH')
-    expect(JSON.parse(init.body as string)).toEqual({ name: 'Pedrito' })
+    expect(url).toBe(`/api/grupos/${CODE}/unirse`)
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body as string)).toEqual({
+      memberId: 'm2',
+      name: 'Pedrito',
+    })
     const [saved] = await loadGroups()
     expect(saved.members.map((member) => member.name)).toEqual([
       'Juan',
@@ -160,9 +186,9 @@ describe('JoinGroupScreen', () => {
     ).toBeDisabled()
   })
 
-  it('no guarda el grupo si falla el cambio de nombre', async () => {
+  it('no guarda el grupo si falla el pedido de unirse', async () => {
     stubServer((url, init) =>
-      init?.method === 'PATCH'
+      init?.method === 'POST'
         ? Promise.reject(new TypeError('sin red'))
         : serverWithGroup(url, init),
     )
@@ -181,6 +207,54 @@ describe('JoinGroupScreen', () => {
     expect(
       screen.getByRole('button', { name: 'Unirme al grupo' }),
     ).toBeEnabled()
+  })
+
+  it('no deja elegir a un integrante que ya eligió otra persona', async () => {
+    stubServer(serverWithGroup)
+    renderJoin()
+
+    const taken = await screen.findByRole('radio', { name: /Juan/ })
+    expect(taken).toBeDisabled()
+    expect(taken).toHaveTextContent('Ya elegido')
+    expect(screen.getByRole('radio', { name: 'Pedro' })).toBeEnabled()
+  })
+
+  it('muestra el aviso del servidor si el integrante ya lo eligieron', async () => {
+    stubServer((url, init) =>
+      init?.method === 'POST'
+        ? json({ error: 'Ese integrante ya fue elegido por otra persona' }, 409)
+        : serverWithGroup(url, init),
+    )
+    renderJoin()
+
+    fireEvent.click(await screen.findByRole('radio', { name: 'Pedro' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Unirme al grupo' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Ese integrante ya fue elegido por otra persona',
+    )
+    expect(await loadGroups()).toEqual([])
+  })
+
+  it('abre el grupo sin preguntar si el servidor ya sabe quién es la persona', async () => {
+    stubServer((url, init) =>
+      init?.method === 'POST'
+        ? serverWithGroup(url, init)
+        : json({
+            group: remoteGroup,
+            inviteCode: CODE,
+            claimedMemberIds: ['m1', 'm2'],
+            myMemberId: 'm2',
+          }),
+    )
+    renderJoin()
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location')).toHaveTextContent('/grupo/g1'),
+    )
+    const [saved] = await loadGroups()
+    expect(saved.myMemberId).toBe('m2')
+    expect(loadMembership()).toContain('g1')
   })
 
   it('abre el grupo directamente si ya está en este celular', async () => {

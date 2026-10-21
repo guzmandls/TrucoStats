@@ -1,6 +1,8 @@
 // Cliente de la API del backend (Worker). Toda llamada puede fallar si no hay
 // conexión: quien la usa decide qué hacer en ese caso.
 
+import { getToken } from './session'
+
 const TIMEOUT_MS = 8000
 
 export class ApiError extends Error {
@@ -17,9 +19,16 @@ export async function apiRequest<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
+  // Con sesión iniciada, cada pedido lleva el token para que el servidor sepa
+  // quién es.
+  const token = getToken()
   const response = await fetch(path, {
     ...init,
-    headers: { 'content-type': 'application/json', ...init.headers },
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...init.headers,
+    },
     signal: AbortSignal.timeout(TIMEOUT_MS),
   })
   if (!response.ok) {
@@ -33,6 +42,10 @@ export async function apiRequest<T>(
     throw new ApiError(response.status, message)
   }
   return (await response.json()) as T
+}
+
+export function deleteRequest<T>(path: string): Promise<T> {
+  return apiRequest<T>(path, { method: 'DELETE' })
 }
 
 export function patchJson<T>(path: string, body: unknown): Promise<T> {

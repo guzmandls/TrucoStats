@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
@@ -13,6 +13,7 @@ import {
   Stepper,
   TextInput,
 } from '../../components/ui'
+import { useSession } from '../../lib/session'
 import type { Group, Member } from './types'
 import { registerGroup } from './groupsApi'
 import { saveGroup, setGroupInviteCode } from './groupsStorage'
@@ -34,10 +35,23 @@ export function CreateGroupScreen() {
   const [name, setName] = useState('')
   const [count, setCount] = useState(2)
   const [confirming, setConfirming] = useState(false)
+  const session = useSession()
+  const registered = session?.user.username != null
+  // El integrante del creador sugiere su usuario, que puede cambiar.
   const [members, setMembers] = useState<Member[]>([
-    { id: createId(), name: 'Administrador' },
+    { id: createId(), name: session?.user.username ?? '' },
     { id: createId(), name: '' },
   ])
+
+  // Crear un grupo exige una cuenta registrada: si falta, se pide y se vuelve.
+  useEffect(() => {
+    if (!registered) {
+      navigate('/registrarse', {
+        replace: true,
+        state: { from: '/crear-grupo' },
+      })
+    }
+  }, [registered, navigate])
 
   const hasData =
     name.trim() !== '' ||
@@ -140,15 +154,12 @@ export function CreateGroupScreen() {
                     className={styles.memberInput}
                     aria-label={`Integrante ${index + 1}`}
                     placeholder={
-                      index === 0
-                        ? 'Nombre del administrador'
-                        : 'Nombre del integrante'
+                      index === 0 ? 'Tu nombre' : 'Nombre del integrante'
                     }
                     value={member.name}
                     onChange={(event) =>
                       handleMemberNameChange(index, event.target.value)
                     }
-                    readOnly={index === 0}
                     required
                     maxLength={20}
                   />

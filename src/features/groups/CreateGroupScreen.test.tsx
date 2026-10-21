@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CreateGroupScreen } from './CreateGroupScreen'
 import { deleteGroup, loadGroups } from './groupsStorage'
+import { clearSession, saveSession } from '../../lib/session'
 
 function LocationProbe() {
   const location = useLocation()
@@ -16,6 +17,7 @@ function renderScreen() {
       <Routes>
         <Route path="/crear-grupo" element={<CreateGroupScreen />} />
         <Route path="/" element={<LocationProbe />} />
+        <Route path="/registrarse" element={<LocationProbe />} />
       </Routes>
     </MemoryRouter>,
   )
@@ -34,6 +36,7 @@ async function location(): Promise<string> {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  clearSession()
 })
 
 describe('CreateGroupScreen', () => {
@@ -41,6 +44,31 @@ describe('CreateGroupScreen', () => {
     for (const existing of await loadGroups()) {
       await deleteGroup(existing.id)
     }
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+    })
+  })
+
+  it('pide registrarse si no hay una cuenta registrada', async () => {
+    clearSession()
+    renderScreen()
+    expect(await location()).toBe('/registrarse')
+  })
+
+  it('pide registrarse si la cuenta es invitada', async () => {
+    saveSession({
+      token: 'b'.repeat(64),
+      user: { id: 'u2', username: null, email: null, name: 'Pedro' },
+    })
+    renderScreen()
+    expect(await location()).toBe('/registrarse')
+  })
+
+  it('sugiere el usuario como nombre del primer integrante, editable', () => {
+    renderScreen()
+    expect(memberInput(1)).toHaveValue('juan')
+    expect(memberInput(1)).not.toHaveAttribute('readonly')
   })
 
   it('vuelve al home con el botón de la barra cuando no hay datos', async () => {
