@@ -10,18 +10,19 @@ const HASH_ITERATIONS = 100_000
 const SESSION_DAYS = 90
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// Una cuenta invitada tiene email null (ver createGuest).
 export interface User {
   id: string
-  email: string
+  email: string | null
   name: string
 }
 
 interface UserRow {
   id: string
-  email: string
+  email: string | null
   name: string
-  password_hash: string
-  password_salt: string
+  password_hash: string | null
+  password_salt: string | null
 }
 
 function toHex(bytes: ArrayBuffer | Uint8Array): string {
@@ -99,7 +100,7 @@ function normalizeEmail(value: unknown): string | null {
     : null
 }
 
-async function openSession(userId: string, env: Env): Promise<string> {
+export async function openSession(userId: string, env: Env): Promise<string> {
   const token = randomHex(32)
   const now = new Date()
   const expires = new Date(now.getTime() + SESSION_DAYS * 24 * 60 * 60 * 1000)
@@ -134,6 +135,21 @@ export async function authenticate(
     .bind(await sha256(token), new Date().toISOString())
     .first<User>()
   return row ?? null
+}
+
+// Cuenta sin correo ni contraseña que se crea al unirse a un grupo: da una
+// identidad al celular sin pedirle nada a la persona.
+export async function createGuest(
+  name: string,
+  env: Env,
+): Promise<{ token: string; user: User }> {
+  const id = crypto.randomUUID()
+  await env.DB.prepare(
+    'INSERT INTO users (id, name, created_at) VALUES (?, ?, ?)',
+  )
+    .bind(id, name, new Date().toISOString())
+    .run()
+  return { token: await openSession(id, env), user: { id, email: null, name } }
 }
 
 export async function register(request: Request, env: Env): Promise<Response> {
@@ -174,22 +190,31 @@ export async function register(request: Request, env: Env): Promise<Response> {
     return errorResponse('Ya existe una cuenta con ese correo', 409)
   }
 
-  const id = crypto.randomUUID()
   const salt = randomHex(16)
+  const passwordHash = await hashPassword(password, salt)
+  // Si quien se registra ya tiene una cuenta invitada, esa misma cuenta pasa a
+  // tener correo y contraseña: conserva su integrante y su historial.
+  const guest = await authenticate(request, env)
+  const upgrading = guest !== null && guest.email === null
+  const id = upgrading ? guest.id : crypto.randomUUID()
   const user: User = { id, email, name: name.trim() }
   try {
-    await env.DB.prepare(
-      'INSERT INTO users (id, email, name, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?)',
-    )
-      .bind(
-        id,
-        email,
-        user.name,
-        await hashPassword(password, salt),
-        salt,
-        new Date().toISOString(),
-      )
-      .run()
+    await (
+      upgrading
+        ? env.DB.prepare(
+            'UPDATE users SET email = ?, name = ?, password_hash = ?, password_salt = ? WHERE id = ?',
+          ).bind(email, user.name, passwordHash, salt, id)
+        : env.DB.prepare(
+            'INSERT INTO users (id, email, name, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+          ).bind(
+            id,
+            email,
+            user.name,
+            passwordHash,
+            salt,
+            new Date().toISOString(),
+          )
+    ).run()
   } catch {
     return errorResponse('Ya existe una cuenta con ese correo', 409)
   }
@@ -214,7 +239,7 @@ export async function login(request: Request, env: Env): Promise<Response> {
   )
     .bind(email)
     .first<UserRow>()
-  if (!row) {
+  if (!row || !row.password_hash || !row.password_salt) {
     return rejected
   }
   const hash = await hashPassword(password, row.password_salt)

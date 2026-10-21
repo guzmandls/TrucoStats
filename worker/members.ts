@@ -5,7 +5,9 @@ import {
   type Env,
 } from './groups'
 import { errorResponse, json } from './http'
+import { membershipOf } from './access'
 import { findGroupIdByCode } from './matches'
+import { authenticate } from './users'
 
 // Cambia el nombre y/o la foto de un integrante (la foto null la quita). Sin
 // cuentas todavía, cualquiera que tenga el código del grupo puede hacerlo.
@@ -18,6 +20,21 @@ export async function updateMember(
   const groupId = await findGroupIdByCode(inviteCode, env)
   if (!groupId) {
     return errorResponse('Grupo no encontrado', 404)
+  }
+
+  const user = await authenticate(request, env)
+  if (!user) {
+    return errorResponse('No iniciaste sesión', 401)
+  }
+  const membership = await membershipOf(user.id, groupId, env)
+  if (
+    !membership ||
+    (!membership.isAdmin && membership.memberId !== memberId)
+  ) {
+    return errorResponse(
+      'Solo el administrador o el propio integrante pueden cambiarlo',
+      403,
+    )
   }
 
   let body: unknown

@@ -93,3 +93,12 @@ No son requisitos nuevos: son notas para no olvidarlas.
 
 - Micro-ajustes tipográficos por debajo de la escala de espaciado (2px/3px/6px)
   están permitidos a propósito (requisitos §12.6). No convertirlos en tokens.
+
+## Cuentas
+
+- Los grupos creados antes de existir las cuentas (si alguno llegó a registrarse
+  en el servidor) no tienen ningún integrante vinculado a una cuenta, así que
+  nadie puede enviar partidas ni cambiar nombres en ellos. Hace falta un camino
+  para que el creador "reclame" su integrante de administrador.
+- El administrador todavía no puede liberar un integrante elegido por error por
+  otra persona ni transferir la administración (requisitos §3.2 y §3.3).

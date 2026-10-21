@@ -27,7 +27,11 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Podrá consultar sus estadísticas individuales globales, sumando las partidas de los integrantes a los que está vinculado, en todos sus grupos.
 - El perfil personal será visible para los integrantes de los grupos en los que participa.
 - El registro y el inicio de sesión son con correo y contraseña (el usuario también indica su nombre). La recuperación de contraseña queda para más adelante.
-- La cuenta es obligatoria solo para crear un grupo o unirse a uno con el enlace. El contador y la partida rápida funcionan sin cuenta.
+- La cuenta con correo es obligatoria solo para crear un grupo (el administrador necesita poder recuperar su acceso). El contador y la partida rápida funcionan sin cuenta.
+- Unirse a un grupo con el enlace no exige cuenta: al unirse, el servidor crea automáticamente una cuenta invitada (sin correo ni contraseña, invisible para la persona) vinculada a su integrante. Con esa identidad solo ella o el administrador pueden cambiar su nombre, y puede registrar partidas.
+- Una cuenta invitada se puede convertir después en una cuenta con correo y contraseña sin perder su integrante ni su historial. Si nunca lo hace, funciona igual en ese celular; si lo pierde, pierde esa identidad.
+- Solo los integrantes vinculados a una cuenta (con correo o invitada) pueden registrar partidas del grupo. Un integrante ya elegido por otra persona no se puede elegir de nuevo; el administrador podrá liberarlo.
+- El registro y el inicio de sesión se hacen desde el menú de las tres rayas de la pantalla principal, que también tiene "Cerrar sesión". Crear un grupo pide la cuenta si hace falta.
 - Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
 ### 3.2. Integrantes
@@ -40,7 +44,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Un integrante sin cuenta no tiene estadísticas individuales globales, porque no tiene una identidad por fuera del grupo.
 - Al ingresar a un grupo con el enlace de invitación, se pregunta "¿Cuál de los integrantes eres?" y el usuario elige a cuál de los integrantes existentes corresponde.
 - Al elegir, el usuario puede cambiar el nombre del integrante por el suyo; el cambio lo ven todos los integrantes del grupo y también se actualiza en las partidas ya guardadas.
-- Mientras no existan las cuentas, cualquier persona con el enlace del grupo puede cambiar el nombre de un integrante; después, ese permiso quedará limitado al administrador y al propio integrante.
+- Solo el administrador y el propio integrante (con su cuenta, también la invitada) pueden cambiar el nombre de un integrante.
 - El vínculo entre cuenta e integrante es auto-declarado y no verificado; el administrador podrá corregirlo.
 - Desvincular una cuenta no modifica las partidas ya registradas; solo afecta a los vínculos futuros.
 

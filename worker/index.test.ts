@@ -1,13 +1,15 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest'
-import worker from './index'
 import type { Env } from './groups'
+import { registerTestUser, request } from './testAuth'
 import { createTestDb } from './testDb'
 
 let env: Env
+// Sesión de la cuenta que crea el grupo (su administrador).
+let token = ''
 
 function call(path: string, init?: RequestInit): Promise<Response> {
-  return worker.fetch(new Request(`https://trucostats.test${path}`, init), env)
+  return request(env, path, init, token)
 }
 
 function post(path: string, body: unknown): Promise<Response> {
@@ -29,8 +31,9 @@ const validGroup = {
   ],
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   env = { DB: createTestDb() }
+  token = await registerTestUser(env)
 })
 
 describe('/api/salud', () => {

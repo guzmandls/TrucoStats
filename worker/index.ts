@@ -1,6 +1,7 @@
 import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { updateMember } from './members'
+import { joinGroup } from './join'
 import { createMatch, listMatches } from './matches'
 import { currentUser, login, logout, register } from './users'
 
@@ -8,6 +9,7 @@ const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
 const MEMBER_OF_GROUP =
   /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})$/
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
+const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -51,7 +53,7 @@ export default {
       if (request.method !== 'GET') {
         return errorResponse('Método no permitido', 405)
       }
-      return getGroupByInviteCode(byCode[1], env)
+      return getGroupByInviteCode(byCode[1], request, env)
     }
 
     const matchesOfGroup = MATCHES_OF_GROUP.exec(pathname)
@@ -60,9 +62,16 @@ export default {
         return createMatch(matchesOfGroup[1], request, env)
       }
       if (request.method === 'GET') {
-        return listMatches(matchesOfGroup[1], env)
+        return listMatches(matchesOfGroup[1], request, env)
       }
       return errorResponse('Método no permitido', 405)
+    }
+
+    const joinOfGroup = JOIN_GROUP.exec(pathname)
+    if (joinOfGroup) {
+      return request.method === 'POST'
+        ? joinGroup(joinOfGroup[1], request, env)
+        : errorResponse('Método no permitido', 405)
     }
 
     const memberOfGroup = MEMBER_OF_GROUP.exec(pathname)

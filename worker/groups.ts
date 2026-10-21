@@ -1,4 +1,6 @@
+import { membershipOf } from './access'
 import { errorResponse, json } from './http'
+import { authenticate } from './users'
 
 export interface Env {
   DB: D1Database
@@ -119,9 +121,14 @@ interface MemberRow {
   id: string
   name: string
   avatar: string | null
+  user_id?: string | null
 }
 
-function groupResponse(group: GroupRow, members: MemberRow[]) {
+function groupResponse(
+  group: GroupRow,
+  members: MemberRow[],
+  myMemberId: string | null = null,
+) {
   return {
     group: {
       id: group.id,
@@ -135,6 +142,11 @@ function groupResponse(group: GroupRow, members: MemberRow[]) {
       ),
     },
     inviteCode: group.invite_code,
+    // Qué integrantes ya eligió alguien (sin decir quién), y cuál soy yo.
+    claimedMemberIds: members
+      .filter((member) => member.user_id)
+      .map((member) => member.id),
+    myMemberId,
   }
 }
 
@@ -142,6 +154,13 @@ export async function createGroup(
   request: Request,
   env: Env,
 ): Promise<Response> {
+  // Crear un grupo exige cuenta con correo: el administrador debe poder
+  // recuperar su acceso.
+  const user = await authenticate(request, env)
+  if (!user || user.email === null) {
+    return errorResponse('Necesitas una cuenta para crear un grupo', 401)
+  }
+
   let body: unknown
   try {
     body = await request.json()
@@ -167,8 +186,15 @@ export async function createGroup(
     ),
     ...group.members.map((member) =>
       env.DB.prepare(
-        'INSERT INTO members (id, group_id, name, avatar) VALUES (?, ?, ?, ?)',
-      ).bind(member.id, group.id, member.name, member.avatar ?? null),
+        'INSERT INTO members (id, group_id, name, avatar, user_id) VALUES (?, ?, ?, ?, ?)',
+      ).bind(
+        member.id,
+        group.id,
+        member.name,
+        member.avatar ?? null,
+        // El creador es el administrador y su integrante queda vinculado.
+        member.id === group.adminMemberId ? user.id : null,
+      ),
     ),
   ]
 
@@ -192,7 +218,9 @@ export async function createGroup(
         id: member.id,
         name: member.name,
         avatar: member.avatar ?? null,
+        user_id: member.id === group.adminMemberId ? user.id : null,
       })),
+      group.adminMemberId,
     ),
     201,
   )
@@ -200,6 +228,7 @@ export async function createGroup(
 
 export async function getGroupByInviteCode(
   inviteCode: string,
+  request: Request,
   env: Env,
 ): Promise<Response> {
   const group = await env.DB.prepare(
@@ -212,10 +241,13 @@ export async function getGroupByInviteCode(
   }
 
   const { results } = await env.DB.prepare(
-    'SELECT id, name, avatar FROM members WHERE group_id = ? AND active = 1 ORDER BY rowid',
+    'SELECT id, name, avatar, user_id FROM members WHERE group_id = ? AND active = 1 ORDER BY rowid',
   )
     .bind(group.id)
     .all<MemberRow>()
 
-  return json(groupResponse(group, results))
+  // Con sesión iniciada, la respuesta dice qué integrante es quien pregunta.
+  const user = await authenticate(request, env)
+  const membership = user ? await membershipOf(user.id, group.id, env) : null
+  return json(groupResponse(group, results, membership?.memberId ?? null))
 }

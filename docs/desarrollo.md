@@ -734,3 +734,33 @@ Conceptos nuevos:
   averiguar qué correos tienen cuenta.
 - Comparación en tiempo constante: no se corta en la primera diferencia, para
   no filtrar información por el tiempo de respuesta.
+
+## Etapa 24 — Invitados, unirse y permisos en el servidor (6b)
+
+Hecho:
+
+- Cuenta invitada: al unirse a un grupo sin sesión, el servidor crea una cuenta
+  sin correo ni contraseña y devuelve su token. La persona no ve nada de esto.
+- Ruta `POST /api/grupos/<código>/unirse`: elige un integrante, opcionalmente
+  cambia su nombre (también en las partidas ya guardadas) y queda vinculado.
+  Un integrante ya elegido por otra persona responde 409.
+- Una invitada se convierte en cuenta con correo registrándose con su misma
+  sesión: es la misma cuenta, con su integrante y su historial.
+- Permisos: crear grupo exige cuenta con correo; cambiar un nombre o foto, solo
+  el administrador o el propio integrante; ver y registrar partidas, solo los
+  integrantes vinculados. Cada partida guarda quién la registró (`created_by`).
+- `GET /api/grupos/<código>` ahora dice qué integrantes ya fueron elegidos y,
+  con sesión, cuál eres tú (`myMemberId`).
+- Se editó la migración 0003 (todavía no estaba en producción) para que el correo
+  y la contraseña puedan estar vacíos.
+
+Conceptos nuevos:
+
+- Autenticación vs. autorización: la primera responde "¿quién eres?" (la sesión);
+  la segunda, "¿puedes hacer esto?" (ser administrador, ser el integrante). Los
+  códigos HTTP lo reflejan: 401 = no iniciaste sesión, 403 = estás identificado
+  pero no tienes permiso.
+- Cuenta invitada (guest): patrón común para dar identidad sin fricción y
+  pedir datos reales solo cuando hacen falta.
+- Los tests de permisos prueban a quien no debería poder: sin sesión, de
+  afuera del grupo, otro integrante.
