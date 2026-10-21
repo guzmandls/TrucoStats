@@ -66,77 +66,80 @@ export function HistoryRow({
       data-testid="partida"
       className={`${styles.row} ${match.canceled ? styles.canceled : ''}`}
     >
-      <div className={styles.head}>
-        <div className={styles.meta}>
-          {matchMetaParts(match).map((part) => (
-            <span key={part}>{part}</span>
-          ))}
+      <span className={styles.flag} aria-hidden="true" />
+      <div className={styles.content}>
+        <div className={styles.head}>
+          <div className={styles.meta}>
+            {matchMetaParts(match).map((part) => (
+              <span key={part}>{part}</span>
+            ))}
+          </div>
+          <div className={styles.headEnd}>
+            {showChange && (
+              <span
+                className={`${styles.chip} ${pointChange > 0 ? styles.chipUp : styles.chipDown}`}
+              >
+                {pointChange > 0 ? '+' : '−'}
+                {Math.abs(pointChange)} Pts
+              </span>
+            )}
+            {actions.length > 0 && (
+              <OverflowMenu
+                label="Opciones de la partida"
+                items={actions.map((action) => ({
+                  label:
+                    action === 'cancel'
+                      ? 'Cancelar partida'
+                      : 'Restaurar partida',
+                  onClick: () => onAction(match, action),
+                }))}
+              />
+            )}
+          </div>
         </div>
-        <div className={styles.headEnd}>
-          {showChange && (
-            <span
-              className={`${styles.chip} ${pointChange > 0 ? styles.chipUp : styles.chipDown}`}
-            >
-              {pointChange > 0 ? '+' : '−'}
-              {Math.abs(pointChange)} Pts
-            </span>
-          )}
-          {actions.length > 0 && (
-            <OverflowMenu
-              label="Opciones de la partida"
-              items={actions.map((action) => ({
-                label:
-                  action === 'cancel'
-                    ? 'Cancelar partida'
-                    : 'Restaurar partida',
-                onClick: () => onAction(match, action),
-              }))}
+        <div className={styles.main}>
+          <div className={styles.body}>
+            <TeamLine
+              team={match.teams.nos}
+              won={match.winner === 'nos'}
+              group={group}
             />
-          )}
-        </div>
-      </div>
-      <div className={styles.main}>
-        <div className={styles.body}>
-          <TeamLine
-            team={match.teams.nos}
-            won={match.winner === 'nos'}
-            group={group}
-          />
-          <TeamLine
-            team={match.teams.ellos}
-            won={match.winner === 'ellos'}
-            group={group}
-          />
-        </div>
-        <div className={styles.scores}>
-          <span
-            className={`${styles.scoreCell} ${match.winner === 'nos' ? styles.scoreWon : ''}`}
-          >
-            {match.scores.nos}
-          </span>
-          <span
-            className={`${styles.scoreCell} ${match.winner === 'ellos' ? styles.scoreWon : ''}`}
-          >
-            {match.scores.ellos}
-          </span>
-        </div>
-      </div>
-      {(isPending(match) || match.canceled) && (
-        <div className={styles.foot}>
-          {isPending(match) && (
-            <span className={styles.note}>
-              <CloudOffIcon size={14} />
-              Sin enviar
+            <TeamLine
+              team={match.teams.ellos}
+              won={match.winner === 'ellos'}
+              group={group}
+            />
+          </div>
+          <div className={styles.scores}>
+            <span
+              className={`${styles.scoreCell} ${match.winner === 'nos' ? styles.scoreWon : ''}`}
+            >
+              {match.scores.nos}
             </span>
-          )}
-          {match.canceled && <span className={styles.note}>Cancelada</span>}
-          {match.canceled?.reason && (
-            <span className={styles.reason}>
-              Motivo: {match.canceled.reason}
+            <span
+              className={`${styles.scoreCell} ${match.winner === 'ellos' ? styles.scoreWon : ''}`}
+            >
+              {match.scores.ellos}
             </span>
-          )}
+          </div>
         </div>
-      )}
+        {(isPending(match) || match.canceled) && (
+          <div className={styles.foot}>
+            {isPending(match) && (
+              <span className={styles.note}>
+                <CloudOffIcon size={14} />
+                Sin enviar
+              </span>
+            )}
+            {match.canceled && <span className={styles.note}>Cancelada</span>}
+            {match.canceled?.reason && (
+              <span className={styles.reason}>
+                Motivo: {match.canceled.reason}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }

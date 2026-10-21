@@ -1,18 +1,35 @@
 .row {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-4) var(--space-3);
+  align-items: stretch;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   border-bottom: var(--hairline-width) solid var(--line-thin);
 }
 
-/* Tres columnas del mismo alto: datos, equipos y puntajes. Los dos equipos y
-   las dos celdas de puntaje se reparten el alto en partes iguales, así cada
-   puntaje queda a la altura de su equipo. */
+/* Barra negra al costado de cada partida. */
+.flag {
+  flex: 0 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--ink);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* Contorno que une a los equipos con sus puntajes; los datos de la partida
+   quedan afuera. Los dos equipos y las dos celdas de puntaje se reparten el
+   alto en partes iguales, así cada puntaje queda a la altura de su equipo. */
 .main {
   display: flex;
   align-items: stretch;
-  gap: var(--space-2);
+  border: var(--border-width) solid var(--ink);
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 /* Línea de datos de la partida, arriba. */
@@ -90,11 +107,12 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  padding: 0 var(--space-3);
 }
 
 .team {
   flex: 1;
-  min-height: 36px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -119,10 +137,9 @@
 
 /* Bloque negro con los dos puntajes, separados por una línea crema. */
 .scores {
-  flex: 0 0 52px;
+  flex: 0 0 56px;
   display: flex;
   flex-direction: column;
-  border-radius: 8px;
   background: var(--ink);
   overflow: hidden;
 }

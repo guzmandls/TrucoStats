@@ -940,12 +940,12 @@ Conceptos nuevos:
 
 Hecho:
 
-- Historial: se mantiene la fila plana con el bloque negro de puntajes a la
-  derecha. El bloque negro lateral de datos se reemplazó por una línea arriba
-  (modalidad, objetivo, duración, puntos y menú); "Sin enviar" y "Cancelada"
-  van en una línea debajo.
-- Estadísticas: las secciones ocupan todo el ancho; las pestañas (con contorno
-  en la activa) y los totales siguen siendo bloques con margen.
+- Historial: fila plana con barra vertical negra a la izquierda. Los datos
+  (modalidad, objetivo, duración, puntos y menú) van en una línea arriba; un
+  recuadro con contorno une a los equipos con el bloque negro de puntajes;
+  "Sin enviar" y "Cancelada" van debajo.
+- Estadísticas: pestañas y secciones de borde a borde, separadas de la barra
+  superior por una línea crema; los totales son bloques con margen.
 - Partidas (récords): la duración o diferencia va grande a la derecha del título.
 
 Conceptos nuevos:
