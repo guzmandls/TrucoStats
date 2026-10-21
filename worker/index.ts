@@ -1,4 +1,9 @@
-import { createGroup, getGroupByInviteCode, type Env } from './groups'
+import {
+  createGroup,
+  getGroupByInviteCode,
+  listMyGroups,
+  type Env,
+} from './groups'
 import { errorResponse, json } from './http'
 import { addMember, releaseMember, removeMember, setMemberAdmin } from './admin'
 import { setAliases } from './aliases'
@@ -56,6 +61,12 @@ export default {
     if (pathname === '/api/yo') {
       return request.method === 'GET'
         ? currentUser(request, env)
+        : errorResponse('Método no permitido', 405)
+    }
+
+    if (pathname === '/api/mis-grupos') {
+      return request.method === 'GET'
+        ? listMyGroups(request, env)
         : errorResponse('Método no permitido', 405)
     }
 

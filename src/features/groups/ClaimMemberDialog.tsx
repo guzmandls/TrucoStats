@@ -95,6 +95,13 @@ export function ClaimMemberDialog({
           </button>
         ))}
       </div>
+      {takenIds.length > 0 && (
+        <p className={styles.help}>
+          Si tu lugar dice “Ya elegido”, inicia sesión con la cuenta con la que
+          lo elegiste o pídele al administrador que lo libere (desde
+          Participantes).
+        </p>
+      )}
       {error && <Notice>{error}</Notice>}
       <Button disabled={!chosen || busy} onClick={() => void handleClaim()}>
         Soy yo

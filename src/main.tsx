@@ -19,3 +19,25 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register('/sw.js').catch(() => undefined)
   })
 }
+
+// Una app que quedó abierta en segundo plano puede seguir con el código viejo.
+// Al volver a verla se compara con la versión publicada y, si cambió, se recarga.
+if (import.meta.env.PROD) {
+  const scriptOf = (html: string) =>
+    /\/assets\/index-[^"']+\.js/.exec(html)?.[0]
+  const running = scriptOf(document.documentElement.innerHTML)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !running) {
+      return
+    }
+    fetch('/', { cache: 'no-store' })
+      .then((response) => response.text())
+      .then((html) => {
+        const latest = scriptOf(html)
+        if (latest && latest !== running) {
+          window.location.reload()
+        }
+      })
+      .catch(() => undefined)
+  })
+}
