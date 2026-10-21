@@ -115,6 +115,13 @@ export function HistoryRow({
               {metaParts.map((part) => (
                 <span key={part}>{part}</span>
               ))}
+              {!compact && isPending(match) && (
+                <span className={styles.note}>
+                  <CloudOffIcon size={14} />
+                  Sin enviar
+                </span>
+              )}
+              {match.canceled && <span className={styles.note}>Cancelada</span>}
             </div>
             {(showChange || actions.length > 0) && (
               <div className={styles.footEnd}>
@@ -141,20 +148,11 @@ export function HistoryRow({
               </div>
             )}
           </div>
-          {((!compact && isPending(match)) || match.canceled) && (
+          {match.canceled?.reason && (
             <div className={styles.notes}>
-              {!compact && isPending(match) && (
-                <span className={styles.note}>
-                  <CloudOffIcon size={14} />
-                  Sin enviar
-                </span>
-              )}
-              {match.canceled && <span className={styles.note}>Cancelada</span>}
-              {match.canceled?.reason && (
-                <span className={styles.reason}>
-                  Motivo: {match.canceled.reason}
-                </span>
-              )}
+              <span className={styles.reason}>
+                Motivo: {match.canceled.reason}
+              </span>
             </div>
           )}
         </div>
