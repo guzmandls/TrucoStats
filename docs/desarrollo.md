@@ -1050,3 +1050,18 @@ Hecho:
 Concepto nuevo: **un mismo código de error con significados distintos**. Un 401
 puede ser "no hay sesión válida" o "credenciales incorrectas"; por eso el aviso solo
 se activa cuando había un token y el pedido no era de inicio de sesión.
+
+## Etapa 34 — Historial de cada partida
+
+Hecho:
+
+- Nuevo pedido `GET /api/grupos/:código/partidas/:id/historial` (`worker/history.ts`):
+  devuelve cuándo y quién registró la partida y cada cancelación o restauración
+  (quién, cuándo y motivo), leyendo la tabla `match_events`. Cualquier integrante del
+  grupo lo puede ver.
+- En la app, el menú "⋯" de cada partida enviada ofrece "Ver historial", que abre
+  una ventana con esa lista.
+
+Concepto nuevo: **tabla de eventos (auditoría)**. En vez de guardar solo el estado
+actual, se guarda cada cambio; así se puede reconstruir qué pasó y nadie puede
+ocultar una acción.

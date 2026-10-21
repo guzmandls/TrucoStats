@@ -88,9 +88,6 @@ No son requisitos nuevos: son notas para no olvidarlas.
 - Cancelar y restaurar necesitan conexión. Si hiciera falta hacerlo sin conexión,
   habría que guardar la acción como pendiente y enviarla después (hoy solo se
   guardan así las partidas nuevas).
-- Quien cancela o restaura no ve el historial completo de eventos de una partida
-  (quién canceló, quién restauró, cuántas veces): el servidor lo guarda
-  (`match_events`) pero la app solo muestra el estado actual.
 - Los puntos (Pts) se recalculan al cancelar o restaurar, pero no hay aviso al
   resto del grupo.
 

@@ -207,7 +207,8 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - Una partida finalizada la puede cancelar el administrador del grupo en cualquier momento. Quien la registró, si no es administrador, puede cancelarla solo durante 1 hora desde que el servidor la recibió (el plazo no depende de la hora que informa el celular).
 - La restauración la puede hacer el administrador siempre; quien canceló, si no es administrador, durante 1 hora desde la cancelación.
 - Pasado el plazo, el botón no aparece para quien no es administrador, y el servidor también lo rechaza.
-- En la lista del historial, cada partida sobre la que la persona tiene permiso muestra un botón "⋯" con la opción "Cancelar partida" o "Restaurar partida"; si no tiene permiso, el botón no aparece.
+- En la lista del historial, cada partida ya enviada muestra un botón "⋯" con la opción "Ver historial" (para cualquier integrante) y, si la persona tiene permiso, "Cancelar partida" o "Restaurar partida".
+- "Ver historial" abre una ventana con todo lo que pasó con la partida, del más antiguo al más reciente: cuándo y quién la registró y cada cancelación o restauración (quién, cuándo y el motivo). Necesita conexión.
 - Al cancelar se puede escribir un motivo, que es opcional (hasta 200 caracteres).
 - Cancelar y restaurar necesitan conexión, porque el servidor valida los permisos; una partida que todavía no se envió se envía primero.
 - Las partidas anuladas no contarán para las estadísticas ni para los puntos.

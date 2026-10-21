@@ -60,7 +60,12 @@ export function groupOverview(group: Group, matches: Match[]): GroupOverview {
 // Cuándo fue la partida: "hoy 21:05", "ayer 18:30", "18 oct 21:00" (con el año si
 // es de otro año). La hora es la del celular.
 export function matchWhen(match: Match, now: Date = new Date()): string {
-  const date = new Date(match.playedAt)
+  return whenLabel(match.playedAt, now)
+}
+
+// Lo mismo para cualquier fecha ISO (por ejemplo, la de un evento de la partida).
+export function whenLabel(iso: string, now: Date = new Date()): string {
+  const date = new Date(iso)
   const time = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-  return `${dayLabel(match.playedAt, now).toLowerCase()} ${time}`
+  return `${dayLabel(iso, now).toLowerCase()} ${time}`
 }

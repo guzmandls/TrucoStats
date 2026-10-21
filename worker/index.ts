@@ -3,6 +3,7 @@ import { errorResponse, json } from './http'
 import { addMember, releaseMember, removeMember, setMemberAdmin } from './admin'
 import { updateMember } from './members'
 import { cancelMatch, restoreMatch } from './cancel'
+import { matchHistory } from './history'
 import { joinGroup } from './join'
 import { leaveGroup } from './leave'
 import { createMatch, listMatches } from './matches'
@@ -17,6 +18,8 @@ const MEMBER_ACTION =
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
 const MATCH_ACTION =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/(cancelar|restaurar)$/
+const MATCH_HISTORY =
+  /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/historial$/
 const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 
@@ -74,6 +77,18 @@ export default {
         return listMatches(matchesOfGroup[1], request, env)
       }
       return errorResponse('Método no permitido', 405)
+    }
+
+    const historyOfMatch = MATCH_HISTORY.exec(pathname)
+    if (historyOfMatch) {
+      return request.method === 'GET'
+        ? matchHistory(
+            historyOfMatch[1],
+            decodeURIComponent(historyOfMatch[2]),
+            request,
+            env,
+          )
+        : errorResponse('Método no permitido', 405)
     }
 
     const matchAction = MATCH_ACTION.exec(pathname)

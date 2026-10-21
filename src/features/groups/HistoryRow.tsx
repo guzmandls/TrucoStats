@@ -20,6 +20,8 @@ interface HistoryRowProps {
   // null si no jugó o no se sabe.
   pointChange?: number | null
   onAction?: (match: Match, action: MatchAction) => void
+  // Si se pasa, el menú ofrece "Ver historial" (solo para partidas ya enviadas).
+  onShowHistory?: (match: Match) => void
   // Versión para las estadísticas: solo la tarjeta con la fecha debajo, sin
   // opciones ni puntos.
   compact?: boolean
@@ -66,9 +68,20 @@ export function HistoryRow({
   group,
   pointChange = null,
   onAction = () => {},
+  onShowHistory,
   compact = false,
 }: HistoryRowProps) {
   const actions = compact ? [] : availableActions(match, group)
+  const canShowHistory = !compact && onShowHistory && !isPending(match)
+  const menuItems = [
+    ...actions.map((action) => ({
+      label: action === 'cancel' ? 'Cancelar partida' : 'Restaurar partida',
+      onClick: () => onAction(match, action),
+    })),
+    ...(canShowHistory
+      ? [{ label: 'Ver historial', onClick: () => onShowHistory(match) }]
+      : []),
+  ]
   const showChange =
     !compact && pointChange !== null && pointChange !== 0 && !match.canceled
   const metaParts = compact
@@ -123,7 +136,7 @@ export function HistoryRow({
               )}
               {match.canceled && <span className={styles.note}>Cancelada</span>}
             </div>
-            {(showChange || actions.length > 0) && (
+            {(showChange || menuItems.length > 0) && (
               <div className={styles.footEnd}>
                 {showChange && (
                   <span
@@ -133,16 +146,10 @@ export function HistoryRow({
                     {Math.abs(pointChange)} Pts
                   </span>
                 )}
-                {actions.length > 0 && (
+                {menuItems.length > 0 && (
                   <OverflowMenu
                     label="Opciones de la partida"
-                    items={actions.map((action) => ({
-                      label:
-                        action === 'cancel'
-                          ? 'Cancelar partida'
-                          : 'Restaurar partida',
-                      onClick: () => onAction(match, action),
-                    }))}
+                    items={menuItems}
                   />
                 )}
               </div>

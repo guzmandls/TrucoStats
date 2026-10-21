@@ -51,6 +51,7 @@ import type { Match } from '../matches/types'
 import { AddMemberDialog } from './AddMemberDialog'
 import { isGroupAdmin } from './groupAdmin'
 import { InviteDialog } from './InviteDialog'
+import { MatchHistoryDialog } from './MatchHistoryDialog'
 import { pullGroup, syncGroup } from './groupsSync'
 import { isPending, syncPendingMatches } from './matchesSync'
 import { leaveGroup, setGroupInviteCode } from './groupsStorage'
@@ -80,6 +81,7 @@ export function GroupScreen() {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [historyOf, setHistoryOf] = useState<Match | null>(null)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [leaveError, setLeaveError] = useState<string | null>(null)
   // Aviso de puntos que deja la partida recién terminada: se lee al abrir la
@@ -444,6 +446,11 @@ export function GroupScreen() {
                     onAction={(target, action) =>
                       setActing({ match: target, action })
                     }
+                    onShowHistory={
+                      group.inviteCode && group.myMemberId
+                        ? setHistoryOf
+                        : undefined
+                    }
                   />
                 ))}
               </section>
@@ -488,6 +495,13 @@ export function GroupScreen() {
           </ButtonLink>
         )}
       </ScreenFooter>
+      {historyOf && group.inviteCode && (
+        <MatchHistoryDialog
+          inviteCode={group.inviteCode}
+          matchId={historyOf.id}
+          onClose={() => setHistoryOf(null)}
+        />
+      )}
       {adding && group.inviteCode && (
         <AddMemberDialog
           inviteCode={group.inviteCode}
