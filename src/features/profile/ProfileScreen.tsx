@@ -59,7 +59,7 @@ export function ProfileScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent flush>
+      <ScreenContent>
         {summary && summary.total === 0 ? (
           <EmptyNote>Todavía no jugaste ninguna partida</EmptyNote>
         ) : null}

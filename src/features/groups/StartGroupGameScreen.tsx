@@ -159,7 +159,7 @@ export function StartGroupGameScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent flush>
+      <ScreenContent>
         {problem && <Notice>{problem}</Notice>}
 
         <Section title="Objetivo">

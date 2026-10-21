@@ -91,7 +91,7 @@ export function GroupStatsScreen() {
         value={tab}
         onChange={setTab}
       />
-      <ScreenContent flush>
+      <ScreenContent>
         {matches.length === 0 ? (
           <EmptyNote>Todavía no hay partidas jugadas</EmptyNote>
         ) : tab === 'grupales' ? (

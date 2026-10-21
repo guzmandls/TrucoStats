@@ -71,7 +71,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
         }
       />
       <form className={styles.form} onSubmit={handleSubmit}>
-        <ScreenContent flush>
+        <ScreenContent>
           <Section title={registering ? 'Usuario' : 'Usuario o correo'}>
             <div className={styles.field}>
               <TextInput

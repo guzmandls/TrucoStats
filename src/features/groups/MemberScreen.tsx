@@ -117,7 +117,7 @@ export function MemberScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent flush>
+      <ScreenContent>
         <Section>
           <MemberStatsFicha
             member={member}

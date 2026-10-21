@@ -509,9 +509,15 @@
 
 /* ---------- Secciones full-bleed ---------- */
 
+/* Cada sección es una tarjeta con margen: banda negra con el título y el
+   contenido sobre crema. */
 .section {
   display: flex;
   flex-direction: column;
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--paper);
 }
 
 .sectionHead {

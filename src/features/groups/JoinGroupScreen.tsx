@@ -138,7 +138,7 @@ export function JoinGroupScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent flush>
+      <ScreenContent>
         {status === 'loading' && <EmptyNote>Buscando el grupo…</EmptyNote>}
 
         {status === 'error' && (
