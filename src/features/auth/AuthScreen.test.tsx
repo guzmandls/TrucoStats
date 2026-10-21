@@ -59,15 +59,26 @@ afterEach(() => {
 })
 
 describe('AuthScreen (registrarse)', () => {
-  it('pide usuario, contraseña y un correo opcional que explica para qué sirve', () => {
+  it('pide usuario, contraseña y un correo opcional', () => {
     renderAuth('register')
 
     expect(screen.getByLabelText('Usuario')).toBeRequired()
     expect(screen.getByLabelText('Contraseña')).toBeRequired()
     expect(screen.getByLabelText('Correo (opcional)')).not.toBeRequired()
-    expect(
-      screen.getByText('Sirve para poder recuperar tu contraseña.'),
-    ).toBeInTheDocument()
+  })
+
+  it('explica para qué sirve el correo con el botón de ayuda', () => {
+    renderAuth('register')
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '¿Para qué sirve el correo?' }),
+    )
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'El correo sirve para recuperar tu contraseña si la olvidas.',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Entendido' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('crea la cuenta, guarda la sesión y vuelve a donde estaba', async () => {

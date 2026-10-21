@@ -123,14 +123,14 @@ export function HomeScreen() {
                   ]
                 : [
                     {
-                      label: 'Registrarse',
-                      to: '/registrarse',
-                      icon: <UserPlusIcon />,
-                    },
-                    {
                       label: 'Iniciar sesión',
                       to: '/iniciar-sesion',
                       icon: <LoginIcon />,
+                    },
+                    {
+                      label: 'Registrarse',
+                      to: '/registrarse',
+                      icon: <UserPlusIcon />,
                     },
                   ]),
             ]}

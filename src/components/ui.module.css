@@ -431,6 +431,44 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Botón de ayuda: el círculo es chico, pero el área tocable llega al mínimo
+   sin agrandar la franja del título. */
+.sectionHelp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  margin: calc(var(--space-3) * -1) calc(var(--space-4) * -1)
+    calc(var(--space-3) * -1) 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sectionHelpMark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: var(--hairline-width) solid currentColor;
+  border-radius: 50%;
+  font-size: var(--text-sm);
+  line-height: 1;
+}
+
+.sectionHelp:focus-visible {
+  outline: var(--border-width) solid var(--paper);
+  outline-offset: calc(var(--border-width) * -1);
 }
 
 .sectionBody {

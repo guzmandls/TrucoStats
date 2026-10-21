@@ -770,8 +770,8 @@ Conceptos nuevos:
 
 Hecho:
 
-- Pantallas "Registrarse" (usuario, contraseña y correo opcional con la
-  aclaración de que sirve para recuperar la contraseña) e "Iniciar sesión" (con
+- Pantallas "Registrarse" (usuario, contraseña y correo opcional; un botón "?"
+  junto al título del correo explica para qué sirve) e "Iniciar sesión" (con
   usuario o correo). Se abren desde el menú de las tres rayas de la pantalla
   principal, que ofrece "Cerrar sesión" cuando hay sesión.
 - Crear grupo pide una cuenta registrada: si falta, manda a registrarse y vuelve.

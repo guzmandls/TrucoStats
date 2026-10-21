@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
   Button,
+  Dialog,
   HeaderIconButton,
   Notice,
   PageHeader,
@@ -34,6 +35,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
   const [email, setEmail] = useState('')
   const [problem, setProblem] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [emailHelp, setEmailHelp] = useState(false)
   const registering = mode === 'register'
   const title = registering ? 'Registrarse' : 'Iniciar sesión'
 
@@ -83,12 +85,6 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                 maxLength={100}
                 required
               />
-              {registering && (
-                <p className={styles.hint}>
-                  Es tu identificador para entrar. No hace falta que sea tu
-                  nombre.
-                </p>
-              )}
             </div>
           </Section>
 
@@ -110,7 +106,13 @@ export function AuthScreen({ mode }: AuthScreenProps) {
           </Section>
 
           {registering && (
-            <Section title="Correo (opcional)">
+            <Section
+              title="Correo (opcional)"
+              help={{
+                label: '¿Para qué sirve el correo?',
+                onClick: () => setEmailHelp(true),
+              }}
+            >
               <div className={styles.field}>
                 <TextInput
                   type="email"
@@ -121,9 +123,6 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                   autoCapitalize="none"
                   maxLength={100}
                 />
-                <p className={styles.hint}>
-                  Sirve para poder recuperar tu contraseña.
-                </p>
               </div>
             </Section>
           )}
@@ -153,6 +152,14 @@ export function AuthScreen({ mode }: AuthScreenProps) {
           </Button>
         </ScreenFooter>
       </form>
+      {emailHelp && (
+        <Dialog
+          title="El correo sirve para recuperar tu contraseña si la olvidas."
+          onClose={() => setEmailHelp(false)}
+        >
+          <Button onClick={() => setEmailHelp(false)}>Entendido</Button>
+        </Dialog>
+      )}
     </Screen>
   )
 }

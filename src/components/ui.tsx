@@ -292,13 +292,31 @@ export function StatRow({ label, value }: StatRowProps) {
 
 interface SectionProps {
   title?: string
+  // Botón "?" en el título que abre una explicación breve.
+  help?: { label: string; onClick: () => void }
   children: ReactNode
 }
 
-export function Section({ title, children }: SectionProps) {
+export function Section({ title, help, children }: SectionProps) {
   return (
     <section className={styles.section}>
-      {title && <h2 className={styles.sectionHead}>{title}</h2>}
+      {title && (
+        <h2 className={styles.sectionHead}>
+          {title}
+          {help && (
+            <button
+              type="button"
+              className={styles.sectionHelp}
+              aria-label={help.label}
+              onClick={help.onClick}
+            >
+              <span className={styles.sectionHelpMark} aria-hidden="true">
+                ?
+              </span>
+            </button>
+          )}
+        </h2>
+      )}
       <div className={styles.sectionBody}>{children}</div>
     </section>
   )
