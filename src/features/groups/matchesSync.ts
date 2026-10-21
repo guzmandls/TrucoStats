@@ -1,7 +1,7 @@
 import { ApiError } from '../../lib/api'
 import { loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
-import { registerGroup, sendMatch } from './groupsApi'
+import { cancelRemoteMatch, registerGroup, sendMatch } from './groupsApi'
 import { loadGroups, setGroupInviteCode } from './groupsStorage'
 import type { Group } from './types'
 
@@ -28,6 +28,35 @@ async function inviteCodeOf(group: Group): Promise<string> {
   return inviteCode
 }
 
+// La partida ya llegó al servidor y se había cancelado en este celular: se
+// cancela también allá. Si el servidor no lo permite (por ejemplo, pasó el
+// plazo), queda como diga el servidor.
+async function cancelAfterSend(
+  inviteCode: string,
+  match: Match,
+): Promise<Match> {
+  try {
+    const remote = await cancelRemoteMatch(
+      inviteCode,
+      match.id,
+      match.canceled?.reason ?? '',
+    )
+    return {
+      ...match,
+      ...(remote.createdBy ? { createdBy: remote.createdBy } : {}),
+      ...(remote.registeredAt ? { registeredAt: remote.registeredAt } : {}),
+      ...(remote.canceled ? { canceled: remote.canceled } : {}),
+    }
+  } catch (error) {
+    if (shouldStop(error)) {
+      throw error
+    }
+    const { canceled, ...rest } = match
+    void canceled
+    return rest
+  }
+}
+
 // Envía las partidas pendientes, de a una y en orden. Devuelve cuántas llegaron.
 async function syncOnce(): Promise<number> {
   const pending = (await loadMatches())
@@ -48,7 +77,17 @@ async function syncOnce(): Promise<number> {
       for (const match of pending.filter((item) => item.groupId === groupId)) {
         try {
           await sendMatch(inviteCode, match)
-          await saveMatch({ ...match, syncedAt: new Date().toISOString() })
+          // Si se canceló sin conexión, la cancelación sube junto con la partida:
+          // llega como cualquier otra, ya cancelada. Si falla por falta de
+          // conexión, la partida sigue pendiente y se vuelve a intentar.
+          let confirmed: Match = {
+            ...match,
+            syncedAt: new Date().toISOString(),
+          }
+          if (match.canceled) {
+            confirmed = await cancelAfterSend(inviteCode, confirmed)
+          }
+          await saveMatch(confirmed)
           sent += 1
         } catch (error) {
           if (shouldStop(error)) {

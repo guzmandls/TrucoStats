@@ -270,17 +270,40 @@ export function GroupScreen() {
   // Cancela o restaura en el servidor y deja la partida igual en este celular.
   // Hace falta conexión: el servidor es quien valida los permisos.
   const handleConfirmAction = async () => {
-    if (!acting || !group.inviteCode) {
-      setActionError('El grupo todavía no está en el servidor.')
+    if (!acting) {
       return
     }
     const { match, action } = acting
     setBusy(true)
     setActionError(null)
     try {
-      // Una partida que no se envió todavía tiene que llegar primero.
+      // Una partida que todavía no se envió se cancela o se restaura aquí, sin
+      // conexión: se guarda así y sube al servidor junto con la partida.
       if (isPending(match)) {
-        await syncPendingMatches()
+        const { canceled, ...rest } = match
+        void canceled
+        await saveMatch(
+          action === 'cancel'
+            ? {
+                ...rest,
+                canceled: {
+                  at: new Date().toISOString(),
+                  by: group.myMemberId ?? null,
+                  reason: reason.trim() === '' ? null : reason.trim(),
+                },
+              }
+            : rest,
+        )
+        closeAction()
+        reload()
+        void syncPendingMatches().then((sent) =>
+          sent > 0 ? reload() : undefined,
+        )
+        return
+      }
+      if (!group.inviteCode) {
+        setActionError('El grupo todavía no está en el servidor.')
+        return
       }
       const remote =
         action === 'cancel'

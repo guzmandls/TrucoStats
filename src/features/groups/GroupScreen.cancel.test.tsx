@@ -268,6 +268,66 @@ describe('cancelar y restaurar partidas', () => {
     ).toBeInTheDocument()
   })
 
+  it('una partida sin enviar se cancela sin conexión y queda marcada', async () => {
+    await saveMatch(buildMatch('p1', { syncedAt: undefined }))
+    const fetchMock = vi.fn(() => Promise.reject(new TypeError('sin red')))
+    vi.stubGlobal('fetch', fetchMock)
+    renderGroup()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de la partida' }),
+    )
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Cancelar partida' }))
+    fireEvent.change(screen.getByLabelText('Motivo (opcional)'), {
+      target: { value: 'Mal cargada' },
+    })
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: 'Cancelar partida',
+      }),
+    )
+
+    expect(await screen.findByText('Motivo: Mal cargada')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    const [stored] = await loadMatches()
+    expect(stored.canceled?.reason).toBe('Mal cargada')
+    // Sigue sin enviar: sube ya cancelada cuando haya conexión.
+    expect(stored.syncedAt).toBeUndefined()
+  })
+
+  it('una partida sin enviar y cancelada se puede restaurar sin conexión', async () => {
+    await saveMatch(
+      buildMatch('p1', {
+        syncedAt: undefined,
+        canceled: {
+          at: new Date().toISOString(),
+          by: 'm1',
+          reason: null,
+        },
+      }),
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new TypeError('sin red'))),
+    )
+    renderGroup()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de la partida' }),
+    )
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Restaurar partida' }))
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: 'Restaurar partida',
+      }),
+    )
+
+    await waitFor(async () => {
+      const [stored] = await loadMatches()
+      expect(stored.canceled).toBeUndefined()
+    })
+  })
+
   it('una partida cancelada no cuenta para los puntos', async () => {
     await saveMatch(
       buildMatch('p1', {
