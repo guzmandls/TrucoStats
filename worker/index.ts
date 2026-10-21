@@ -1,6 +1,7 @@
 import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { updateMember } from './members'
+import { cancelMatch, restoreMatch } from './cancel'
 import { joinGroup } from './join'
 import { createMatch, listMatches } from './matches'
 import { currentUser, login, logout, register } from './users'
@@ -9,6 +10,8 @@ const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
 const MEMBER_OF_GROUP =
   /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})$/
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
+const MATCH_ACTION =
+  /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/(cancelar|restaurar)$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 
 export default {
@@ -65,6 +68,18 @@ export default {
         return listMatches(matchesOfGroup[1], request, env)
       }
       return errorResponse('Método no permitido', 405)
+    }
+
+    const matchAction = MATCH_ACTION.exec(pathname)
+    if (matchAction) {
+      if (request.method !== 'POST') {
+        return errorResponse('Método no permitido', 405)
+      }
+      const [, code, matchId, action] = matchAction
+      const id = decodeURIComponent(matchId)
+      return action === 'cancelar'
+        ? cancelMatch(code, id, request, env)
+        : restoreMatch(code, id, request, env)
     }
 
     const joinOfGroup = JOIN_GROUP.exec(pathname)
