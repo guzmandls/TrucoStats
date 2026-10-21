@@ -233,8 +233,9 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - Cada partida tendrá un timer que mide su duración.
 - El timer comienza al iniciar la partida y termina al confirmar la finalización.
 - El tiempo se mostrará en pantalla durante la partida.
-- La partida podrá pausarse; mientras esté pausada, el timer se detendrá y aparecerá un aviso "Partida pausada".
-- Mientras la partida esté pausada no se podrá sumar ni restar puntos, hasta reanudarla.
+- La partida podrá pausarse: pausar solo detiene el timer. No aparece ningún aviso ni se bloquea nada; se puede seguir usando el contador y navegar por la app.
+- Una partida pausada se reanuda con el botón del timer o al sumar puntos. Deshacer no la reanuda.
+- Si el contador se cierra (o la app pasa a segundo plano) sin pausar, la partida se pausa sola 60 segundos después de la última vez que estuvo abierto, para que no quede corriendo el tiempo mientras nadie juega. Al volver dentro de esos 60 segundos sigue corriendo normalmente.
 - El tiempo en pausa no contará para la duración.
 - Solamente el anotador podrá pausar y reanudar.
 - La duración se guarda junto con el resultado al finalizar la partida.

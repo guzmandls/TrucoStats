@@ -1263,3 +1263,9 @@ Después de probar con dos celulares seguía sin verse lo que hacía el otro. Ca
 Concepto nuevo: **`Promise.allSettled`.** Espera a que terminen todas las promesas, salgan
 bien o mal, y deja decidir qué hacer con cada resultado; `Promise.all` se rinde con la
 primera que falla.
+
+## Etapa 46 — Pausa simple y pausa automática del cronómetro
+
+- **Pausar solo detiene el tiempo.** Se quitó el cartel "Partida pausada" y el bloqueo: se puede seguir sumando y navegando. Sumar puntos reanuda el cronómetro; deshacer no.
+- **Pausa automática a los 60 segundos.** Mientras el contador está abierto guarda cada 10 segundos "última vez activo" (`lastActiveAt`), y también al ocultarse la app. Al volver a abrir, `settleTimer` compara: si pasó más de un minuto con el cronómetro corriendo, lo deja pausado en ese instante límite, así no se cuentan 45 minutos de una partida abandonada.
+- **Por qué un latido y no un temporizador:** si la app se cierra, el navegador ya no ejecuta código; por eso se guarda la última marca y se decide al reabrir.

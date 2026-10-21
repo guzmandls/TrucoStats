@@ -115,30 +115,53 @@ describe('flujo completo de partida', () => {
     expect(screen.getByTestId('score-nos')).toHaveTextContent('29')
   })
 
-  it('muestra el cronómetro y permite pausar y reanudar', () => {
+  it('muestra el cronómetro y permite pausar y reanudar sin cartel ni bloqueo', () => {
     renderCounter()
     expect(screen.getByTestId('timer-value')).toHaveTextContent('0:0')
 
     fireEvent.click(screen.getByRole('button', { name: /pausar partida/i }))
-    expect(screen.getByText('Partida pausada')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'N' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'E' })).toBeDisabled()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Reanudar' }))
+    // Pausar solo detiene el cronómetro: no hay cartel y los botones siguen activos.
     expect(screen.queryByText('Partida pausada')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: /reanudar partida/i }),
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'N' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'E' })).toBeEnabled()
+
+    fireEvent.click(screen.getByRole('button', { name: /reanudar partida/i }))
+    expect(
+      screen.getByRole('button', { name: /pausar partida/i }),
+    ).toBeInTheDocument()
   })
 
-  it('no suma puntos mientras la partida está pausada', async () => {
+  it('con la partida pausada se puede sumar y sumar la reanuda', async () => {
     renderCounter()
     fireEvent.click(screen.getByRole('button', { name: /pausar partida/i }))
-    fireEvent.pointerDown(screen.getByRole('button', { name: 'N' }))
-    fireEvent.pointerUp(screen.getByRole('button', { name: 'N' }))
 
-    expect(screen.getByTestId('score-nos')).toHaveTextContent('0')
+    pressButton('N')
+
+    expect(screen.getByTestId('score-nos')).toHaveTextContent('1')
+    expect(
+      screen.getByRole('button', { name: /pausar partida/i }),
+    ).toBeInTheDocument()
     await waitFor(async () => {
       const game = await loadGame(QUICK_SLOT)
-      expect(game === null || !hasMoves(game)).toBe(true)
+      expect(game && hasMoves(game)).toBe(true)
     })
+  })
+
+  it('deshacer con la partida pausada no la reanuda', () => {
+    renderCounter()
+    pressButton('N')
+    fireEvent.click(screen.getByRole('button', { name: /pausar partida/i }))
+
+    const undo = screen.getByRole('button', { name: /deshacer nosotros/i })
+    fireEvent.pointerDown(undo)
+    fireEvent.pointerUp(undo)
+
+    expect(screen.getByTestId('score-nos')).toHaveTextContent('0')
+    expect(
+      screen.getByRole('button', { name: /reanudar partida/i }),
+    ).toBeInTheDocument()
   })
 })

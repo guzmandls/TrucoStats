@@ -38,6 +38,7 @@ import {
   isPaused,
   pauseTimer as pauseTimerState,
   resumeTimer as resumeTimerState,
+  settleTimer,
   type TimerState,
 } from './gameTimer'
 import { syncPendingMatches } from '../groups/matchesSync'
@@ -64,7 +65,7 @@ interface GameState {
 }
 
 type GameAction =
-  | { type: 'increment'; team: Team }
+  | { type: 'increment'; team: Team; now: number }
   | { type: 'commit' }
   | { type: 'undo'; team: Team }
   | { type: 'setTarget'; target: number }
@@ -72,6 +73,7 @@ type GameAction =
   | { type: 'decline' }
   | { type: 'pauseTimer'; now: number }
   | { type: 'resumeTimer'; now: number }
+  | { type: 'settleAway'; lastActiveAt: number; now: number }
   | { type: 'hydrate'; state: GameState }
 
 export function clampTarget(target: number, min: number = MIN_TARGET): number {
@@ -108,17 +110,25 @@ function gameReducer(state: GameState, action: GameAction): GameState {
   if (action.type === 'resumeTimer') {
     return { ...state, timer: resumeTimerState(state.timer, action.now) }
   }
-
-  if (isPaused(state.timer) && action.type !== 'setTarget') {
-    return state
+  if (action.type === 'settleAway') {
+    return {
+      ...state,
+      timer: settleTimer(state.timer, action.lastActiveAt, action.now),
+    }
   }
 
+  // Pausar solo detiene el cronómetro: se puede seguir sumando, restando y
+  // cambiando el objetivo.
   switch (action.type) {
-    case 'increment':
-      return withFirstReached(
-        state,
-        increment(state.counter, action.team, state.target),
-      )
+    case 'increment': {
+      const counter = increment(state.counter, action.team, state.target)
+      const next = withFirstReached(state, counter)
+      // Sumar puntos reanuda el cronómetro (deshacer no). Si no se sumó nada (el
+      // equipo ya llegó al objetivo), tampoco.
+      return counter === state.counter
+        ? next
+        : { ...next, timer: resumeTimerState(state.timer, action.now) }
+    }
     case 'commit':
       return withFirstReached(state, commit(state.counter))
     case 'undo':
@@ -190,7 +200,13 @@ function fromPersisted(game: PersistedGame): GameState {
     firstReached: game.firstReached,
     declined: game.declined ?? false,
     context: contextOf(game),
-    timer: game.timer ?? createTimer(Date.now()),
+    // Si el contador estuvo cerrado más de un minuto sin pausar, el cronómetro
+    // vuelve pausado en ese límite.
+    timer: settleTimer(
+      game.timer ?? createTimer(Date.now()),
+      game.lastActiveAt,
+      Date.now(),
+    ),
   }
 }
 
@@ -203,6 +219,9 @@ function createId(): string {
   }
   return Math.random().toString(36).slice(2)
 }
+
+// Cada cuánto se anota que el contador sigue abierto y a la vista.
+const ACTIVE_HEARTBEAT_MS = 10_000
 
 export type CounterController = ReturnType<typeof useCounter>
 
@@ -247,9 +266,49 @@ export function useCounter(
     }
   }, [slot])
 
+  // Cuándo se usó el contador por última vez (abierto y a la vista). Se guarda con
+  // la partida: si queda cerrado más de un minuto sin pausar, el cronómetro se
+  // pausa solo (al volver, se ajusta en el límite).
+  const [activeAt, setActiveAt] = useState(() => Date.now())
+  const activeAtRef = useRef(activeAt)
+  useEffect(() => {
+    activeAtRef.current = activeAt
+  }, [activeAt])
+
+  useEffect(() => {
+    const touch = () => setActiveAt(Date.now())
+    const interval = window.setInterval(() => {
+      if (document.visibilityState !== 'hidden') {
+        touch()
+      }
+    }, ACTIVE_HEARTBEAT_MS)
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        touch()
+        return
+      }
+      // Al volver a la app: si pasó más de un minuto desde la última vez, el
+      // cronómetro queda pausado en ese límite.
+      dispatch({
+        type: 'settleAway',
+        lastActiveAt: activeAtRef.current,
+        now: Date.now(),
+      })
+      touch()
+    }
+    window.addEventListener('pagehide', touch)
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('pagehide', touch)
+      document.removeEventListener('visibilitychange', onVisibility)
+    }
+  }, [])
+
   const persisted = useMemo<PersistedGame>(
     () => ({
       version: GAME_VERSION,
+      lastActiveAt: activeAt,
       target: state.target,
       firstReached: state.firstReached,
       declined: state.declined,
@@ -264,6 +323,7 @@ export function useCounter(
       state.counter.history,
       state.context,
       state.timer,
+      activeAt,
     ],
   )
 
@@ -273,6 +333,21 @@ export function useCounter(
     }
     void saveGame(slot, persisted)
   }, [hydrated, persisted, slot])
+
+  // Al salir del contador se guarda ya la hora, para que el minuto de gracia
+  // cuente desde acá.
+  const latestRef = useRef({ persisted, hydrated })
+  useEffect(() => {
+    latestRef.current = { persisted, hydrated }
+  })
+  useEffect(() => {
+    return () => {
+      const { persisted: last, hydrated: ready } = latestRef.current
+      if (ready) {
+        void saveGame(slot, { ...last, lastActiveAt: Date.now() })
+      }
+    }
+  }, [slot])
 
   const points = useCallback(
     (team: Team) => displayPoints(state.counter, team),
@@ -290,7 +365,7 @@ export function useCounter(
   )
 
   const startIncrement = useCallback((team: Team) => {
-    dispatch({ type: 'increment', team })
+    dispatch({ type: 'increment', team, now: Date.now() })
   }, [])
 
   const finishIncrement = useCallback(() => {

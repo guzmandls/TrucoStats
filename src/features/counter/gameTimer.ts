@@ -47,3 +47,25 @@ export function formatClock(seconds: number): string {
   const ss = String(secs).padStart(2, '0')
   return hours > 0 ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`
 }
+
+// Si el contador queda cerrado (o la app en segundo plano) más de este tiempo sin
+// pausar, el cronómetro se pausa solo: no se cuenta como jugado el rato de más.
+export const AWAY_LIMIT_MS = 60_000
+
+// Ajusta el cronómetro al volver: si estuvo corriendo y pasó más de AWAY_LIMIT_MS
+// desde la última vez que se usó el contador (lastActiveAt), queda pausado en
+// ese límite, sin contar el resto. Si volvió antes, sigue como estaba.
+export function settleTimer(
+  timer: TimerState,
+  lastActiveAt: number | undefined,
+  now: number,
+): TimerState {
+  if (
+    timer.startedAt === null ||
+    lastActiveAt === undefined ||
+    now - lastActiveAt <= AWAY_LIMIT_MS
+  ) {
+    return timer
+  }
+  return pauseTimer(timer, lastActiveAt + AWAY_LIMIT_MS)
+}

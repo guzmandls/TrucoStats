@@ -15,6 +15,9 @@ export interface PersistedGame {
   history: Record<Team, number[]>
   context?: GameContext
   timer?: TimerState
+  // Última vez (ms) que el contador estuvo abierto y visible; sirve para pausar el
+  // cronómetro si queda cerrado más de un minuto sin pausar.
+  lastActiveAt?: number
 }
 
 export type GameSlot = string
@@ -48,7 +51,8 @@ function isPersistedGame(value: unknown): value is PersistedGame {
     typeof game.history === 'object' &&
     game.history !== null &&
     (game.context === undefined || isGameContext(game.context)) &&
-    (game.timer === undefined || isTimerState(game.timer))
+    (game.timer === undefined || isTimerState(game.timer)) &&
+    (game.lastActiveAt === undefined || typeof game.lastActiveAt === 'number')
   )
 }
 
