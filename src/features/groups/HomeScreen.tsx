@@ -96,6 +96,7 @@ export function HomeScreen() {
         trailing={
           <HeaderMenu
             label="Menú"
+            headingTo={session ? '/perfil' : undefined}
             heading={
               session ? (
                 <>
@@ -111,11 +112,6 @@ export function HomeScreen() {
                       label: 'Crear grupo',
                       to: '/crear-grupo',
                       icon: <GroupPlusIcon />,
-                    },
-                    {
-                      label: 'Ver perfil',
-                      to: '/perfil',
-                      icon: <PersonIcon />,
                     },
                     {
                       label: 'Cerrar sesión',
@@ -136,11 +132,17 @@ export function HomeScreen() {
                       to: '/iniciar-sesion',
                       icon: <LoginIcon />,
                     },
-                    {
-                      label: 'Ver perfil',
-                      to: '/perfil',
-                      icon: <PersonIcon />,
-                    },
+                    // Con sesión (invitada) el perfil está en la primera línea del
+                    // menú; sin sesión, aquí.
+                    ...(session
+                      ? []
+                      : [
+                          {
+                            label: 'Ver perfil',
+                            to: '/perfil',
+                            icon: <PersonIcon />,
+                          },
+                        ]),
                   ]
             }
           />
