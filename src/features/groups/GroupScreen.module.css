@@ -9,10 +9,6 @@
   border-top: var(--hairline-width) solid var(--line-thin);
 }
 
-.dayGroup {
-  padding-bottom: var(--space-3);
-}
-
 /* Título de cada día del historial: banda negra con letra crema. */
 .day {
   margin: 0;

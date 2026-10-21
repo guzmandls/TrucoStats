@@ -270,16 +270,19 @@ describe('GroupScreen', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('muestra cada equipo en su renglón con su puntaje', async () => {
+  it('muestra cada equipo en su línea y los dos puntajes en un solo bloque', async () => {
     await saveMatch(buildMatch({ id: 'm1' }))
     renderGroup()
 
     const row = await screen.findByTestId('partida')
     const lines = within(row)
       .getAllByText(/Juan - Pedro|Luis - Ana/)
-      .map((element) => element.parentElement?.textContent)
-    expect(lines).toEqual(['Juan - Pedro30', 'Luis - Ana21'])
-    // Los datos de la partida van en líneas cortas en la franja de arriba.
+      .map((element) => element.textContent)
+    expect(lines).toEqual(['Juan - Pedro', 'Luis - Ana'])
+    const scores = within(row).getByText('30').parentElement
+    expect(scores).toContainElement(within(row).getByText('21'))
+    expect(scores?.textContent).toBe('3021')
+    // Los datos de la partida van en líneas cortas dentro del bloque negro lateral.
     expect(within(row).getByText('2v2')).toBeInTheDocument()
     expect(within(row).getByText('30 pts')).toBeInTheDocument()
     expect(within(row).getByText('30 min')).toBeInTheDocument()

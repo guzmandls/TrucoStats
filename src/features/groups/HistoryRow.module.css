@@ -1,40 +1,52 @@
-/* Cada partida es una tarjeta con margen y borde grueso: franja de datos
-   arriba y dos renglones iguales (uno por equipo) abajo. */
 .row {
-  margin: var(--space-3) var(--space-4) 0;
-  border: var(--border-width) solid var(--ink);
-  border-radius: var(--radius);
-  background: var(--paper);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  border-bottom: var(--hairline-width) solid var(--line-thin);
 }
 
+/* Tres columnas del mismo alto: datos, equipos y puntajes. Los dos equipos y
+   las dos celdas de puntaje se reparten el alto en partes iguales, así cada
+   puntaje queda a la altura de su equipo. */
+.main {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+/* Línea de datos de la partida, arriba. */
 .head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  min-height: 40px;
-  padding: 0 var(--space-3);
-  border-bottom: var(--border-width) solid var(--ink);
-  border-radius: calc(var(--radius) - var(--border-width))
-    calc(var(--radius) - var(--border-width)) 0 0;
-  background: var(--track);
+  gap: var(--space-2);
+  min-height: 28px;
 }
 
 .meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   column-gap: var(--space-2);
   font-size: var(--text-xs);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  white-space: nowrap;
+  color: var(--ink-muted);
 }
 
 .meta > span + span::before {
   content: '·';
   margin-right: var(--space-2);
-  font-weight: 700;
+}
+
+/* Aviso debajo de la partida (sin enviar, cancelada y su motivo). */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--space-3);
 }
 
 .note {
@@ -42,12 +54,20 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--text-xs);
-  font-weight: 700;
-  color: var(--ink-muted);
+  font-weight: 800;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.headEnd {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--space-2);
 }
 
 .chip {
-  padding: 2px var(--space-2);
+  padding: 1px var(--space-2);
   border: var(--border-width) solid var(--ink);
   border-radius: var(--radius-pill);
   font-size: var(--text-xs);
@@ -62,33 +82,22 @@
 }
 
 .chipDown {
-  background: transparent;
   color: var(--ink);
 }
 
-.teams {
+.body {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
 .team {
+  flex: 1;
+  min-height: 36px;
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  min-height: 60px;
-  padding: var(--space-2) var(--space-3);
-}
-
-.team + .team {
-  border-top: var(--hairline-width) solid var(--line-thin);
-}
-
-/* Los avatares ocupan siempre el mismo ancho (hasta 3) para que los nombres
-   de los dos equipos empiecen en la misma columna. */
-.avatars {
-  flex: 0 0 auto;
-  min-width: 62px;
-  display: flex;
+  gap: var(--space-2);
 }
 
 .names {
@@ -104,53 +113,39 @@
   font-weight: 800;
 }
 
-.lost .names {
+.lost {
   color: var(--ink-muted);
 }
 
-/* Puntaje: relleno negro para el ganador, solo borde para el perdedor. */
-.score {
-  flex: 0 0 auto;
-  min-width: 56px;
-  height: 42px;
+/* Bloque negro con los dos puntajes, separados por una línea crema. */
+.scores {
+  flex: 0 0 52px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.scoreCell {
+  flex: 1;
+  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: var(--border-width) solid var(--ink);
-  border-radius: 8px;
-  font-size: var(--text-2xl);
+  color: var(--paper-muted);
+  font-size: var(--text-xl);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
 }
 
-.won .score {
-  background: var(--ink);
+.scoreCell + .scoreCell {
+  border-top: var(--border-width) solid var(--paper);
+}
+
+.scoreWon {
   color: var(--paper);
   font-weight: 800;
-}
-
-.lost .score {
-  color: var(--ink);
-  font-weight: 500;
-}
-
-/* Franja de abajo, solo si hay algo que contar: si no se envió, si se
-   canceló (con su motivo) o cuántos puntos sumaste o restaste. */
-.foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  border-top: var(--hairline-width) solid var(--line-thin);
-}
-
-.notes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: var(--space-3);
-  min-width: 0;
 }
 
 .reason {
@@ -158,10 +153,11 @@
   color: var(--ink-muted);
 }
 
-.canceled .teams {
+.canceled .body,
+.canceled .scores {
   opacity: 0.6;
 }
 
-.canceled .score {
+.canceled .scoreCell {
   text-decoration: line-through;
 }

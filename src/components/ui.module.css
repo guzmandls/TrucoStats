@@ -229,11 +229,15 @@
 
 /* ---------- Pestañas ---------- */
 
-/* Pestañas de borde a borde: la activa va en crema, las demás en negro. */
+/* Pestañas en un solo control con margen: la activa va en crema, las demás en
+   negro. */
 .tabs {
   display: flex;
+  margin: var(--space-4) var(--space-4) var(--space-3);
   background: var(--ink);
-  border-bottom: var(--rule-width) solid var(--paper);
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
 
 .tab,
@@ -527,18 +531,10 @@
   border-radius: 0;
 }
 
+/* Los totales siguen siendo bloques sueltos, con margen, entre las secciones. */
 .contentFlush .figures {
   flex: 0 0 auto;
-  gap: 0;
-  margin: var(--space-4) 0;
-}
-
-.contentFlush .figure {
-  border-radius: 0;
-}
-
-.contentFlush .figure + .figure {
-  border-left: var(--rule-width) solid var(--paper);
+  margin: var(--space-4);
 }
 
 .sectionHead {

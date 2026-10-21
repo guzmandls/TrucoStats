@@ -246,7 +246,7 @@ Las partidas rápidas no generan historial: se juegan de forma rápida y solo cu
 ### 5.1. Presentación
 
 - El historial se agrupa por día, con un título en una banda negra con letra crema: "Hoy", "Ayer" y después la fecha corta ("18 oct", y con el año si es de otro año).
-- Cada partida es una tarjeta con margen y borde grueso, simétrica: arriba una franja gris con los datos de la partida en mayúsculas (modalidad, "40 pts", "10 min") y, a la derecha, el menú de opciones si corresponde; debajo, un renglón de igual alto por equipo con sus avatares, sus nombres y su puntaje. El puntaje del ganador va en un cuadro relleno de negro con número crema y el del perdedor en un cuadro solo con borde; el nombre del ganador va en negrita y el del perdedor atenuado. Si hace falta, una franja inferior muestra "Sin enviar", "Cancelada" (con su motivo) y, si la persona jugó, los puntos que sumó o restó ("+12 Pts", "−8 Pts").
+- Cada partida es una fila de ancho completo bajo la banda negra de su día. Arriba, una línea con los datos en mayúsculas atenuadas (modalidad, "40 pts", "10 min"), y a la derecha los puntos que la persona sumó o restó ("+12 Pts", "−8 Pts") y el menú de opciones si corresponde. Debajo, a la izquierda, un renglón por equipo con sus avatares y nombres (ganador en negrita, perdedor atenuado) y, a la derecha, un único bloque negro con los dos puntajes en crema separados por una línea crema, cada uno a la altura de su equipo. Si no se envió o está cancelada, una línea inferior lo indica ("Sin enviar", "Cancelada" y su motivo).
 - El motivo de una partida cancelada se muestra en una línea debajo de la partida.
 - Si la persona jugó, se muestra cuántos puntos sumó o restó en esa partida ("+12 Pts", "−8 Pts"). No se muestra si no jugó, si la partida fue cancelada o si el cambio fue de 0.
 
@@ -547,10 +547,10 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 ### 12.11. Bandas, bloques y tarjetas
 
 - El contraste entre zonas oscuras (negro con letra crema) y claras es parte de la identidad: cada pantalla tiene al menos una banda o bloque negro; no se diseña todo en crema y gris.
-- Cada sección de una pantalla (formularios, perfil, ficha) es una tarjeta con margen a los costados, borde redondeado y una banda negra de título con letra crema. Las estadísticas del grupo son la excepción: ocupan todo el ancho de la pantalla, con bandas negras de borde a borde.
+- Cada sección de una pantalla (formularios, perfil, ficha) es una tarjeta con margen a los costados, borde redondeado y una banda negra de título con letra crema. En las estadísticas del grupo las secciones ocupan todo el ancho (bandas negras de borde a borde), mientras que las pestañas y los totales son bloques con margen.
 - Los elementos que se tocan (grupos, participantes) tienen forma de botón: tarjeta con margen y una flecha ">" sobre fondo negro; no ocupan el ancho completo de la pantalla.
 - Las cifras principales (victorias, derrotas, jugadas, partidas, promedio) van en bloques negros con el número grande en crema y la etiqueta en mayúsculas.
-- Las pestañas ocupan todo el ancho: la activa en crema y las demás en negro.
+- Las pestañas son un solo control con margen y borde redondeado: la activa en crema (con contorno) y las demás en negro.
 - En el podio, todos los escalones son negros y se apoyan en la base de su tarjeta (no flotan).
 - La posición en un ranking se muestra en un cuadro negro con el número en crema.
 - En los récords de partidas (estadísticas) el dato que importa (duración o diferencia) va grande a la derecha del título; debajo, el bloque negro de puntajes con los dos equipos y la fecha.
