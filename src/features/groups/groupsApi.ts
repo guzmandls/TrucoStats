@@ -147,6 +147,17 @@ export async function setRemoteMemberAdmin(
   )
 }
 
+// Cambia los apodos de un integrante (reemplaza la lista completa).
+export async function setRemoteAliases(
+  inviteCode: string,
+  memberId: string,
+  aliases: string[],
+): Promise<void> {
+  await putJson(`/api/grupos/${inviteCode}/integrantes/${memberId}/apodos`, {
+    aliases,
+  })
+}
+
 export interface MatchEvent {
   action: 'register' | 'cancel' | 'restore'
   // Nombre del integrante que lo hizo (null si no se sabe).

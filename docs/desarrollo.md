@@ -1065,3 +1065,29 @@ Hecho:
 Concepto nuevo: **tabla de eventos (auditoría)**. En vez de guardar solo el estado
 actual, se guarda cada cambio; así se puede reconstruir qué pasó y nadie puede
 ocultar una acción.
+
+## Etapa 35 — Jugadores invitados y apodos
+
+Hecho:
+
+- **Invitados:** una partida de grupo puede incluir personas que no son del grupo
+  (se anotan solo con su nombre), con al menos un integrante por equipo. Se agregan
+  en "Iniciar partida" con "Agregar jugador". La partida guarda a cada jugador con
+  una marca `guest` (migración `0006_invitados_y_apodos.sql`, columna
+  `match_players.is_guest`). Los invitados no suman ni restan puntos.
+- **Apodos:** cada integrante puede tener apodos (tabla `member_aliases`, único por
+  grupo). Un invitado cuyo nombre es un apodo de un integrante cuenta como ese
+  integrante, también en partidas anteriores. Se editan en la ficha (el propio
+  integrante o un administrador) y se piden al unirse al grupo.
+- **Dónde se aplica:** `forStats` (`src/features/matches/guests.ts`) convierte las
+  partidas antes de calcular puntos y estadísticas: reemplaza a los invitados con
+  apodo por el integrante y quita a los demás. El historial muestra a todos con el
+  nombre que se les puso.
+
+Conceptos nuevos:
+
+- **Vincular datos por nombre:** los apodos no cambian lo que se guardó en cada
+  partida; se aplican al leer. Así, quitar un apodo deja las partidas como estaban
+  antes (sin integrante vinculado) sin tocar nada guardado.
+- **Normalizar para comparar:** nombres en minúsculas y sin tildes, para que
+  "Juancho" y "JUANCHÓ" sean el mismo apodo.

@@ -55,6 +55,8 @@ function isParticipant(value: unknown): value is Participant {
   }
   const participant = value as Record<string, unknown>
   return (
-    typeof participant.id === 'string' && typeof participant.name === 'string'
+    typeof participant.id === 'string' &&
+    typeof participant.name === 'string' &&
+    (participant.guest === undefined || participant.guest === true)
   )
 }

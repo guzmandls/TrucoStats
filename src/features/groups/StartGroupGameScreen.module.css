@@ -16,6 +16,7 @@
 }
 
 .memberWho {
+  flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -30,7 +31,17 @@
   white-space: nowrap;
 }
 
+/* Nombre y, si es invitado, su etiqueta debajo. */
+.memberText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
 .memberActions {
+  flex: 0 0 auto;
   display: flex;
   gap: var(--space-2);
 }
@@ -58,4 +69,33 @@
 .sideOn {
   background: var(--ink);
   color: var(--paper);
+}
+
+/* Botón para sumar a alguien que no es del grupo, debajo de la lista. */
+.addGuest {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+/* Etiqueta de los jugadores invitados (no son del grupo). */
+.guestTag {
+  flex: 0 0 auto;
+  padding: 1px var(--space-2);
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.removeGuest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: var(--tap-min);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
 }

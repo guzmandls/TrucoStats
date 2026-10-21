@@ -12,7 +12,9 @@ function sameMembers(a: Member[], b: Member[]): boolean {
       (member, index) =>
         member.id === b[index].id &&
         member.name === b[index].name &&
-        member.avatar === b[index].avatar,
+        member.avatar === b[index].avatar &&
+        JSON.stringify(member.aliases ?? []) ===
+          JSON.stringify(b[index].aliases ?? []),
     )
   )
 }

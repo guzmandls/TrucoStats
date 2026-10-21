@@ -2,6 +2,8 @@ export interface Member {
   id: string
   name: string
   avatar?: string
+  /** Nombres con los que pudieron anotarlo en partidas anteriores como invitado. */
+  aliases?: string[]
 }
 
 export interface Group {

@@ -102,6 +102,58 @@ describe('JoinGroupScreen', () => {
     ).toBeDisabled()
   })
 
+  it('guarda los apodos con los que anotaron antes a la persona', async () => {
+    const calls: { method: string; url: string; body: string | null }[] = []
+    stubServer((url, init) => {
+      calls.push({
+        method: init?.method ?? 'GET',
+        url,
+        body: (init?.body as string) ?? null,
+      })
+      return init?.method === 'PUT'
+        ? json({ aliases: [] })
+        : serverWithGroup(url, init)
+    })
+    renderJoin()
+
+    fireEvent.click(await screen.findByRole('radio', { name: 'Pedro' }))
+    fireEvent.change(screen.getByLabelText('Apodos'), {
+      target: { value: ' Pedrito, pepe ,Pedrito' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Unirme al grupo' }))
+
+    expect(await screen.findByTestId('location')).toHaveTextContent('/grupo/g1')
+    expect(calls).toContainEqual({
+      method: 'PUT',
+      url: `/api/grupos/${CODE}/integrantes/m2/apodos`,
+      body: JSON.stringify({ aliases: ['Pedrito', 'pepe'] }),
+    })
+    const [saved] = await loadGroups()
+    expect(saved.members.find((member) => member.id === 'm2')?.aliases).toEqual(
+      ['Pedrito', 'pepe'],
+    )
+  })
+
+  it('no entra al grupo si el servidor rechaza un apodo', async () => {
+    stubServer((url, init) =>
+      init?.method === 'PUT'
+        ? json({ error: 'El apodo “Pepe” ya lo tiene otro integrante' }, 409)
+        : serverWithGroup(url, init),
+    )
+    renderJoin()
+
+    fireEvent.click(await screen.findByRole('radio', { name: 'Pedro' }))
+    fireEvent.change(screen.getByLabelText('Apodos'), {
+      target: { value: 'Pepe' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Unirme al grupo' }))
+
+    expect(
+      await screen.findByText('El apodo “Pepe” ya lo tiene otro integrante'),
+    ).toBeInTheDocument()
+    expect(await loadGroups()).toEqual([])
+  })
+
   it('al elegir un integrante muestra su nombre para poder cambiarlo', async () => {
     stubServer(serverWithGroup)
     renderJoin()

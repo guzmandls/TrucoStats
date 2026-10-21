@@ -1,5 +1,6 @@
 import type { Group, Member } from '../groups/types'
 import { dayLabel } from './dayLabel'
+import { forStats } from './guests'
 import { podium } from './groupStats'
 import { computePoints } from './points'
 import { activeMatches } from './status'
@@ -22,8 +23,9 @@ export interface GroupOverview {
 }
 
 export function groupOverview(group: Group, matches: Match[]): GroupOverview {
-  const active = activeMatches(matches).filter(
-    (match) => match.groupId === group.id,
+  const active = forStats(
+    group,
+    activeMatches(matches).filter((match) => match.groupId === group.id),
   )
   const ranked = podium(group, active, group.members.length)
   const byId = new Map(group.members.map((member) => [member.id, member]))
