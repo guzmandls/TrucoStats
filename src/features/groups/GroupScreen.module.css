@@ -226,3 +226,12 @@
   border-radius: 0 calc(var(--radius) - var(--border-width))
     calc(var(--radius) - var(--border-width)) 0;
 }
+
+/* Aviso de que la cuenta no está vinculada a ningún integrante, con el botón
+   para elegirlo. */
+.linkAlert {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-3) var(--space-4);
+}

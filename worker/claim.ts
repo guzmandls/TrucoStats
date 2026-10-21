@@ -4,10 +4,11 @@ import { findGroupIdByCode } from './matches'
 import { authenticate } from './users'
 
 // Un grupo creado antes de existir las cuentas llegó al servidor sin ningún
-// integrante vinculado a una cuenta. La persona que lo creó (con su cuenta
+// administrador vinculado a una cuenta. La persona que lo creó (con su cuenta
 // registrada) puede reclamar su integrante: queda vinculado y como
-// administrador. Solo se permite mientras el grupo no tenga a nadie vinculado;
-// si ya tiene integrantes vinculados, hay que unirse con el enlace de invitación.
+// administrador. Se permite mientras el grupo no tenga ningún administrador
+// vinculado (aunque otros integrantes ya se hayan unido con el enlace); si ya hay
+// uno, hay que elegir un lugar libre con el enlace de invitación.
 export async function claimMember(
   inviteCode: string,
   request: Request,
@@ -37,24 +38,27 @@ export async function claimMember(
   }
 
   const linked = await env.DB.prepare(
-    'SELECT COUNT(*) AS total FROM members WHERE group_id = ? AND active = 1 AND user_id IS NOT NULL',
+    'SELECT COUNT(*) AS total FROM members WHERE group_id = ? AND active = 1 AND is_admin = 1 AND user_id IS NOT NULL',
   )
     .bind(groupId)
     .first<{ total: number }>()
   if ((linked?.total ?? 0) > 0) {
     return errorResponse(
-      'Este grupo ya tiene integrantes vinculados: únete con el enlace de invitación',
+      'Este grupo ya tiene un administrador: elige un lugar libre con el enlace de invitación',
       409,
     )
   }
 
   const member = await env.DB.prepare(
-    'SELECT id FROM members WHERE id = ? AND group_id = ? AND active = 1',
+    'SELECT id, user_id FROM members WHERE id = ? AND group_id = ? AND active = 1',
   )
     .bind(memberId, groupId)
-    .first<{ id: string }>()
+    .first<{ id: string; user_id: string | null }>()
   if (!member) {
     return errorResponse('Integrante no encontrado', 404)
+  }
+  if (member.user_id) {
+    return errorResponse('Ese integrante ya fue elegido por otra persona', 409)
   }
 
   await env.DB.prepare(

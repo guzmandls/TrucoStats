@@ -37,3 +37,16 @@
   background: var(--ink);
   color: var(--paper);
 }
+
+.choice:disabled {
+  cursor: default;
+  opacity: var(--disabled-opacity);
+}
+
+.taken {
+  margin-left: auto;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}

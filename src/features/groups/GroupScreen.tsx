@@ -66,6 +66,8 @@ import { useLiveMatch } from './useLiveMatch'
 import styles from './GroupScreen.module.css'
 
 const POINTS_DELTA_KEY = 'trucostats:pointsDelta'
+// Cada cuánto se sincroniza el grupo mientras está abierto.
+const SYNC_INTERVAL_MS = 10_000
 
 function readPointsDelta(): string | null {
   try {
@@ -95,7 +97,13 @@ export function GroupScreen() {
   // Grupo del servidor sin nadie vinculado (creado antes de las cuentas): la
   // persona que lo creó elige cuál integrante es.
   const [claiming, setClaiming] = useState(false)
-  const [claimDismissed, setClaimDismissed] = useState(false)
+  const claimDismissedRef = useRef(false)
+  // Cuando el servidor no sabe qué integrante es esta cuenta: cómo elegirlo y
+  // cuáles ya están elegidos.
+  const [link, setLink] = useState<{
+    mode: 'claim' | 'join'
+    taken: string[]
+  } | null>(null)
   const [historyOf, setHistoryOf] = useState<Match | null>(null)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [leaveError, setLeaveError] = useState<string | null>(null)
@@ -146,23 +154,40 @@ export function GroupScreen() {
     return map.get(userId) ?? null
   }, [group, matches, userId])
 
+  // Si el grupo está en el servidor y hay sesión, se comprueba que el servidor
+  // sepa qué integrante es esta cuenta: sin ese vínculo no se envían ni se reciben
+  // partidas (ni se transmite en vivo), y todo falla en silencio. Si no lo sabe, se
+  // pregunta quién es.
   const claimCode = group?.inviteCode
-  const claimNeeded =
-    group !== null && !group.myMemberId && !!claimCode && isRegistered(session)
+  const registered = isRegistered(session)
+  const hasSession = session !== null
   useEffect(() => {
-    if (!claimNeeded || !claimCode || claimDismissed) {
+    if (!claimCode || !hasSession) {
       return
     }
     let active = true
     fetchGroupByCode(claimCode)
       .then((remote) => {
-        // Si el servidor ya sabe quién es, la sincronización lo completa; solo
-        // se pregunta cuando el grupo no tiene a nadie vinculado.
-        if (
-          active &&
-          !remote.myMemberId &&
-          remote.claimedMemberIds.length === 0
-        ) {
+        if (!active) {
+          return
+        }
+        if (remote.myMemberId) {
+          setLink(null)
+          return
+        }
+        // Sin ningún administrador vinculado (grupo creado antes de las cuentas),
+        // quien tiene cuenta registrada puede reclamar su lugar de administrador;
+        // en los demás casos hay que elegir un lugar libre.
+        const adminLinked = remote.group.adminMemberIds.some((id) =>
+          remote.claimedMemberIds.includes(id),
+        )
+        setLink({
+          mode: registered && !adminLinked ? 'claim' : 'join',
+          taken: remote.claimedMemberIds,
+        })
+        // Se pregunta una vez; si se cierra la pregunta, queda el aviso para
+        // reabrirla.
+        if (!claimDismissedRef.current) {
           setClaiming(true)
         }
       })
@@ -170,7 +195,7 @@ export function GroupScreen() {
     return () => {
       active = false
     }
-  }, [claimNeeded, claimCode, claimDismissed])
+  }, [claimCode, hasSession, registered])
 
   useEffect(() => {
     if (!group) {
@@ -220,8 +245,25 @@ export function GroupScreen() {
       })
     }
     sync()
+    // Mientras el grupo está abierto se vuelve a traer lo de los demás cada
+    // pocos segundos, y al volver a la app desde otra.
+    const interval = window.setInterval(() => {
+      if (document.visibilityState !== 'hidden') {
+        sync()
+      }
+    }, SYNC_INTERVAL_MS)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        sync()
+      }
+    }
     window.addEventListener('online', sync)
-    return () => window.removeEventListener('online', sync)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      window.clearInterval(interval)
+      window.removeEventListener('online', sync)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [id, reload])
 
   useEffect(() => {
@@ -466,6 +508,17 @@ export function GroupScreen() {
         }
       />
       <ScreenContent flush>
+        {link && !claiming && (
+          <div className={styles.linkAlert}>
+            <Notice>
+              Tu cuenta no está vinculada a ningún integrante de este grupo, por
+              eso no se envían ni se reciben partidas.
+            </Notice>
+            <Button variant="secondary" onClick={() => setClaiming(true)}>
+              Elegir quién eres
+            </Button>
+          </div>
+        )}
         {othersLive.map((live) => (
           <Link
             key={live.id}
@@ -580,16 +633,19 @@ export function GroupScreen() {
           </ButtonLink>
         )}
       </ScreenFooter>
-      {claiming && group.inviteCode && (
+      {claiming && link && group.inviteCode && (
         <ClaimMemberDialog
           group={group}
           inviteCode={group.inviteCode}
+          mode={link.mode}
+          takenIds={link.taken}
           onClose={() => {
             setClaiming(false)
-            setClaimDismissed(true)
+            claimDismissedRef.current = true
           }}
           onClaimed={() => {
             setClaiming(false)
+            setLink(null)
             void pullGroup(group.id).then(reload)
           }}
         />

@@ -139,27 +139,11 @@ describe('groupsStorage', () => {
     expect('adminMemberId' in loaded).toBe(false)
   })
 
-  it('al salir, si queda otro administrador no se transfiere el rol', async () => {
-    const twoAdmins: Group = {
-      ...group,
-      myMemberId: 'm1',
-      adminMemberIds: ['m1', 'm2'],
-    }
-    await saveGroup(twoAdmins)
-
-    await leaveGroup(twoAdmins)
-
-    const [saved] = await loadGroups()
-    expect(saved.adminMemberIds).toEqual(['m2'])
-  })
-
-  it('transfiere la administración al salir si quedan otros integrantes', async () => {
+  it('al salir el grupo deja de estar guardado en este celular (si quedan otros integrantes)', async () => {
     await saveGroup(group)
     const result = await leaveGroup(group)
     expect(result).toBe('left')
-    const [saved] = await loadGroups()
-    expect(saved.adminMemberIds).toEqual(['m2'])
-    expect(saved.members).toEqual(group.members)
+    expect(await loadGroups()).toEqual([])
   })
 
   it('borra el grupo al salir si el admin es el único integrante', async () => {

@@ -6,7 +6,13 @@ import {
   waitFor,
   within,
 } from '@testing-library/react'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import {
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { GameContext } from '../counter/gameContext'
 import { QUICK_SLOT, clearGame, groupSlot } from '../counter/gameStorage'
@@ -283,6 +289,37 @@ describe('StartGroupGameScreen', () => {
     expect(
       within(row('Juan')).getByRole('button', { name: 'Agregar a Nosotros' }),
     ).toBeInTheDocument()
+  })
+
+  it('al volver atrás desde el contador se llega al grupo, no a esta pantalla', async () => {
+    function Counter() {
+      const navigate = useNavigate()
+      return (
+        <button type="button" onClick={() => navigate(-1)}>
+          volver
+        </button>
+      )
+    }
+    render(
+      <MemoryRouter
+        initialEntries={['/grupo/g1', `/partida-grupo/${group.id}`]}
+        initialIndex={1}
+      >
+        <Routes>
+          <Route path="/partida-grupo/:id" element={<StartGroupGameScreen />} />
+          <Route path="/partida" element={<Counter />} />
+          <Route path="/grupo/:id" element={<div>pantalla del grupo</div>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    await screen.findByText('Juan')
+    addTo('Juan', 'Nosotros')
+    addTo('Pedro', 'Ellos')
+    fireEvent.click(screen.getByRole('button', { name: 'Comenzar' }))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'volver' }))
+
+    expect(await screen.findByText('pantalla del grupo')).toBeInTheDocument()
   })
 
   it('navega al contador con los integrantes, la modalidad y el objetivo', async () => {

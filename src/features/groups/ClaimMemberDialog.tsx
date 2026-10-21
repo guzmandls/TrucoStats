@@ -2,23 +2,31 @@ import { useState } from 'react'
 import { Avatar, Button, Dialog, Notice } from '../../components/ui'
 import { ApiError } from '../../lib/api'
 import { avatarColors } from './avatar'
-import { claimRemoteMember } from './groupsApi'
+import { claimRemoteMember, joinRemoteGroup } from './groupsApi'
 import type { Group } from './types'
 import styles from './ClaimMemberDialog.module.css'
 
 interface ClaimMemberDialogProps {
   group: Group
   inviteCode: string
+  // 'claim': grupo creado antes de las cuentas, sin administrador vinculado (quien
+  // lo creó pasa a ser administrador). 'join': hay que elegir un lugar libre.
+  mode: 'claim' | 'join'
+  // Integrantes que ya eligió otra persona (no se pueden elegir).
+  takenIds: string[]
   onClose: () => void
   // Se llama cuando el integrante ya quedó vinculado a la cuenta.
   onClaimed: () => void
 }
 
-// Un grupo creado antes de las cuentas no tiene a nadie vinculado: la persona
-// que lo creó elige cuál de los integrantes es y pasa a ser su administrador.
+// La cuenta de esta persona todavía no está vinculada a ningún integrante del
+// grupo (por ejemplo, en un grupo creado antes de las cuentas): elige cuál es. Sin
+// ese vínculo el servidor no deja enviar ni recibir partidas.
 export function ClaimMemberDialog({
   group,
   inviteCode,
+  mode,
+  takenIds,
   onClose,
   onClaimed,
 }: ClaimMemberDialogProps) {
@@ -34,7 +42,12 @@ export function ClaimMemberDialog({
     setBusy(true)
     setError(null)
     try {
-      await claimRemoteMember(inviteCode, chosen)
+      if (mode === 'claim') {
+        await claimRemoteMember(inviteCode, chosen)
+      } else {
+        const member = group.members.find((item) => item.id === chosen)
+        await joinRemoteGroup(inviteCode, chosen, member?.name ?? '')
+      }
       onClaimed()
     } catch (failure) {
       setError(
@@ -49,9 +62,9 @@ export function ClaimMemberDialog({
   return (
     <Dialog title="¿Cuál de los integrantes eres?" onClose={onClose}>
       <p className={styles.help}>
-        Este grupo se creó antes de las cuentas y todavía no tiene a nadie
-        vinculado. Elige quién eres para aparecer como integrante y administrar
-        el grupo.
+        {mode === 'claim'
+          ? 'Este grupo se creó antes de las cuentas y todavía no tiene un administrador vinculado. Elige quién eres para aparecer como integrante y administrar el grupo.'
+          : 'Tu cuenta todavía no está vinculada a ningún integrante de este grupo, y por eso no se envían ni se reciben partidas. Elige quién eres.'}
       </p>
       <div
         className={styles.choices}
@@ -65,6 +78,7 @@ export function ClaimMemberDialog({
             role="radio"
             aria-label={member.name}
             aria-checked={member.id === chosen}
+            disabled={takenIds.includes(member.id)}
             className={`${styles.choice} ${member.id === chosen ? styles.choiceOn : ''}`}
             onClick={() => setChosen(member.id)}
           >
@@ -75,6 +89,9 @@ export function ClaimMemberDialog({
               size={32}
             />
             {member.name}
+            {takenIds.includes(member.id) && (
+              <span className={styles.taken}>Ya elegido</span>
+            )}
           </button>
         ))}
       </div>
