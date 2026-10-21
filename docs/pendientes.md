@@ -37,6 +37,12 @@ No son requisitos nuevos: son notas para no olvidarlas.
   administración en la copia local aunque no corresponda. Revisar con las cuentas.
 - Los cambios de nombre se envían al servidor, pero los otros celulares todavía no
   los reciben: se verán cuando exista la sincronización de grupos (5d).
+- Una partida que el servidor rechaza (por ejemplo, porque incluye a un integrante
+  agregado después de registrar el grupo, que el servidor todavía no conoce) queda
+  "sin enviar" para siempre y el aviso del encabezado no desaparece. Se resuelve
+  cuando los cambios de integrantes también se sincronicen (5d).
+- Las partidas de grupo jugadas antes de existir la sincronización se envían la
+  primera vez que se abre el grupo con conexión.
 - El nombre se puede cambiar sin controles: cualquiera con el enlace puede
   renombrar a cualquier integrante (ver requisitos §3.2).
 

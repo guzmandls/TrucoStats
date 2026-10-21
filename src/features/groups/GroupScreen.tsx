@@ -4,6 +4,7 @@ import {
   ExitIcon,
   BackIcon,
   ChartIcon,
+  CloudOffIcon,
   PeopleIcon,
   ShareIcon,
 } from '../../components/Icons'
@@ -33,6 +34,7 @@ import { matchMeta, participantNames } from '../matches/format'
 import { ApiError } from '../../lib/api'
 import { registerGroup } from './groupsApi'
 import { InviteDialog } from './InviteDialog'
+import { isPending, syncPendingMatches } from './matchesSync'
 import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints } from '../matches/points'
 import { removeMembership } from './membership'
@@ -42,7 +44,7 @@ import styles from './GroupScreen.module.css'
 export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { group, matches, setGroup } = useGroup(id)
+  const { group, matches, setGroup, reloadMatches } = useGroup(id)
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
@@ -76,6 +78,20 @@ export function GroupScreen() {
     }
   }, [group])
 
+  // Envía las partidas pendientes al abrir el grupo y cuando vuelve la conexión.
+  useEffect(() => {
+    const send = () => {
+      void syncPendingMatches().then((sent) => {
+        if (sent > 0) {
+          reloadMatches()
+        }
+      })
+    }
+    send()
+    window.addEventListener('online', send)
+    return () => window.removeEventListener('online', send)
+  }, [reloadMatches])
+
   useEffect(() => {
     try {
       const v = sessionStorage.getItem('trucostats:pointsDelta')
@@ -104,6 +120,7 @@ export function GroupScreen() {
     )
   }
 
+  const pendingCount = matches.filter(isPending).length
   const inProgress = game && hasMoves(game) ? game : null
   const score = inProgress ? gameScore(inProgress) : null
   const willDelete = group.members.length === 1
@@ -141,8 +158,23 @@ export function GroupScreen() {
       <PageHeader
         title={group.name}
         center={
-          myPoints === null ? undefined : (
-            <span className={styles.headerPoints}>{myPoints} Pts</span>
+          myPoints === null && pendingCount === 0 ? undefined : (
+            <span className={styles.headerInfo}>
+              {pendingCount > 0 && (
+                <span
+                  className={styles.pendingBadge}
+                  role="status"
+                  aria-label={`${pendingCount} ${pendingCount === 1 ? 'partida sin enviar' : 'partidas sin enviar'}`}
+                  title="Se enviarán al servidor cuando haya conexión"
+                >
+                  <CloudOffIcon size={18} />
+                  {pendingCount}
+                </span>
+              )}
+              {myPoints !== null && (
+                <span className={styles.headerPoints}>{myPoints} Pts</span>
+              )}
+            </span>
           )
         }
         leading={
@@ -224,6 +256,7 @@ export function GroupScreen() {
                       )}
                       <span className={styles.matchMeta}>
                         {matchMeta(match)}
+                        {isPending(match) && ' · Sin enviar'}
                       </span>
                     </div>
                   </div>

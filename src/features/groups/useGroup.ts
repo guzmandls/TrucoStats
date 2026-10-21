@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { loadMatches } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
@@ -9,6 +9,8 @@ export function useGroup(id: string | undefined) {
   const navigate = useNavigate()
   const [group, setGroup] = useState<Group | null>(null)
   const [matches, setMatches] = useState<Match[] | null>(null)
+  const [reloads, setReloads] = useState(0)
+  const reloadMatches = useCallback(() => setReloads((value) => value + 1), [])
 
   useEffect(() => {
     let active = true
@@ -46,7 +48,7 @@ export function useGroup(id: string | undefined) {
     return () => {
       active = false
     }
-  }, [group])
+  }, [group, reloads])
 
-  return { group, matches, setGroup }
+  return { group, matches, setGroup, reloadMatches }
 }

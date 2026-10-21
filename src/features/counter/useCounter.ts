@@ -40,6 +40,7 @@ import {
   resumeTimer as resumeTimerState,
   type TimerState,
 } from './gameTimer'
+import { syncPendingMatches } from '../groups/matchesSync'
 import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { computePointsDelta } from '../matches/points'
@@ -319,7 +320,8 @@ export function useCounter(
           ellos: points('ellos'),
         },
       }
-      void saveMatch(match)
+      // Guardar primero en el celular; después se intenta enviar al servidor.
+      void saveMatch(match).then(() => syncPendingMatches())
       if (state.context.groupId) {
         void (async () => {
           const existing = await loadMatchesByGroupId(state.context.groupId!)

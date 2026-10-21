@@ -20,4 +20,7 @@ export interface Match {
   winner: Team
   teams: Record<Team, Participant[]>
   scores: Record<Team, number>
+  // Cuándo confirmó el servidor la partida. Solo en este celular: si falta,
+  // la partida de grupo está pendiente de enviar.
+  syncedAt?: string
 }

@@ -620,3 +620,39 @@ Conceptos y herramientas nuevos:
   que el efecto vuelva a ejecutarse.
 - Probar con dos clientes: abrir dos perfiles de navegador es la forma más simple
   de simular dos celulares distintos.
+
+## Etapa 20 — Enviar partidas al servidor (5c)
+
+Hecho:
+
+- Al terminar una partida de grupo se guarda primero en el celular y después se
+  intenta enviar al servidor. Si no hay conexión, queda "pendiente" y se reenvía
+  sola al abrir el grupo o cuando vuelve Internet. Pueden juntarse varias.
+- Aviso discreto en el encabezado del grupo: un icono de nube tachada con la
+  cantidad de partidas sin enviar. Cada partida pendiente también dice "Sin
+  enviar". Todo desaparece cuando el servidor las confirma.
+- Si el grupo todavía no estaba en el servidor (se creó sin conexión), se
+  registra antes de enviar las partidas.
+- Probado con el servidor real: una partida sin confirmar se envía al abrir el
+  grupo y queda guardada en la base de datos.
+
+Conceptos nuevos:
+
+- Estado de sincronización: cada partida guarda `syncedAt` (cuándo la confirmó
+  el servidor). Si falta, está pendiente. Solo vive en el celular.
+- Idempotencia en la práctica: como el servidor ignora una partida repetida, se
+  puede reintentar sin miedo a duplicarla.
+- Reintentar con criterio: sin conexión o con el servidor caído se frena y se
+  prueba más tarde; si el servidor rechaza una partida concreta, se sigue con las
+  demás.
+- Evitar envíos simultáneos: si ya hay un envío en curso y llega una partida
+  nueva, se pide una vuelta más en lugar de lanzar dos envíos a la vez.
+- Evento `online` del navegador: avisa cuando vuelve la conexión.
+
+Pendiente de definir (ya en requisitos): cancelar y restaurar partidas, y
+cambiar de administrador, necesitan cuentas.
+
+Dato para más adelante: la PWA se puede publicar en Play Store (con PWABuilder,
+unos 25 USD únicos) y App Store (con Capacitor, 99 USD por año); casi todo el
+código se reutiliza. En iPhone, solo la app instalada en la pantalla de inicio
+conserva sus datos de forma fiable y recibe notificaciones.

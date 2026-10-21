@@ -133,6 +133,42 @@ describe('GroupScreen', () => {
     await saveGroup(group)
   })
 
+  it('avisa cuántas partidas están sin enviar y las marca', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.reject(new TypeError('sin red'))),
+    )
+    await saveMatch(buildMatch({ id: 'p1' }))
+    await saveMatch(
+      buildMatch({ id: 'p2', syncedAt: '2026-03-05T21:00:00.000Z' }),
+    )
+    await saveMatch(buildMatch({ id: 'p3' }))
+    renderGroup()
+
+    expect(
+      await screen.findByRole('status', { name: '2 partidas sin enviar' }),
+    ).toBeInTheDocument()
+    expect(screen.getAllByText(/Sin enviar/)).toHaveLength(2)
+  })
+
+  it('quita el aviso cuando las partidas llegan al servidor', async () => {
+    await saveGroup({ ...group, inviteCode: 'abc123' })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ match: {} }), { status: 201 }),
+      ),
+    )
+    await saveMatch(buildMatch({ id: 'p1' }))
+    renderGroup()
+
+    await waitFor(() =>
+      expect(screen.queryByRole('status')).not.toBeInTheDocument(),
+    )
+    expect(screen.queryByText(/Sin enviar/)).not.toBeInTheDocument()
+  })
+
   it('ofrece iniciar una partida cuando no hay ninguna en curso', async () => {
     renderGroup()
     expect(

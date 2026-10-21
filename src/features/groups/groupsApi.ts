@@ -1,4 +1,5 @@
 import { apiRequest, patchJson, postJson } from '../../lib/api'
+import type { Match } from '../matches/types'
 import type { Group } from './types'
 
 interface RegisterResponse {
@@ -35,6 +36,24 @@ export async function renameRemoteMember(
   name: string,
 ): Promise<void> {
   await patchJson(`/api/grupos/${inviteCode}/integrantes/${memberId}`, { name })
+}
+
+// Envía una partida de grupo. Es idempotente: reenviarla no la duplica.
+export async function sendMatch(
+  inviteCode: string,
+  match: Match,
+): Promise<void> {
+  await postJson(`/api/grupos/${inviteCode}/partidas`, {
+    id: match.id,
+    type: match.type,
+    modality: match.modality,
+    playedAt: match.playedAt,
+    durationSeconds: match.durationSeconds,
+    target: match.target,
+    winner: match.winner,
+    teams: match.teams,
+    scores: match.scores,
+  })
 }
 
 export function inviteLink(inviteCode: string): string {
