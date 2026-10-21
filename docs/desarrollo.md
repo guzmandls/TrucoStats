@@ -1104,9 +1104,9 @@ Hecho:
 - **Contador** (`useLiveBroadcast`): publica cada cambio (con una espera corta para
   juntar toques seguidos) y cada 20 segundos; al salir del contador la borra. No hace
   nada en la partida rápida ni sin sesión o conexión.
-- **Mirar** (`useLiveMatch`, `LiveMatchScreen`): la pantalla del grupo muestra la
-  una tarjeta "En vivo" por partida (menos la propia); al tocarla se ve el mismo dibujo del contador, sin botones,
-  actualizado cada 3 segundos.
+- **Mirar** (`useLiveMatch`, `LiveMatchScreen`): la pantalla del grupo muestra una
+  tarjeta "En vivo" por partida (menos la propia); al tocarla se ve el mismo dibujo
+  del contador, sin botones, actualizado cada 3 segundos.
 
 Conceptos nuevos:
 
