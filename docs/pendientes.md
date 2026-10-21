@@ -34,10 +34,6 @@ No son requisitos nuevos: son notas para no olvidarlas.
   celular y se pierde en la próxima sincronización (el servidor manda). Lo mismo
   ocurriría con un cambio de nombre fallido, pero ese no se puede hacer fuera
   del flujo de unirse.
-- Salir del grupo sigue siendo solo local: no avisa al servidor, así que el
-  integrante queda vinculado a su cuenta y, si era administrador, conserva el rol
-  allí. Conviene un "salir" que libere al integrante y active el traspaso
-  automático del rol.
 - Las estadísticas y los participantes leen lo que hay en el celular: la
   sincronización ocurre al abrir la pantalla del grupo.
 - Una partida que el servidor rechaza (por ejemplo, porque incluye a un integrante
@@ -92,22 +88,14 @@ No son requisitos nuevos: son notas para no olvidarlas.
 - Cancelar y restaurar necesitan conexión. Si hiciera falta hacerlo sin conexión,
   habría que guardar la acción como pendiente y enviarla después (hoy solo se
   guardan así las partidas nuevas).
-- Quien cancela o restaura no ve el historial completo de eventos de una partida
-  (quién canceló, quién restauró, cuántas veces): el servidor lo guarda
-  (`match_events`) pero la app solo muestra el estado actual.
 - Los puntos (Pts) se recalculan al cancelar o restaurar, pero no hay aviso al
   resto del grupo.
 
 ## Cuentas
 
-- La sesión dura 90 días en el servidor. Si vence, los envíos de partidas quedan
-  pendientes (401) y la app no avisa nada: hay que avisar y pedir iniciar sesión.
 - Quien tiene una cuenta invitada y luego inicia sesión en otra cuenta existente
   abandona la identidad invitada (y su integrante queda vinculado a esa cuenta
-  invitada, que ya no se usa). Falta que el administrador pueda liberar ese
-  integrante.
-- La app no muestra con qué usuario se inició sesión (el menú solo ofrece cerrar
-  sesión).
+  invitada, que ya no se usa). El administrador puede liberar ese integrante.
 - Los errores al subir una foto o cambiar un nombre sin permiso se ignoran en
   silencio.
 
@@ -115,5 +103,3 @@ No son requisitos nuevos: son notas para no olvidarlas.
   en el servidor) no tienen ningún integrante vinculado a una cuenta, así que
   nadie puede enviar partidas ni cambiar nombres en ellos. Hace falta un camino
   para que el creador "reclame" su integrante de administrador.
-- El administrador todavía no puede liberar un integrante elegido por error por
-  otra persona ni transferir la administración (requisitos §3.2 y §3.3).

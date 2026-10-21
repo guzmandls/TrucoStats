@@ -45,6 +45,8 @@ import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { computePointsDelta } from '../matches/points'
 import { loadMatchesByGroupId } from '../matches/matchesStorage'
+import { forStats } from '../matches/guests'
+import { loadGroups } from '../groups/groupsStorage'
 import { activeMatches } from '../matches/status'
 
 export const DEFAULT_TARGET = 30
@@ -325,23 +327,25 @@ export function useCounter(
       void saveMatch(match).then(() => syncPendingMatches())
       if (state.context.groupId) {
         void (async () => {
-          const existing = activeMatches(
-            await loadMatchesByGroupId(state.context.groupId!),
+          const group = (await loadGroups()).find(
+            (item) => item.id === state.context.groupId,
           )
+          // Los invitados no suman ni restan puntos: solo cuentan los integrantes.
+          const toStats = (matches: Match[]) =>
+            group ? forStats(group, matches) : matches
+          const existing = toStats(
+            activeMatches(await loadMatchesByGroupId(state.context.groupId!)),
+          )
+          const [counted] = toStats([match])
           const ids = new Set<string>()
-          for (const m of existing) {
+          for (const m of [...existing, counted]) {
             for (const side of ['nos', 'ellos'] as Team[]) {
               for (const p of m.teams[side]) {
                 ids.add(p.id)
               }
             }
           }
-          for (const side of ['nos', 'ellos'] as Team[]) {
-            for (const p of state.context.teams[side]) {
-              ids.add(p.id)
-            }
-          }
-          const delta = computePointsDelta(Array.from(ids), existing, match)
+          const delta = computePointsDelta(Array.from(ids), existing, counted)
           const changes = Array.from(delta.entries())
             .filter(([, d]) => d !== 0)
             .map(

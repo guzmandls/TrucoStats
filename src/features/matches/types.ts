@@ -4,9 +4,12 @@ export type MatchType = 'quick' | 'group'
 
 export type Modality = '1v1' | '2v2' | '3v3'
 
+// Quien jugó una partida. Un invitado (guest) no es integrante del grupo: se
+// anotó solo con su nombre y no suma ni resta puntos.
 export interface Participant {
   id: string
   name: string
+  guest?: true
 }
 
 export interface Match {

@@ -16,7 +16,12 @@ import {
 } from '../../components/ui'
 import { ApiError } from '../../lib/api'
 import { avatarColors } from './avatar'
-import { fetchGroupByCode, joinRemoteGroup } from './groupsApi'
+import { parseAliasList } from '../matches/guests'
+import {
+  fetchGroupByCode,
+  joinRemoteGroup,
+  setRemoteAliases,
+} from './groupsApi'
 import { loadGroups, saveGroup } from './groupsStorage'
 import { addMembership } from './membership'
 import type { Group } from './types'
@@ -42,6 +47,7 @@ export function JoinGroupScreen() {
   const [claimed, setClaimed] = useState<string[]>([])
   const [memberId, setMemberId] = useState<string | null>(null)
   const [name, setName] = useState('')
+  const [aliasText, setAliasText] = useState('')
   const [joining, setJoining] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const [canRetry, setCanRetry] = useState(true)
@@ -104,10 +110,22 @@ export function JoinGroupScreen() {
     setProblem(null)
     try {
       await joinRemoteGroup(code, memberId, finalName)
+      // Los nombres con los que pudieron anotarlo antes como invitado: esas
+      // partidas pasan a contar para él.
+      const aliases = parseAliasList(aliasText)
+      if (aliases.length > 0) {
+        await setRemoteAliases(code, memberId, aliases)
+      }
       const joined: Group = {
         ...group,
         members: group.members.map((member) =>
-          member.id === memberId ? { ...member, name: finalName } : member,
+          member.id === memberId
+            ? {
+                ...member,
+                name: finalName,
+                ...(aliases.length > 0 ? { aliases } : {}),
+              }
+            : member,
         ),
         myMemberId: memberId,
       }
@@ -203,6 +221,24 @@ export function JoinGroupScreen() {
                     maxLength={MAX_NAME_LENGTH}
                     onChange={(event) => setName(event.target.value)}
                   />
+                </div>
+              </Section>
+            )}
+
+            {memberId && (
+              <Section title="Cómo te anotaron antes (opcional)">
+                <div className={styles.nameField}>
+                  <TextInput
+                    aria-label="Apodos"
+                    placeholder="Juan, Juancho, Juanito"
+                    value={aliasText}
+                    onChange={(event) => setAliasText(event.target.value)}
+                  />
+                  <p className={styles.aliasHelp}>
+                    Si ya jugaste partidas de este grupo como invitado, escribe
+                    los nombres con los que te anotaron, separados por coma.
+                    Esas partidas pasarán a contar para ti.
+                  </p>
                 </div>
               </Section>
             )}

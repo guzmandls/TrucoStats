@@ -15,6 +15,9 @@ import { fileToAvatarDataUrl } from './imageFile'
 import { setRemoteAvatar } from './groupsApi'
 import { updateMemberAvatar } from './groupsStorage'
 import { MemberStatsFicha, MemberStatsRows } from './MemberStats'
+import { AliasesDialog } from './AliasesDialog'
+import { isGroupAdmin } from './groupAdmin'
+import { pullGroup } from './groupsSync'
 import { useGroup } from './useGroup'
 import { computePoints } from '../matches/points'
 import styles from './MemberScreen.module.css'
@@ -22,8 +25,9 @@ import styles from './MemberScreen.module.css'
 export function MemberScreen() {
   const { id, memberId } = useParams<{ id: string; memberId: string }>()
   const navigate = useNavigate()
-  const { group, matches, setGroup } = useGroup(id)
+  const { group, matches, setGroup, reload } = useGroup(id)
   const [busy, setBusy] = useState(false)
+  const [editingAliases, setEditingAliases] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const member = group?.members.find((item) => item.id === memberId) ?? null
   const memberPoints = useMemo(() => {
@@ -156,6 +160,35 @@ export function MemberScreen() {
           </div>
         </Section>
 
+        <Section title="Apodos">
+          <div className={styles.aliases}>
+            {(member.aliases ?? []).length > 0 ? (
+              <ul className={styles.aliasList}>
+                {(member.aliases ?? []).map((alias) => (
+                  <li key={alias} className={styles.alias}>
+                    {alias}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className={styles.aliasHelp}>Sin apodos</p>
+            )}
+            <p className={styles.aliasHelp}>
+              Las partidas en las que anotaron a un invitado con alguno de estos
+              nombres cuentan para este integrante.
+            </p>
+            {group.inviteCode &&
+              (isGroupAdmin(group) || member.id === group.myMemberId) && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setEditingAliases(true)}
+                >
+                  Editar apodos
+                </Button>
+              )}
+          </div>
+        </Section>
+
         <Section title="Detalle">
           <MemberStatsRows
             stats={stats}
@@ -164,6 +197,19 @@ export function MemberScreen() {
           />
         </Section>
       </ScreenContent>
+      {editingAliases && group.inviteCode && (
+        <AliasesDialog
+          inviteCode={group.inviteCode}
+          memberId={member.id}
+          memberName={member.name}
+          aliases={member.aliases ?? []}
+          onClose={() => setEditingAliases(false)}
+          onSaved={() => {
+            setEditingAliases(false)
+            void pullGroup(group.id).then(reload)
+          }}
+        />
+      )}
     </Screen>
   )
 }

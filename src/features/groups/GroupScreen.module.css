@@ -164,3 +164,65 @@
   font-variant-numeric: tabular-nums;
   box-shadow: var(--shadow-raised);
 }
+
+/* Aviso de partida en vivo: tarjeta con bloque negro "En vivo" a la izquierda,
+   equipos y marcador en el medio y flecha negra a la derecha. */
+.live {
+  display: flex;
+  align-items: stretch;
+  margin: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.liveTag {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  border-radius: calc(var(--radius) - var(--border-width)) 0 0
+    calc(var(--radius) - var(--border-width));
+  background: var(--ink);
+  color: var(--paper);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.liveBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3);
+}
+
+.liveTeams {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.liveScore {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.liveGo {
+  flex: 0 0 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 0 calc(var(--radius) - var(--border-width))
+    calc(var(--radius) - var(--border-width)) 0;
+}

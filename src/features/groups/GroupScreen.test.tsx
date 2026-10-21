@@ -17,6 +17,7 @@ import {
   saveGame,
   type PersistedGame,
 } from '../counter/gameStorage'
+import { clearSession, saveSession } from '../../lib/session'
 import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { GroupScreen } from './GroupScreen'
@@ -111,6 +112,7 @@ function renderGroup() {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  clearSession()
 })
 
 async function openInvite() {
@@ -409,6 +411,80 @@ describe('GroupScreen', () => {
     )
   })
 
+  function liveItem(
+    id: string,
+    nos: string,
+    ellos: string,
+    scores: [number, number],
+  ) {
+    return {
+      id,
+      state: {
+        teams: {
+          nos: [{ id: `${id}a`, name: nos }],
+          ellos: [{ id: `${id}b`, name: ellos }],
+        },
+        target: 30,
+        scores: { nos: scores[0], ellos: scores[1] },
+        paused: false,
+        elapsedSeconds: 60,
+        winner: null,
+      },
+      startedAt: '2026-10-01T20:00:00.000Z',
+      updatedAt: '2026-10-01T20:01:00.000Z',
+    }
+  }
+
+  function stubLives(live: unknown[]) {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (input: RequestInfo | URL) =>
+          new Response(
+            JSON.stringify(
+              String(input).endsWith('/en-vivo') ? { live } : { matches: [] },
+            ),
+            { status: 200 },
+          ),
+      ),
+    )
+  }
+
+  it('muestra un aviso por cada partida en vivo y lleva a mirarla', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+    stubLives([
+      liveItem('v1', 'Juan', 'Pedro', [12, 8]),
+      liveItem('v2', 'Luis', 'Ana', [3, 5]),
+    ])
+    renderGroup()
+
+    const links = await screen.findAllByRole('link', { name: /En vivo/ })
+    expect(links).toHaveLength(2)
+    expect(links[0]).toHaveAttribute('href', `/grupo/${group.id}/en-vivo/v1`)
+    expect(links[0]).toHaveTextContent('Juan vs Pedro')
+    expect(links[0]).toHaveTextContent('12 – 8')
+    expect(links[1]).toHaveAttribute('href', `/grupo/${group.id}/en-vivo/v2`)
+    expect(links[1]).toHaveTextContent('Luis vs Ana')
+  })
+
+  it('no muestra el aviso si no hay partidas en vivo', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+    stubLives([])
+    renderGroup()
+
+    await screen.findByRole('button', { name: 'Menú' })
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(screen.queryByRole('link', { name: /En vivo/ })).toBeNull()
+  })
+
   it('ofrece agregar un integrante solo a los administradores', async () => {
     await saveGroup({
       ...group,
@@ -506,6 +582,61 @@ describe('GroupScreen', () => {
     expect(await screen.findByText('inicio')).toBeInTheDocument()
     const [saved] = await loadGroups()
     expect(saved.adminMemberIds).toEqual(['m2'])
+  })
+
+  it('avisa al servidor al salir de un grupo que está en el servidor', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123' })
+    const fetchMock = vi.fn(
+      async (path: string) =>
+        new Response(JSON.stringify({ deleted: false, path }), { status: 200 }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    renderGroup()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Salir del grupo' }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Salir' }))
+
+    expect(await screen.findByText('inicio')).toBeInTheDocument()
+    expect(
+      fetchMock.mock.calls.some(
+        ([path]) => path === '/api/grupos/abc123/salir',
+      ),
+    ).toBe(true)
+  })
+
+  it('no sale del grupo si no hay conexión para avisar al servidor', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123' })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    )
+    renderGroup()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Salir del grupo' }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Salir' }))
+
+    expect(
+      await screen.findByText(
+        'Necesitas conexión a Internet para salir del grupo.',
+      ),
+    ).toBeInTheDocument()
+    expect((await loadGroups()).length).toBe(1)
   })
 
   it('advierte y borra el grupo al salir si es el único integrante', async () => {

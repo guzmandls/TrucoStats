@@ -8,7 +8,12 @@ import {
 } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { clearSession, getSession, saveSession } from '../../lib/session'
+import {
+  clearSession,
+  getSession,
+  markSessionExpired,
+  saveSession,
+} from '../../lib/session'
 import { HomeScreen } from './HomeScreen'
 
 function renderHome() {
@@ -113,5 +118,70 @@ describe('menú de la pantalla principal (cuenta)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar sesión' }))
 
     await waitFor(() => expect(getSession()).toBeNull())
+  })
+})
+
+describe('usuario y sesión vencida en la pantalla principal', () => {
+  it('el menú muestra con qué usuario se inició sesión', () => {
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+    })
+    renderHome()
+    openMenu()
+
+    expect(
+      within(screen.getByRole('navigation')).getByText('juan'),
+    ).toBeVisible()
+  })
+
+  it('una cuenta invitada se muestra como Invitado', () => {
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u2', username: null, email: null, name: 'Pedro' },
+    })
+    renderHome()
+    openMenu()
+
+    expect(
+      within(screen.getByRole('navigation')).getByText('Invitado'),
+    ).toBeVisible()
+  })
+
+  it('sin sesión el menú no muestra usuario', () => {
+    renderHome()
+    openMenu()
+
+    expect(
+      within(screen.getByRole('navigation')).queryByText('Invitado'),
+    ).toBeNull()
+  })
+
+  it('avisa y ofrece iniciar sesión cuando la sesión venció', () => {
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+    })
+    markSessionExpired()
+    renderHome()
+
+    expect(
+      screen.getByText(
+        'Tu sesión venció. Inicia sesión para enviar tus partidas.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Iniciar sesión' }),
+    ).toHaveAttribute('href', '/iniciar-sesion')
+  })
+
+  it('no avisa si la sesión está vigente', () => {
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+    })
+    renderHome()
+
+    expect(screen.queryByText(/Tu sesión venció/)).toBeNull()
   })
 })

@@ -147,6 +147,43 @@ export async function setRemoteMemberAdmin(
   )
 }
 
+// Cambia los apodos de un integrante (reemplaza la lista completa).
+export async function setRemoteAliases(
+  inviteCode: string,
+  memberId: string,
+  aliases: string[],
+): Promise<void> {
+  await putJson(`/api/grupos/${inviteCode}/integrantes/${memberId}/apodos`, {
+    aliases,
+  })
+}
+
+export interface MatchEvent {
+  action: 'register' | 'cancel' | 'restore'
+  // Nombre del integrante que lo hizo (null si no se sabe).
+  by: string | null
+  reason: string | null
+  at: string
+}
+
+// Trae del servidor todo lo que pasó con una partida: cuándo se registró y cada
+// cancelación o restauración.
+export async function fetchMatchHistory(
+  inviteCode: string,
+  matchId: string,
+): Promise<MatchEvent[]> {
+  const response = await apiRequest<{ events: MatchEvent[] }>(
+    `/api/grupos/${inviteCode}/partidas/${matchId}/historial`,
+  )
+  return response.events
+}
+
+// Avisa al servidor que la persona sale del grupo: su integrante queda libre y,
+// si era administrador, el rol pasa a otro.
+export async function leaveRemoteGroup(inviteCode: string): Promise<void> {
+  await postJson(`/api/grupos/${inviteCode}/salir`, {})
+}
+
 interface MatchesResponse {
   matches: Match[]
 }

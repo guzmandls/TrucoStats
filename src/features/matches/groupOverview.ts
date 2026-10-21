@@ -1,5 +1,6 @@
 import type { Group, Member } from '../groups/types'
 import { dayLabel } from './dayLabel'
+import { forStats } from './guests'
 import { podium } from './groupStats'
 import { computePoints } from './points'
 import { activeMatches } from './status'
@@ -22,8 +23,9 @@ export interface GroupOverview {
 }
 
 export function groupOverview(group: Group, matches: Match[]): GroupOverview {
-  const active = activeMatches(matches).filter(
-    (match) => match.groupId === group.id,
+  const active = forStats(
+    group,
+    activeMatches(matches).filter((match) => match.groupId === group.id),
   )
   const ranked = podium(group, active, group.members.length)
   const byId = new Map(group.members.map((member) => [member.id, member]))
@@ -60,7 +62,12 @@ export function groupOverview(group: Group, matches: Match[]): GroupOverview {
 // Cuándo fue la partida: "hoy 21:05", "ayer 18:30", "18 oct 21:00" (con el año si
 // es de otro año). La hora es la del celular.
 export function matchWhen(match: Match, now: Date = new Date()): string {
-  const date = new Date(match.playedAt)
+  return whenLabel(match.playedAt, now)
+}
+
+// Lo mismo para cualquier fecha ISO (por ejemplo, la de un evento de la partida).
+export function whenLabel(iso: string, now: Date = new Date()): string {
+  const date = new Date(iso)
   const time = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-  return `${dayLabel(match.playedAt, now).toLowerCase()} ${time}`
+  return `${dayLabel(iso, now).toLowerCase()} ${time}`
 }

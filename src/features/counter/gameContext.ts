@@ -6,6 +6,9 @@ export interface GameContext {
   groupId: string | null
   teams: Record<Team, Participant[]>
   modality: Modality | null
+  // Identifica esta partida cuando se transmite en vivo (puede haber varias a la
+  // vez en un grupo). Se crea al armar la partida.
+  liveId?: string
 }
 
 export function quickContext(): GameContext {
@@ -26,6 +29,9 @@ export function isGameContext(value: unknown): value is GameContext {
     return false
   }
   if (context.groupId !== null && typeof context.groupId !== 'string') {
+    return false
+  }
+  if (context.liveId !== undefined && typeof context.liveId !== 'string') {
     return false
   }
   if (
@@ -55,6 +61,8 @@ function isParticipant(value: unknown): value is Participant {
   }
   const participant = value as Record<string, unknown>
   return (
-    typeof participant.id === 'string' && typeof participant.name === 'string'
+    typeof participant.id === 'string' &&
+    typeof participant.name === 'string' &&
+    (participant.guest === undefined || participant.guest === true)
   )
 }

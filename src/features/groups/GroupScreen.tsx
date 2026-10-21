@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ExitIcon,
   BackIcon,
   ChartIcon,
   CloseIcon,
+  ChevronRightIcon,
   CloudOffIcon,
   PeopleIcon,
   SearchIcon,
@@ -35,12 +36,15 @@ import {
   type PersistedGame,
 } from '../counter/gameStorage'
 import { dayKey, dayLabel } from '../matches/dayLabel'
+import { participantNames } from '../matches/format'
 import { HistoryRow } from './HistoryRow'
 import type { MatchAction } from './matchActions'
 import { filterMatches } from '../matches/search'
 import { ApiError } from '../../lib/api'
+import { getToken } from '../../lib/session'
 import {
   cancelRemoteMatch,
+  leaveRemoteGroup,
   registerGroup,
   restoreRemoteMatch,
 } from './groupsApi'
@@ -49,12 +53,14 @@ import type { Match } from '../matches/types'
 import { AddMemberDialog } from './AddMemberDialog'
 import { isGroupAdmin } from './groupAdmin'
 import { InviteDialog } from './InviteDialog'
+import { MatchHistoryDialog } from './MatchHistoryDialog'
 import { pullGroup, syncGroup } from './groupsSync'
 import { isPending, syncPendingMatches } from './matchesSync'
 import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints, pointChanges } from '../matches/points'
 import { removeMembership } from './membership'
 import { useGroup } from './useGroup'
+import { useLiveMatch } from './useLiveMatch'
 import styles from './GroupScreen.module.css'
 
 const POINTS_DELTA_KEY = 'trucostats:pointsDelta'
@@ -75,10 +81,17 @@ export function GroupScreen() {
   const navigate = useNavigate()
   const { group, matches, allMatches, setGroup, reload } = useGroup(id)
   const [game, setGame] = useState<PersistedGame | null>(null)
+  // Partidas de grupo que están contando otros integrantes (se ven desde aquí);
+  // la que cuenta esta misma persona no se muestra.
+  const { lives } = useLiveMatch(group, 6000)
+  const ownLiveId = game ? contextOf(game).liveId : undefined
+  const othersLive = lives.filter((item) => item.id !== ownLiveId)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [historyOf, setHistoryOf] = useState<Match | null>(null)
   const [inviteError, setInviteError] = useState<string | null>(null)
+  const [leaveError, setLeaveError] = useState<string | null>(null)
   // Aviso de puntos que deja la partida recién terminada: se lee al abrir la
   // pantalla y desaparece solo a los 4 segundos.
   const [pointsDelta, setPointsDelta] = useState<string | null>(readPointsDelta)
@@ -302,6 +315,26 @@ export function GroupScreen() {
   }
 
   const handleLeave = async () => {
+    // Con el grupo en el servidor y sesión iniciada, primero se avisa al
+    // servidor para que el integrante quede libre. Sin conexión no se sale, para
+    // no dejarlo vinculado; si el servidor ya no nos reconoce, se sale igual.
+    if (group.inviteCode && getToken()) {
+      try {
+        await leaveRemoteGroup(group.inviteCode)
+      } catch (error) {
+        const unknown =
+          error instanceof ApiError && [401, 403, 404].includes(error.status)
+        if (!unknown) {
+          setConfirmingLeave(false)
+          setLeaveError(
+            error instanceof ApiError
+              ? error.message
+              : 'Necesitas conexión a Internet para salir del grupo.',
+          )
+          return
+        }
+      }
+    }
     await leaveGroup(group)
     removeMembership(group.id)
     navigate('/')
@@ -377,6 +410,27 @@ export function GroupScreen() {
         }
       />
       <ScreenContent flush>
+        {othersLive.map((live) => (
+          <Link
+            key={live.id}
+            to={`/grupo/${group.id}/en-vivo/${live.id}`}
+            className={styles.live}
+          >
+            <span className={styles.liveTag}>En vivo</span>
+            <span className={styles.liveBody}>
+              <span className={styles.liveTeams}>
+                {participantNames(live.state.teams.nos) ?? 'Nosotros'} vs{' '}
+                {participantNames(live.state.teams.ellos) ?? 'Ellos'}
+              </span>
+              <span className={styles.liveScore}>
+                {live.state.scores.nos} – {live.state.scores.ellos}
+              </span>
+            </span>
+            <span className={styles.liveGo}>
+              <ChevronRightIcon size={24} />
+            </span>
+          </Link>
+        ))}
         {searching && (
           <div className={styles.searchBar}>
             <TextInput
@@ -420,6 +474,11 @@ export function GroupScreen() {
                     }
                     onAction={(target, action) =>
                       setActing({ match: target, action })
+                    }
+                    onShowHistory={
+                      group.inviteCode && group.myMemberId
+                        ? setHistoryOf
+                        : undefined
                     }
                   />
                 ))}
@@ -465,6 +524,13 @@ export function GroupScreen() {
           </ButtonLink>
         )}
       </ScreenFooter>
+      {historyOf && group.inviteCode && (
+        <MatchHistoryDialog
+          inviteCode={group.inviteCode}
+          matchId={historyOf.id}
+          onClose={() => setHistoryOf(null)}
+        />
+      )}
       {adding && group.inviteCode && (
         <AddMemberDialog
           inviteCode={group.inviteCode}
@@ -515,6 +581,11 @@ export function GroupScreen() {
       {inviteError && (
         <Dialog title={inviteError} onClose={() => setInviteError(null)}>
           <Button onClick={() => setInviteError(null)}>Entendido</Button>
+        </Dialog>
+      )}
+      {leaveError && (
+        <Dialog title={leaveError} onClose={() => setLeaveError(null)}>
+          <Button onClick={() => setLeaveError(null)}>Entendido</Button>
         </Dialog>
       )}
       {confirmingLeave && (

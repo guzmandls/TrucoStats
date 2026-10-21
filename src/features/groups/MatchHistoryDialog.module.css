@@ -1,0 +1,35 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada evento: la acción en negrita y, debajo, quién, cuándo y el motivo. */
+.event {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-3) 0;
+}
+
+.event + .event {
+  border-top: var(--hairline-width) solid var(--line-thin);
+}
+
+.action {
+  font-size: var(--text-xs);
+  font-weight: 800;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.meta {
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.reason {
+  font-size: var(--text-sm);
+}

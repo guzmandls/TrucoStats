@@ -1,0 +1,26 @@
+.clock {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Barra inferior: dice qué se está mirando (en vivo, pausada o quién ganó). */
+.status {
+  flex: 0 0 auto;
+  padding: var(--space-4);
+  background: var(--ink);
+  color: var(--paper);
+  border-top: var(--rule-width) solid var(--paper);
+  text-align: center;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.back {
+  padding: var(--space-4);
+}

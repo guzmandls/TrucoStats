@@ -251,6 +251,42 @@ describe('MemberScreen', () => {
     expect(screen.getByText('Al que más le gana')).toBeInTheDocument()
   })
 
+  it('muestra los apodos y deja editarlos al administrador', async () => {
+    await deleteGroup(group.id)
+    await saveGroup({
+      ...group,
+      inviteCode: 'abc123',
+      myMemberId: 'm1',
+      members: [
+        { id: 'm1', name: 'Juan', aliases: ['Juancho'] },
+        ...group.members.slice(1),
+      ],
+    })
+    renderMember()
+
+    expect(await screen.findByText('Juancho')).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Editar apodos' }),
+    ).toBeInTheDocument()
+  })
+
+  it('quien no es administrador no puede editar los apodos de otro', async () => {
+    await deleteGroup(group.id)
+    await saveGroup({
+      ...group,
+      inviteCode: 'abc123',
+      myMemberId: 'm2',
+      members: [
+        { id: 'm1', name: 'Juan', aliases: ['Juancho'] },
+        ...group.members.slice(1),
+      ],
+    })
+    renderMember()
+
+    expect(await screen.findByText('Juancho')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Editar apodos' })).toBeNull()
+  })
+
   it('permite elegir una foto aunque todavía no haya jugado', async () => {
     renderMember()
     expect(

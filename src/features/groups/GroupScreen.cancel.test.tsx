@@ -117,9 +117,16 @@ describe('cancelar y restaurar partidas', () => {
     renderGroup()
 
     await screen.findByTestId('partida')
+    // El menú solo ofrece ver el historial: no hay cancelar ni restaurar.
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de la partida' }),
+    )
     expect(
-      screen.queryByRole('button', { name: 'Opciones de la partida' }),
+      screen.queryByRole('menuitem', { name: 'Cancelar partida' }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: 'Ver historial' }),
+    ).toBeInTheDocument()
   })
 
   it('quien registró la partida pasada la hora ya no ve las opciones', async () => {
@@ -133,9 +140,58 @@ describe('cancelar y restaurar partidas', () => {
     renderGroup()
 
     await screen.findByTestId('partida')
+    // El menú solo ofrece ver el historial: no hay cancelar ni restaurar.
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de la partida' }),
+    )
     expect(
-      screen.queryByRole('button', { name: 'Opciones de la partida' }),
+      screen.queryByRole('menuitem', { name: 'Cancelar partida' }),
     ).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: 'Ver historial' }),
+    ).toBeInTheDocument()
+  })
+
+  it('el menú de una partida enviada ofrece ver su historial', async () => {
+    await saveMatch(buildMatch('p1'))
+    const events = [
+      {
+        action: 'register',
+        by: 'Pedro',
+        reason: null,
+        at: new Date().toISOString(),
+      },
+      {
+        action: 'cancel',
+        by: 'Juan',
+        reason: 'Error al contar',
+        at: new Date().toISOString(),
+      },
+    ]
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.endsWith('/historial')) {
+          return json({ events })
+        }
+        return url.endsWith('/partidas')
+          ? json({ matches: [] })
+          : json({ group, inviteCode: CODE })
+      }),
+    )
+    renderGroup()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de la partida' }),
+    )
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: 'Ver historial' }),
+    )
+
+    expect(await screen.findByText('Registrada')).toBeInTheDocument()
+    expect(screen.getByText('Cancelada')).toBeInTheDocument()
+    expect(screen.getByText('Motivo: Error al contar')).toBeInTheDocument()
   })
 
   it('el administrador ve las opciones aunque la partida sea vieja', async () => {

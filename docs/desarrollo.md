@@ -1019,3 +1019,102 @@ Conceptos nuevos:
   formato anterior al leerlos, así nadie pierde sus grupos al actualizar.
 - **Dejar de depender de un dato viejo:** `groups.admin_member_id` queda como dato
   histórico (el creador); los permisos salen de `members.is_admin`.
+
+## Etapa 32 — Salir del grupo avisa al servidor
+
+Hecho:
+
+- Nuevo pedido `POST /api/grupos/:código/salir` (`worker/leave.ts`): el integrante
+  queda libre (otra persona puede elegirlo) y conserva sus partidas; si era
+  administrador pierde el rol y, si el grupo se queda sin administradores, pasa solo
+  a otro (traspaso automático). Si era el único integrante, el grupo se elimina.
+- En la app, "Salir del grupo" primero avisa al servidor. Sin conexión no se sale
+  (para no dejar al integrante vinculado a una cuenta que ya se fue); si el servidor
+  ya no reconoce a la persona (401/403/404), se sale igual.
+
+Concepto nuevo: **orden de operaciones entre servidor y celular**. Primero se
+confirma en el servidor y recién después se cambia lo local; así los dos lados no
+quedan contradiciéndose si falla la conexión.
+
+## Etapa 33 — Aviso de sesión vencida y usuario en el menú
+
+Hecho:
+
+- Cuando el servidor responde 401 a un pedido que llevaba un token guardado (salvo
+  en iniciar sesión o registrarse, donde un 401 es "contraseña incorrecta"), la
+  app recuerda que la sesión venció. La pantalla principal muestra el aviso con un
+  botón para iniciar sesión; se borra al iniciar sesión de nuevo.
+- El menú de tres rayas muestra con qué usuario se inició sesión en su primera
+  línea ("Invitado" si es una cuenta invitada).
+
+Concepto nuevo: **un mismo código de error con significados distintos**. Un 401
+puede ser "no hay sesión válida" o "credenciales incorrectas"; por eso el aviso solo
+se activa cuando había un token y el pedido no era de inicio de sesión.
+
+## Etapa 34 — Historial de cada partida
+
+Hecho:
+
+- Nuevo pedido `GET /api/grupos/:código/partidas/:id/historial` (`worker/history.ts`):
+  devuelve cuándo y quién registró la partida y cada cancelación o restauración
+  (quién, cuándo y motivo), leyendo la tabla `match_events`. Cualquier integrante del
+  grupo lo puede ver.
+- En la app, el menú "⋯" de cada partida enviada ofrece "Ver historial", que abre
+  una ventana con esa lista.
+
+Concepto nuevo: **tabla de eventos (auditoría)**. En vez de guardar solo el estado
+actual, se guarda cada cambio; así se puede reconstruir qué pasó y nadie puede
+ocultar una acción.
+
+## Etapa 35 — Jugadores invitados y apodos
+
+Hecho:
+
+- **Invitados:** una partida de grupo puede incluir personas que no son del grupo
+  (se anotan solo con su nombre), con al menos un integrante por equipo. Se agregan
+  en "Iniciar partida" con "Agregar jugador". La partida guarda a cada jugador con
+  una marca `guest` (migración `0006_invitados_y_apodos.sql`, columna
+  `match_players.is_guest`). Los invitados no suman ni restan puntos.
+- **Apodos:** cada integrante puede tener apodos (tabla `member_aliases`, único por
+  grupo). Un invitado cuyo nombre es un apodo de un integrante cuenta como ese
+  integrante, también en partidas anteriores. Se editan en la ficha (el propio
+  integrante o un administrador) y se piden al unirse al grupo.
+- **Dónde se aplica:** `forStats` (`src/features/matches/guests.ts`) convierte las
+  partidas antes de calcular puntos y estadísticas: reemplaza a los invitados con
+  apodo por el integrante y quita a los demás. El historial muestra a todos con el
+  nombre que se les puso.
+
+Conceptos nuevos:
+
+- **Vincular datos por nombre:** los apodos no cambian lo que se guardó en cada
+  partida; se aplican al leer. Así, quitar un apodo deja las partidas como estaban
+  antes (sin integrante vinculado) sin tocar nada guardado.
+- **Normalizar para comparar:** nombres en minúsculas y sin tildes, para que
+  "Juancho" y "JUANCHÓ" sean el mismo apodo.
+
+## Etapa 36 — Partida en vivo
+
+Hecho:
+
+- **Servidor** (`worker/live.ts`, migración `0007_partida_en_vivo.sql`): una fila por
+  partida en vivo (con su propio id), así puede haber varias a la vez en un grupo.
+  Pedidos: `PUT` y `DELETE` en `/api/grupos/:código/en-vivo/:id` (publicar y
+  terminar) y `GET` en `/api/grupos/:código/en-vivo` (lista), solo para integrantes.
+  La lista deja afuera las que nadie actualiza hace 5 minutos.
+- **Contador** (`useLiveBroadcast`): publica cada cambio (con una espera corta para
+  juntar toques seguidos) y cada 20 segundos; al salir del contador la borra. No hace
+  nada en la partida rápida ni sin sesión o conexión.
+- **Mirar** (`useLiveMatch`, `LiveMatchScreen`): la pantalla del grupo muestra una
+  tarjeta "En vivo" por partida (menos la propia); al tocarla se ve el mismo dibujo
+  del contador, sin botones, actualizado cada 3 segundos.
+
+Conceptos nuevos:
+
+- **Polling (consulta periódica):** el celular que mira le pregunta al servidor cada
+  pocos segundos. Es más simple y gratis que mantener una conexión abierta
+  (WebSocket), y alcanza para un marcador.
+- **Latido (heartbeat):** quien cuenta vuelve a publicar cada tanto aunque no cambien
+  los puntos; así el servidor sabe que la partida sigue viva y, si deja de llegar, la
+  descarta sola.
+- **Reutilizar un componente con un tipo más chico:** el dibujo del contador pidió solo
+  `target`, `started` y `points`, así sirve igual para mirar una partida en vivo.

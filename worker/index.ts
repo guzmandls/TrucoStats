@@ -1,9 +1,13 @@
 import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { addMember, releaseMember, removeMember, setMemberAdmin } from './admin'
+import { setAliases } from './aliases'
 import { updateMember } from './members'
 import { cancelMatch, restoreMatch } from './cancel'
+import { matchHistory } from './history'
 import { joinGroup } from './join'
+import { leaveGroup } from './leave'
+import { listLive, publishLive, stopLive } from './live'
 import { createMatch, listMatches } from './matches'
 import { currentUser, login, logout, register } from './users'
 
@@ -12,10 +16,15 @@ const MEMBER_OF_GROUP =
   /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})$/
 const MEMBERS_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/integrantes$/
 const MEMBER_ACTION =
-  /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})\/(liberar|administrador)$/
+  /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})\/(liberar|administrador|apodos)$/
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
 const MATCH_ACTION =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/(cancelar|restaurar)$/
+const MATCH_HISTORY =
+  /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/historial$/
+const LIVES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo$/
+const LIVE_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo\/([^/]{1,100})$/
+const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 
 export default {
@@ -74,6 +83,18 @@ export default {
       return errorResponse('Método no permitido', 405)
     }
 
+    const historyOfMatch = MATCH_HISTORY.exec(pathname)
+    if (historyOfMatch) {
+      return request.method === 'GET'
+        ? matchHistory(
+            historyOfMatch[1],
+            decodeURIComponent(historyOfMatch[2]),
+            request,
+            env,
+          )
+        : errorResponse('Método no permitido', 405)
+    }
+
     const matchAction = MATCH_ACTION.exec(pathname)
     if (matchAction) {
       if (request.method !== 'POST') {
@@ -84,6 +105,32 @@ export default {
       return action === 'cancelar'
         ? cancelMatch(code, id, request, env)
         : restoreMatch(code, id, request, env)
+    }
+
+    const livesOfGroup = LIVES_OF_GROUP.exec(pathname)
+    if (livesOfGroup) {
+      return request.method === 'GET'
+        ? listLive(livesOfGroup[1], request, env)
+        : errorResponse('Método no permitido', 405)
+    }
+
+    const liveOfGroup = LIVE_OF_GROUP.exec(pathname)
+    if (liveOfGroup) {
+      const id = decodeURIComponent(liveOfGroup[2])
+      if (request.method === 'PUT') {
+        return publishLive(liveOfGroup[1], id, request, env)
+      }
+      if (request.method === 'DELETE') {
+        return stopLive(liveOfGroup[1], id, request, env)
+      }
+      return errorResponse('Método no permitido', 405)
+    }
+
+    const leaveOfGroup = LEAVE_GROUP.exec(pathname)
+    if (leaveOfGroup) {
+      return request.method === 'POST'
+        ? leaveGroup(leaveOfGroup[1], request, env)
+        : errorResponse('Método no permitido', 405)
     }
 
     const joinOfGroup = JOIN_GROUP.exec(pathname)
@@ -106,6 +153,9 @@ export default {
       const id = decodeURIComponent(memberId)
       if (action === 'liberar' && request.method === 'POST') {
         return releaseMember(code, id, request, env)
+      }
+      if (action === 'apodos' && request.method === 'PUT') {
+        return setAliases(code, id, request, env)
       }
       if (action === 'administrador' && request.method === 'PUT') {
         return setMemberAdmin(code, id, request, env)

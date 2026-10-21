@@ -149,7 +149,7 @@ describe('StartGroupGameScreen', () => {
     addTo('Luis', 'Ellos')
     expect(screen.getByRole('button', { name: 'Comenzar' })).toBeDisabled()
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Los dos equipos deben tener la misma cantidad de integrantes.',
+      'Los dos equipos deben tener la misma cantidad de jugadores.',
     )
   })
 
@@ -165,7 +165,7 @@ describe('StartGroupGameScreen', () => {
     addTo('Bruno', 'Ellos')
     expect(screen.getByRole('button', { name: 'Comenzar' })).toBeDisabled()
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Cada equipo puede tener hasta 3 integrantes.',
+      'Cada equipo puede tener hasta 3 jugadores.',
     )
   })
 
@@ -173,8 +173,100 @@ describe('StartGroupGameScreen', () => {
     await renderLoaded()
     addTo('Juan', 'Nosotros')
     expect(screen.getByRole('alert')).toHaveTextContent(
-      'Elige al menos un integrante en cada equipo.',
+      'Elige al menos un jugador en cada equipo.',
     )
+  })
+
+  describe('jugadores invitados', () => {
+    function addGuest(name: string) {
+      fireEvent.click(screen.getByRole('button', { name: 'Agregar jugador' }))
+      fireEvent.change(screen.getByLabelText('Nombre del jugador'), {
+        target: { value: name },
+      })
+      fireEvent.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: 'Agregar',
+        }),
+      )
+    }
+
+    it('agrega a alguien que no es del grupo, con la etiqueta Invitado', async () => {
+      await renderLoaded()
+
+      addGuest('Beto')
+
+      expect(within(row('Beto')).getByText('Invitado')).toBeInTheDocument()
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('un equipo necesita al menos un integrante del grupo', async () => {
+      await renderLoaded()
+      addGuest('Beto')
+      addTo('Beto', 'Nosotros')
+      addTo('Pedro', 'Ellos')
+
+      expect(screen.getByRole('button', { name: 'Comenzar' })).toBeDisabled()
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Cada equipo necesita al menos un integrante del grupo.',
+      )
+    })
+
+    it('la partida sale con los invitados marcados', async () => {
+      await renderLoaded()
+      addGuest('Beto')
+      addTo('Juan', 'Nosotros')
+      addTo('Beto', 'Nosotros')
+      addTo('Pedro', 'Ellos')
+      addTo('Luis', 'Ellos')
+
+      fireEvent.click(screen.getByRole('button', { name: 'Comenzar' }))
+
+      const state = JSON.parse(
+        (await screen.findByTestId('nav-state')).textContent ?? 'null',
+      ) as NavState
+      expect(state.gameContext.modality).toBe('2v2')
+      expect(state.gameContext.teams.nos).toEqual([
+        { id: 'm1', name: 'Juan' },
+        { id: expect.stringMatching(/^invitado-/), name: 'Beto', guest: true },
+      ])
+      expect(state.gameContext.teams.ellos).toEqual([
+        { id: 'm2', name: 'Pedro' },
+        { id: 'm3', name: 'Luis' },
+      ])
+    })
+
+    it('rechaza un nombre vacío o repetido', async () => {
+      await renderLoaded()
+
+      addGuest('  ')
+      expect(
+        screen.getByText('Escribe el nombre del jugador.'),
+      ).toBeInTheDocument()
+
+      fireEvent.change(screen.getByLabelText('Nombre del jugador'), {
+        target: { value: 'juan' },
+      })
+      fireEvent.click(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: 'Agregar',
+        }),
+      )
+      expect(
+        screen.getByText('Ya hay un jugador con ese nombre.'),
+      ).toBeInTheDocument()
+    })
+
+    it('se puede quitar un invitado de la lista', async () => {
+      await renderLoaded()
+      addGuest('Beto')
+      addTo('Beto', 'Nosotros')
+
+      fireEvent.click(
+        screen.getByRole('button', { name: 'Quitar a Beto de la lista' }),
+      )
+
+      expect(screen.queryByText('Beto')).not.toBeInTheDocument()
+    })
   })
 
   it('mueve a un integrante al otro equipo al tocar el lado contrario', async () => {
@@ -202,9 +294,11 @@ describe('StartGroupGameScreen', () => {
     await waitFor(() => expect(screen.getByTestId('nav-state')).toBeTruthy())
     const state = JSON.parse(screen.getByTestId('nav-state').textContent ?? '')
     expect(state.target).toBe(20)
+    // Cada partida lleva su propio id para transmitirse en vivo.
     expect(state.gameContext).toEqual({
       type: 'group',
       groupId: 'g1',
+      liveId: expect.any(String),
       modality: '1v1',
       teams: {
         nos: [{ id: 'm1', name: 'Juan' }],
