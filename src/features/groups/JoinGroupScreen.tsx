@@ -283,6 +283,16 @@ export function JoinGroupScreen() {
               </Section>
             )}
 
+            {claimed.length > 0 && (
+              <div className={styles.message}>
+                <p className={styles.aliasHelp}>
+                  Si tu lugar dice “Ya elegido”, inicia sesión con la cuenta con
+                  la que lo elegiste o pídele al administrador que lo libere
+                  (desde Participantes).
+                </p>
+              </div>
+            )}
+
             {problem && (
               <div className={styles.message}>
                 <Notice>{problem}</Notice>

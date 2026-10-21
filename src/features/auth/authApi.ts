@@ -1,4 +1,5 @@
 import { deleteRequest, postJson } from '../../lib/api'
+import { clearAccountData, restoreAccountGroups } from '../groups/accountData'
 import { clearSession, saveSession, type Session } from '../../lib/session'
 
 // Crea la cuenta y deja la sesión iniciada. Si la persona tenía una cuenta
@@ -14,6 +15,7 @@ export async function registerAccount(fields: {
     email: fields.email.trim() === '' ? undefined : fields.email,
   })
   saveSession(session)
+  await restoreAccountGroups()
 }
 
 export async function loginAccount(
@@ -21,6 +23,7 @@ export async function loginAccount(
   password: string,
 ): Promise<void> {
   saveSession(await postJson<Session>('/api/sesion', { identifier, password }))
+  await restoreAccountGroups()
 }
 
 // Cierra la sesión en el servidor si hay conexión; en este celular se cierra
@@ -32,4 +35,5 @@ export async function logoutAccount(): Promise<void> {
     // Sin conexión: el token queda sin usar y vence solo.
   }
   clearSession()
+  await clearAccountData()
 }

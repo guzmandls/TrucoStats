@@ -275,3 +275,24 @@ export async function getGroupByInviteCode(
     groupResponse(group, results, membership?.memberId ?? null, aliases),
   )
 }
+
+// Los grupos en los que esta cuenta es integrante (para recuperarlos al iniciar
+// sesión en un celular donde se había cerrado la sesión).
+export async function listMyGroups(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const user = await authenticate(request, env)
+  if (!user) {
+    return errorResponse('No iniciaste sesión', 401)
+  }
+  const { results } = await env.DB.prepare(
+    `SELECT g.invite_code FROM groups g
+     JOIN members m ON m.group_id = g.id
+     WHERE m.user_id = ? AND m.active = 1
+     ORDER BY g.created_at`,
+  )
+    .bind(user.id)
+    .all<{ invite_code: string }>()
+  return json({ inviteCodes: results.map((row) => row.invite_code) })
+}

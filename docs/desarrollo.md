@@ -1274,3 +1274,10 @@ primera que falla.
 
 - **El error:** al abrir el enlace, si el grupo ya estaba guardado en el celular, la app entraba directo. Pero ese grupo podía ser de una sesión anterior (o de antes de tener cuenta): sin cuenta vinculada el servidor rechaza enviar y recibir partidas, y el grupo ni aparecía en el inicio.
 - **La regla ahora:** se entra directo solo si el servidor confirma quién es esta cuenta. Si no hay sesión se pide registrarse o iniciar sesión; si hay sesión pero sin vínculo, se elige el integrante. Concepto: la fuente de verdad es el servidor, no lo que quedó guardado en el celular.
+
+## Etapa 48 — Cerrar sesión limpia el celular
+
+- **El error:** al cerrar sesión seguían los grupos de la cuenta anterior en el celular. Los datos del grupo (IndexedDB) son de la cuenta, no del aparato: ahora `clearAccountData` los borra al cerrar sesión (y avisa si hay partidas sin enviar).
+- **Recuperarlos:** el servidor tiene un endpoint nuevo `GET /api/mis-grupos`; al iniciar sesión la app lo usa para volver a bajar los grupos de la cuenta.
+- **Versión vieja:** una PWA abierta en segundo plano puede seguir con código viejo. Al volver a verla compara el archivo principal con el publicado y se recarga si cambió.
+- **Lugar "Ya elegido":** si tu integrante lo eligió otra cuenta (por ejemplo, una que creaste antes), el servidor no deja tomarlo. Ahora se explica qué hacer: iniciar sesión con esa cuenta o pedir al administrador que lo libere.

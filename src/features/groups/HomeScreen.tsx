@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
+  Button,
   ButtonLink,
+  Dialog,
   EmptyNote,
   HeaderMenu,
   Notice,
@@ -42,6 +44,20 @@ export function HomeScreen() {
   const session = useSession()
   const loggedIn = session?.user.username != null
   const sessionExpired = useSessionExpired()
+  const [confirmLogout, setConfirmLogout] = useState(false)
+
+  const unsent = matches.filter(
+    (match) => match.groupId !== null && isPending(match),
+  ).length
+
+  // Los grupos y sus partidas son de la cuenta: al cerrar sesión se quitan de
+  // este celular (se recuperan al volver a iniciar sesión).
+  const logout = async () => {
+    setConfirmLogout(false)
+    await logoutAccount()
+    setGroups([])
+    setMatches((all) => all.filter((match) => match.groupId === null))
+  }
 
   useEffect(() => {
     let active = true
@@ -115,7 +131,8 @@ export function HomeScreen() {
                     },
                     {
                       label: 'Cerrar sesión',
-                      onClick: () => void logoutAccount(),
+                      onClick: () =>
+                        unsent > 0 ? setConfirmLogout(true) : void logout(),
                       icon: <ExitIcon />,
                     },
                   ]
@@ -149,6 +166,24 @@ export function HomeScreen() {
         }
       />
       <ScreenContent>
+        {confirmLogout && (
+          <Dialog
+            title="Partidas sin enviar"
+            onClose={() => setConfirmLogout(false)}
+          >
+            <p>
+              {unsent === 1
+                ? 'Tienes 1 partida de grupo sin enviar.'
+                : `Tienes ${unsent} partidas de grupo sin enviar.`}{' '}
+              Si cierras sesión ahora se perderán. Conéctate a Internet para
+              enviarlas antes.
+            </p>
+            <Button variant="secondary" onClick={() => void logout()}>
+              Cerrar sesión igual
+            </Button>
+            <Button onClick={() => setConfirmLogout(false)}>Cancelar</Button>
+          </Dialog>
+        )}
         {sessionExpired && (
           <div className={styles.expired}>
             <Notice>

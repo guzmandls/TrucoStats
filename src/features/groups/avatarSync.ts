@@ -2,14 +2,15 @@ import { ApiError } from '../../lib/api'
 import { setRemoteAvatar } from './groupsApi'
 import type { Group } from './types'
 
-const pendingKey = (groupId: string) => `trucostats.pendingAvatar.${groupId}`
+export const pendingAvatarKey = (groupId: string) =>
+  `trucostats.pendingAvatar.${groupId}`
 
 function markPending(groupId: string, pending: boolean): void {
   try {
     if (pending) {
-      localStorage.setItem(pendingKey(groupId), '1')
+      localStorage.setItem(pendingAvatarKey(groupId), '1')
     } else {
-      localStorage.removeItem(pendingKey(groupId))
+      localStorage.removeItem(pendingAvatarKey(groupId))
     }
   } catch {
     // Sin almacenamiento no se puede recordar que falta enviar la foto.
@@ -19,7 +20,7 @@ function markPending(groupId: string, pending: boolean): void {
 // Si la última foto de este celular todavía no llegó al servidor.
 export function hasPendingAvatar(groupId: string): boolean {
   try {
-    return localStorage.getItem(pendingKey(groupId)) === '1'
+    return localStorage.getItem(pendingAvatarKey(groupId)) === '1'
   } catch {
     return false
   }
