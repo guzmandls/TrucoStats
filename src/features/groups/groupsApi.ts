@@ -147,6 +147,17 @@ export async function setRemoteMemberAdmin(
   )
 }
 
+// Cambia el nombre de un integrante (también en las partidas ya guardadas).
+export async function renameRemoteMember(
+  inviteCode: string,
+  memberId: string,
+  name: string,
+): Promise<void> {
+  await patchJson(`/api/grupos/${inviteCode}/integrantes/${memberId}`, {
+    name,
+  })
+}
+
 // Cambia los apodos de un integrante (reemplaza la lista completa).
 export async function setRemoteAliases(
   inviteCode: string,

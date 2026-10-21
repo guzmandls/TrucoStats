@@ -102,6 +102,92 @@ describe('syncPendingMatches', () => {
     expect((await loadMatches()).every((item) => !isPending(item))).toBe(true)
   })
 
+  it('una partida cancelada sin conexión sube y se cancela en el servidor', async () => {
+    await saveMatch(
+      match('a', '2026-10-02T10:00:00.000Z', {
+        canceled: {
+          at: '2026-10-02T11:00:00.000Z',
+          by: 'm1',
+          reason: 'Mal cargada',
+        },
+      }),
+    )
+    const fetchMock = vi.fn<typeof fetch>(async (input) =>
+      String(input).endsWith('/cancelar')
+        ? json({
+            match: {
+              canceled: {
+                at: '2026-10-02T12:00:00.000Z',
+                by: 'm1',
+                reason: 'Mal cargada',
+              },
+              createdBy: 'm1',
+              registeredAt: '2026-10-02T12:00:00.000Z',
+            },
+          })
+        : json({ match: {} }, 201),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    expect(await syncPendingMatches()).toBe(1)
+
+    expect(fetchMock.mock.calls.map(([path]) => path)).toEqual([
+      `/api/grupos/${CODE}/partidas`,
+      `/api/grupos/${CODE}/partidas/a/cancelar`,
+    ])
+    expect(
+      JSON.parse((fetchMock.mock.calls[1][1] as RequestInit).body as string),
+    ).toEqual({ reason: 'Mal cargada' })
+    const [stored] = await loadMatches()
+    expect(isPending(stored)).toBe(false)
+    expect(stored.canceled?.at).toBe('2026-10-02T12:00:00.000Z')
+  })
+
+  it('si falla la conexión al cancelar, la partida sigue pendiente y se reintenta', async () => {
+    await saveMatch(
+      match('a', '2026-10-02T10:00:00.000Z', {
+        canceled: { at: '2026-10-02T11:00:00.000Z', by: 'm1', reason: null },
+      }),
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async (input) => {
+        if (String(input).endsWith('/cancelar')) {
+          throw new TypeError('sin red')
+        }
+        return json({ match: {} }, 201)
+      }),
+    )
+
+    expect(await syncPendingMatches()).toBe(0)
+
+    const [stored] = await loadMatches()
+    expect(isPending(stored)).toBe(true)
+    expect(stored.canceled).toBeDefined()
+  })
+
+  it('si el servidor no permite la cancelación, queda como diga el servidor', async () => {
+    await saveMatch(
+      match('a', '2026-10-02T10:00:00.000Z', {
+        canceled: { at: '2026-10-02T11:00:00.000Z', by: 'm1', reason: null },
+      }),
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async (input) =>
+        String(input).endsWith('/cancelar')
+          ? json({ error: 'No puedes cancelarla' }, 403)
+          : json({ match: {} }, 201),
+      ),
+    )
+
+    expect(await syncPendingMatches()).toBe(1)
+
+    const [stored] = await loadMatches()
+    expect(isPending(stored)).toBe(false)
+    expect(stored.canceled).toBeUndefined()
+  })
+
   it('no reenvía las que ya llegaron', async () => {
     await saveMatch(
       match('a', '2026-10-02T10:00:00.000Z', { syncedAt: '2026-10-02' }),

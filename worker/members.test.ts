@@ -57,6 +57,30 @@ describe('PATCH /api/grupos/:código/integrantes/:id', () => {
     ])
   })
 
+  it('el administrador no puede renombrar a quien ya eligió su lugar, pero esa persona sí', async () => {
+    // Pedro elige su lugar sin sesión previa (se le crea una cuenta invitada).
+    const joined = await request(env, `/api/grupos/${code}/unirse`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ memberId: 'm2' }),
+    })
+    const pedroToken = ((await joined.json()) as { token: string }).token
+
+    expect((await rename('m2', { name: 'Pedrito' })).status).toBe(403)
+
+    const own = await request(
+      env,
+      `/api/grupos/${code}/integrantes/m2`,
+      {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name: 'Pedrito' }),
+      },
+      pedroToken,
+    )
+    expect(own.status).toBe(200)
+  })
+
   it('actualiza también el nombre en las partidas ya guardadas', async () => {
     await send('POST', `/api/grupos/${code}/partidas`, {
       id: 'p1',

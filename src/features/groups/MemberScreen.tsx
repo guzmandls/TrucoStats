@@ -12,7 +12,8 @@ import {
 import { memberStats } from '../matches/groupStats'
 import { avatarColors } from './avatar'
 import { fileToAvatarDataUrl } from './imageFile'
-import { setRemoteAvatar } from './groupsApi'
+import { fetchGroupByCode, setRemoteAvatar } from './groupsApi'
+import { RenameMemberDialog } from './RenameMemberDialog'
 import { updateMemberAvatar } from './groupsStorage'
 import { MemberStatsFicha, MemberStatsRows } from './MemberStats'
 import { AliasesDialog } from './AliasesDialog'
@@ -28,6 +29,9 @@ export function MemberScreen() {
   const { group, matches, setGroup, reload } = useGroup(id)
   const [busy, setBusy] = useState(false)
   const [editingAliases, setEditingAliases] = useState(false)
+  const [renaming, setRenaming] = useState(false)
+  // Qué integrantes ya eligió una persona (solo se consulta si soy administrador).
+  const [claimed, setClaimed] = useState<string[] | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const member = group?.members.find((item) => item.id === memberId) ?? null
   const memberPoints = useMemo(() => {
@@ -40,6 +44,25 @@ export function MemberScreen() {
     )
     return map.get(member.id) ?? 0
   }, [group, matches, member])
+
+  const inviteCode = group?.inviteCode
+  const admin = group ? isGroupAdmin(group) : false
+  useEffect(() => {
+    if (!admin || !inviteCode) {
+      return
+    }
+    let active = true
+    fetchGroupByCode(inviteCode)
+      .then((remote) => {
+        if (active) {
+          setClaimed(remote.claimedMemberIds)
+        }
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [admin, inviteCode])
 
   useEffect(() => {
     if (group && !member) {
@@ -66,6 +89,12 @@ export function MemberScreen() {
     )
   }
 
+  // Cada uno cambia su propio nombre; el administrador solo el de quien nadie
+  // eligió todavía.
+  const canRename =
+    !!group.inviteCode &&
+    (member.id === group.myMemberId ||
+      (admin && claimed !== null && !claimed.includes(member.id)))
   const stats = memberStats(member, matches)
   const colors = avatarColors(group.members.map((item) => item.id))
 
@@ -127,6 +156,16 @@ export function MemberScreen() {
           color={colors[member.id]}
           stats={stats}
         />
+
+        {canRename && (
+          <Section title="Nombre">
+            <div className={styles.photoActions}>
+              <Button variant="secondary" onClick={() => setRenaming(true)}>
+                Cambiar nombre
+              </Button>
+            </div>
+          </Section>
+        )}
 
         <Section title="Foto">
           <div className={styles.photoActions}>
@@ -197,6 +236,18 @@ export function MemberScreen() {
           />
         </Section>
       </ScreenContent>
+      {renaming && group.inviteCode && (
+        <RenameMemberDialog
+          inviteCode={group.inviteCode}
+          memberId={member.id}
+          currentName={member.name}
+          onClose={() => setRenaming(false)}
+          onSaved={() => {
+            setRenaming(false)
+            void pullGroup(group.id).then(reload)
+          }}
+        />
+      )}
       {editingAliases && group.inviteCode && (
         <AliasesDialog
           inviteCode={group.inviteCode}

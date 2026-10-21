@@ -179,7 +179,7 @@ export function ParticipantsScreen() {
                       role="img"
                       aria-label="Administrador"
                     >
-                      <ShieldIcon size={20} />
+                      <ShieldIcon size={26} />
                     </span>
                   )}
                 </Link>

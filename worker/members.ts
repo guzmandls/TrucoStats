@@ -65,12 +65,20 @@ export async function updateMember(
   }
 
   const member = await env.DB.prepare(
-    'SELECT id FROM members WHERE id = ? AND group_id = ? AND active = 1',
+    'SELECT id, user_id FROM members WHERE id = ? AND group_id = ? AND active = 1',
   )
     .bind(memberId, groupId)
-    .first<{ id: string }>()
+    .first<{ id: string; user_id: string | null }>()
   if (!member) {
     return errorResponse('Integrante no encontrado', 404)
+  }
+  // El administrador solo puede cambiar el nombre de un integrante que nadie
+  // eligió todavía; quien ya eligió su lugar es el único que cambia su nombre.
+  if (hasName && membership.memberId !== memberId && member.user_id) {
+    return errorResponse(
+      'Solo el propio integrante puede cambiar su nombre una vez que eligió su lugar',
+      403,
+    )
   }
 
   const statements = []

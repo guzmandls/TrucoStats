@@ -85,9 +85,8 @@ No son requisitos nuevos: son notas para no olvidarlas.
 
 ## Cancelar partidas
 
-- Cancelar y restaurar necesitan conexión. Si hiciera falta hacerlo sin conexión,
-  habría que guardar la acción como pendiente y enviarla después (hoy solo se
-  guardan así las partidas nuevas).
+- Cancelar y restaurar una partida ya enviada necesitan conexión (decidido). Las
+  partidas sin enviar se cancelan y restauran sin conexión y suben ya canceladas.
 - Los puntos (Pts) se recalculan al cancelar o restaurar, pero no hay aviso al
   resto del grupo.
 
