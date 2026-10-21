@@ -553,7 +553,7 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 - Las pestañas ocupan todo el ancho, con la misma separación de la barra superior que las demás zonas: la activa va en crema y las demás en negro, y una línea negra arriba y abajo separa a la activa del crema que la rodea.
 - En el podio, todos los escalones son negros y se apoyan en la base de su tarjeta (no flotan).
 - La posición en un ranking se muestra en un cuadro negro con el número en crema.
-- Solo hay tres grosores de línea: 3 px para las divisiones crema entre zonas negras (barra superior, pestañas, filas de avatares, separadores verticales), 2 px para bordes de tarjetas y botones, y 1 px para las divisiones finas entre filas. No se usan otros.
+- Los grosores de línea siguen una jerarquía de tres niveles y no se usan otros: **3 px** para las divisiones estructurales entre zonas negras grandes (entre la barra superior, las pestañas y las bandas de título, y los separadores verticales de la barra superior y de las pestañas); **2 px** para contornos (tarjetas, recuadros, botones, controles); **1 px** para las divisiones finas dentro de una zona (filas de listas, separación entre equipos y entre puntajes, celdas y separadores de la grilla de enfrentamientos).
 - En los récords de partidas (estadísticas) el dato que importa (duración o diferencia) va grande a la derecha del título; debajo, el bloque negro de puntajes con los dos equipos y la fecha.
 
 ---

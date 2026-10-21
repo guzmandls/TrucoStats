@@ -970,3 +970,9 @@ coherencia:
 Concepto nuevo: una revisión visual global (capturas de cada pantalla en el
 mismo tamaño) detecta inconsistencias que no se ven mirando una pantalla sola,
 como dos zonas negras que se tocan.
+
+Ajuste de grosores de línea: se definió una jerarquía de tres niveles (3 px
+divisiones estructurales entre zonas negras, 2 px contornos, 1 px divisiones
+finas internas; ver requisitos §12.11). Las divisiones de la grilla de
+enfrentamientos volvieron a ser finas, y la línea entre puntajes pasó a 1 px
+para igualar la que divide a los equipos.

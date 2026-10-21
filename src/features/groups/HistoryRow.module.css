@@ -162,7 +162,7 @@
 }
 
 .scoreCell + .scoreCell {
-  border-top: var(--border-width) solid var(--paper);
+  border-top: var(--hairline-width) solid var(--paper);
 }
 
 .scoreWon {
