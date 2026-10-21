@@ -355,34 +355,51 @@ Se presenta como una grilla simétrica: el eje de filas muestra los nombres y el
 
 ### 6.4. Sistema de puntos (Pts)
 
-Cada integrante acumula puntos (Pts) dentro de cada grupo, según los resultados de las partidas de grupo. Es una variante simple del sistema Elo: cada partida es un **intercambio** de puntos entre los dos equipos, y lo que se mueve depende de qué tan esperado era el resultado. Los puntos se calculan a partir de las partidas ya guardadas, procesándolas en orden cronológico (de la más antigua a la más reciente). Los Pts solo se calculan para partidas de grupo, porque las partidas rápidas no tienen integrantes asociados, y los jugadores invitados no suman ni restan.
+Cada integrante acumula puntos (Pts) dentro de cada grupo, según los resultados de las partidas de grupo. **Todos empiezan en 0.** Los puntos se calculan a partir de las partidas ya guardadas, procesándolas en orden cronológico (de la más antigua a la más reciente). Los Pts solo se calculan para partidas de grupo, porque las partidas rápidas no tienen integrantes asociados, y los jugadores invitados no suman ni restan.
+
+La idea: **cada integrante suma al ganar y resta al perder según SUS PROPIOS puntos.** Con pocos puntos, las victorias valen mucho y las derrotas casi nada, así que se sube rápido al principio. A medida que se acerca a su nivel, lo que suma y lo que resta se emparejan. Con muchos puntos, las derrotas pesan más que las victorias, pero nunca más del doble. Por eso los puntos de cada uno se acomodan en una **meseta** que depende de cuánto gana: un jugador parejo (gana la mitad de sus partidas) se acomoda cerca de los **1500**.
 
 **Constantes**
 
 | Nombre | Valor | Qué es |
 |---|---|---|
-| Puntos de inicio | 1200 | Con lo que empieza todo integrante. Es el punto de partida del promedio del grupo. |
-| K | 50 | Lo máximo que se mueve en una partida a 30 puntos con un resultado totalmente inesperado. |
-| Escala | 1000 | Qué tan ancha es la curva de "resultado esperado". |
-| Parte mínima | 0,25 | Una victoria nunca mueve menos de esta parte del máximo. |
-| Bonus de constancia | 3 | Puntos que suma cada integrante por jugar una partida, gane o pierda. |
+| Puntos de inicio | 0 | Con lo que empieza todo integrante. |
+| Meseta | 1500 | Donde se acomoda un jugador parejo. |
+| Base | 30 | Lo que suma una victoria a 30 puntos, con diferencia media, contra un rival parejo, a quien está en la meseta. |
+| Victoria en 0 puntos | × 4,5 | Cuánto más vale una victoria cuando se tienen 0 puntos. |
+| Derrota en 0 puntos | × 0,25 | Cuánto resta una derrota cuando se tienen 0 puntos. |
+| Techo | 2250 puntos (1,5 veces la meseta) | Desde acá los factores dejan de cambiar. |
+| Victoria desde el techo | × 0,7 | Cuánto vale una victoria desde los 2250. |
+| Derrota desde el techo | × 1,4 | Cuánto resta una derrota desde los 2250. |
 
 **Cómo se calcula una partida**
 
-1. Puntos de cada equipo: el promedio de los puntos de sus integrantes (solo integrantes del grupo).
-2. Resultado esperado del ganador: `E = 1 / (1 + 10^((puntos del perdedor − puntos del ganador) / 1000))`. Con los mismos puntos es 50%; con 200 puntos de ventaja, 61%; con 400, 72%; con 1000, 91%.
-3. Sorpresa: `1 − E`, pero nunca menos de 0,25. Cuanto más inesperada la victoria, más se mueve.
-4. Factor de objetivo: `objetivo / 30`, entre 0,5 y 1,5 (una partida a 40 mueve 1,33 veces; a 15 o menos, la mitad).
-5. Factor de diferencia: de 0,75 (ganar muy ajustado) a 1,25 (golear por todo el objetivo): `0,75 + 0,5 × diferencia / objetivo`.
-6. Puntos que cambian de manos: `T = redondear(K × factor de objetivo × factor de diferencia × sorpresa)`.
-7. Cada integrante del equipo ganador suma `T` y cada integrante del perdedor resta `T`. Además, todos los que jugaron suman el bonus de constancia (+3). Nadie baja de 0.
+1. Se calcula el tamaño de la partida: `30 × factor de objetivo × factor de diferencia`.
+   - Factor de objetivo: `objetivo / 30`, entre 0,5 y 1,5 (a 40 puntos mueve 1,33 veces; a 15 o menos, la mitad).
+   - Factor de diferencia: `0,75 + 0,5 × diferencia / objetivo`, de 0,75 (ganar muy ajustado) a 1,25 (golear por todo el objetivo).
+2. Cada integrante del equipo ganador **suma** `tamaño × factor de victoria × ajuste por el rival`. El factor de victoria depende de sus puntos: × 4,5 en 0, × 1 en 1500 y × 0,7 desde 2250; entre un valor y otro baja de forma pareja.
+3. Cada integrante del equipo perdedor **resta** `tamaño × factor de derrota × ajuste por el rival`. El factor de derrota depende de sus puntos: × 0,25 en 0, × 1 en 1500 y × 1,4 desde 2250; entre un valor y otro sube de forma pareja.
+4. Ajuste por el rival (diferencia entre el promedio de puntos de los dos equipos, cada 4000 puntos de diferencia ajustan 100%, con tope de 25%): si el rival tiene más puntos, ganarle vale hasta 25% más y perderle resta hasta 25% menos; si tiene menos, ganarle vale hasta 25% menos y perderle resta hasta 25% más.
+5. Los resultados se redondean y nadie baja de 0.
+
+**Cuánto mueve una partida a 30 puntos con diferencia media y rival parejo**
+
+| Puntos que ya tiene | Gana | Pierde | Victorias para compensar una derrota |
+|---|---|---|---|
+| 0 | +135 | −8 | casi nada que compensar |
+| 300 | +114 | −12 | 0,1 |
+| 750 | +83 | −19 | 0,2 |
+| 1200 | +51 | −24 | 0,5 |
+| 1500 (meseta) | +30 | −30 | 1 |
+| 1800 | +26 | −35 | 1,3 |
+| 2250 o más | +21 | −42 | 2 |
 
 **Qué se espera de este sistema**
 
-- Es un intercambio: lo que gana un equipo lo pierde el otro (más el bonus de constancia). Por eso el promedio del grupo se mantiene cerca de los 1200 y solo sube de a poco por la constancia (3 puntos por cada partida que juega cada integrante).
-- La diferencia entre dos integrantes tiende a un valor de equilibrio que depende de cuánto más gana uno que otro: con 60% de victorias de uno contra otro la brecha ronda los 180 puntos; con 70%, unos 370; con 80%, unos 600. Como en el truco influye mucho la suerte, la escala es ancha y los resultados no son casi seguros.
-- Al que tiene más puntos le sigue convendo ganar: una victoria nunca vale menos de la parte mínima (entre 9 y 16 puntos en una partida a 30, según la diferencia) más el bonus, así que seguir jugando siempre suma. Para mantenerse arriba hace falta ganar más de lo que se espera de su nivel.
-- Todos empiezan en 1200: quien se suma tarde está abajo del promedio de un grupo con historia, pero sube rápido si gana, porque las victorias contra quienes tienen más puntos mueven más.
+- Un jugador parejo sube rápido al principio y se acomoda cerca de los 1500: aproximadamente 1300 después de 60 partidas propias y 1450 después de 100.
+- Dónde se acomoda cada uno según cuánto gana (aproximado): 30% de victorias, unos 1100; 40%, unos 1350; 50%, 1500; 55%, unos 1700; 60%, unos 1950; 67%, 2250 (el techo). Quien gana más del 67% de sus partidas sigue subiendo, aunque despacio.
+- Al que está arriba le sigue valiendo la pena ganar: nunca le hacen falta más de dos victorias para compensar una derrota, y ganarle a alguien con pocos puntos siempre suma algo claro.
+- Todos los números se pueden retocar en un solo lugar (las constantes de `src/features/matches/points.ts`).
 - Los puntos se recalculan siempre desde las partidas: si se cancela o se restaura una partida, o se corrige un apodo, todo se recalcula.
 
 ### 6.5. Perfil personal
