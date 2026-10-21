@@ -1,42 +1,69 @@
 import type { Team } from '../counter/counterLogic'
 import type { Match } from './types'
 
-const LOW_MAX = 200
-const NIVEL_DIVISOR = 1800
-const NIVEL_MIN = 0.6
-const NIVEL_MAX = 1.4
-const MATCH_FACTOR_MIN = 0.75
-const MATCH_FACTOR_MAX = 1.0
-const LOSS_LOW_MIN = 0.25
+// Sistema de puntos (Pts) de un grupo. Es una variante simple del sistema Elo:
+// cada partida es un intercambio de puntos entre los dos equipos, y lo que se
+// mueve depende de qué tan esperado era el resultado. Está explicado paso a paso
+// en docs/requisitos.md (§6.4).
+
+// Puntos con los que empieza todo integrante (y punto de partida del promedio).
+export const START_POINTS = 1200
+// Cuántos puntos se mueven, como máximo, en una partida de 30 puntos con un
+// resultado completamente inesperado.
+export const K = 50
+// Escala de la curva de "resultado esperado": con esta diferencia de puntos entre
+// dos equipos, el de más puntos tiene ~91% de probabilidad esperada de ganar. Es
+// una escala ancha a propósito: en el truco influye mucho la suerte, así que no
+// se espera que el de más puntos gane casi siempre.
+export const SCALE = 1000
+// Lo que se mueve por una victoria nunca baja de esta parte del máximo, para que
+// ganarle a alguien con muchos menos puntos siga sumando algo.
+export const MIN_SHARE = 0.25
+// Puntos que suma cada integrante que juega una partida, gane o pierda: premia la
+// constancia.
+export const PARTICIPATION_BONUS = 3
+
+const TARGET_BASE = 30
+const TARGET_FACTOR_MIN = 0.5
+const TARGET_FACTOR_MAX = 1.5
+const MARGIN_FACTOR_MIN = 0.75
+const MARGIN_FACTOR_RANGE = 0.5
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
-export function matchFactor(match: Match): number {
+// Probabilidad esperada de que gane un equipo con `own` puntos (promedio del
+// equipo) contra uno con `rival`. Es 50% si tienen los mismos puntos.
+export function expectedScore(own: number, rival: number): number {
+  return 1 / (1 + 10 ** ((rival - own) / SCALE))
+}
+
+// Las partidas a más puntos mueven más, y las más cortas, menos (de la mitad a una
+// vez y media lo normal): una partida a 30 es la referencia.
+export function targetFactor(match: Match): number {
+  return clamp(match.target / TARGET_BASE, TARGET_FACTOR_MIN, TARGET_FACTOR_MAX)
+}
+
+// La diferencia de la partida ajusta el movimiento: ganar muy ajustado mueve 0,75
+// de lo normal y golear (ganar por todo el objetivo, por ejemplo 40 a 0) mueve
+// 1,25.
+export function marginFactor(match: Match): number {
   const target = match.target > 0 ? match.target : 1
   const diff = Math.abs(match.scores.nos - match.scores.ellos)
-  return (
-    MATCH_FACTOR_MIN + (MATCH_FACTOR_MAX - MATCH_FACTOR_MIN) * (diff / target)
-  )
+  return MARGIN_FACTOR_MIN + MARGIN_FACTOR_RANGE * Math.min(1, diff / target)
 }
 
-export function nivelFactor(winnerPoints: number, loserPoints: number): number {
-  return clamp(
-    1 - (winnerPoints - loserPoints) / NIVEL_DIVISOR,
-    NIVEL_MIN,
-    NIVEL_MAX,
-  )
-}
-
-export function winBoost(points: number): number {
-  const p = Math.min(Math.max(points, 0), LOW_MAX)
-  return 1 + 0.8 * (1 - p / LOW_MAX)
-}
-
-export function lossFactor(points: number): number {
-  const p = Math.min(Math.max(points, 0), LOW_MAX)
-  return LOSS_LOW_MIN + (1 - LOSS_LOW_MIN) * Math.sqrt(p / LOW_MAX)
+// Puntos que el equipo ganador le saca al perdedor (a cada integrante del
+// perdedor le resta esto y a cada integrante del ganador le suma esto). Es mayor
+// cuanto más inesperada fue la victoria, y nunca menos de MIN_SHARE del máximo.
+export function transfer(
+  match: Match,
+  winnerAvg: number,
+  loserAvg: number,
+): number {
+  const surprise = Math.max(MIN_SHARE, 1 - expectedScore(winnerAvg, loserAvg))
+  return Math.round(K * targetFactor(match) * marginFactor(match) * surprise)
 }
 
 function average(points: Map<string, number>, ids: string[]): number {
@@ -50,7 +77,7 @@ function average(points: Map<string, number>, ids: string[]): number {
 function startingPoints(memberIds: string[]): Map<string, number> {
   const points = new Map<string, number>()
   for (const id of memberIds) {
-    points.set(id, 0)
+    points.set(id, START_POINTS)
   }
   return points
 }
@@ -60,7 +87,8 @@ function inOrder(matches: Match[]): Match[] {
 }
 
 // Aplica una partida a los puntos de los integrantes y devuelve cuánto cambió
-// cada uno (los que no jugaron no aparecen).
+// cada uno (los que no jugaron no aparecen). Solo cuentan los integrantes del
+// grupo: los invitados no suman ni restan.
 function applyMatch(
   points: Map<string, number>,
   match: Match,
@@ -77,23 +105,17 @@ function applyMatch(
   }
   const avgNos = average(points, nos)
   const avgEllos = average(points, ellos)
-  const winnerAvg = match.winner === 'nos' ? avgNos : avgEllos
-  const loserAvg = match.winner === 'nos' ? avgEllos : avgNos
-  const factor = matchFactor(match)
-  const nivel = nivelFactor(winnerAvg, loserAvg)
+  const moved =
+    match.winner === 'nos'
+      ? transfer(match, avgNos, avgEllos)
+      : transfer(match, avgEllos, avgNos)
 
   for (const side of ['nos', 'ellos'] as Team[]) {
-    const isWinner = match.winner === side
+    const sign = match.winner === side ? 1 : -1
     for (const id of teamIds(side)) {
       const current = points.get(id) ?? 0
-      const next = isWinner
-        ? current +
-          Math.round(match.target * factor * nivel * winBoost(current))
-        : Math.max(
-            0,
-            current -
-              Math.round(match.target * factor * nivel * lossFactor(current)),
-          )
+      // Nadie baja de 0 puntos.
+      const next = Math.max(0, current + sign * moved + PARTICIPATION_BONUS)
       points.set(id, next)
       changes.set(id, next - current)
     }

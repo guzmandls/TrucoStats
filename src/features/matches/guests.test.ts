@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Group } from '../groups/types'
 import { forStats, normalizeName } from './guests'
-import { computePoints } from './points'
+import { START_POINTS, computePoints } from './points'
 import type { Match } from './types'
 
 const group: Group = {
@@ -131,8 +131,8 @@ describe('forStats', () => {
 
     const points = computePoints(ids, forStats(group, matches))
 
-    expect(points.get('m2')).toBeGreaterThan(0)
-    expect(points.get('m3')).toBeLessThanOrEqual(0)
+    expect(points.get('m2')).toBeGreaterThan(START_POINTS)
+    expect(points.get('m3')).toBeLessThan(START_POINTS)
     // Juancho es apodo de Juan: perdió esa partida, así que también la cuenta.
     expect(points.has('m1')).toBe(true)
     expect([...points.keys()].some((id) => id.startsWith('x'))).toBe(false)

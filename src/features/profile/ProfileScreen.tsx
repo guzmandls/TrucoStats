@@ -13,7 +13,13 @@ import {
   StatRow,
   WinRateRing,
 } from '../../components/ui'
-import { loadGroups } from '../groups/groupsStorage'
+import { avatarColors } from '../groups/avatar'
+import { EditableAvatar } from '../groups/EditableAvatar'
+import { fileToAvatarDataUrl } from '../groups/imageFile'
+import { setRemoteAvatar } from '../groups/groupsApi'
+import { loadGroups, updateMemberAvatar } from '../groups/groupsStorage'
+import { PhotoDialog } from '../groups/PhotoDialog'
+import type { Group } from '../groups/types'
 import { loadMatches } from '../matches/matchesStorage'
 import { activeMatches } from '../matches/status'
 import { formatDuration, personalSummary } from '../matches/stats'
@@ -32,7 +38,10 @@ function duration(value: number | null): string {
 export function ProfileScreen() {
   const navigate = useNavigate()
   const [matches, setMatches] = useState<Match[] | null>(null)
-  const [groupCount, setGroupCount] = useState(0)
+  const [groups, setGroups] = useState<Group[]>([])
+  const [editingPhoto, setEditingPhoto] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const groupCount = groups.length
 
   useEffect(() => {
     let active = true
@@ -41,7 +50,7 @@ export function ProfileScreen() {
         return
       }
       setMatches(all)
-      setGroupCount(groups.length)
+      setGroups(groups)
     })
     return () => {
       active = false
@@ -49,6 +58,41 @@ export function ProfileScreen() {
   }, [])
 
   const summary = matches ? personalSummary(activeMatches(matches)) : null
+
+  // Tu foto es la de tu integrante en cada grupo donde ya sabemos quién eres:
+  // cambiarla desde el perfil la cambia en todos.
+  const mine = groups.flatMap((group) => {
+    const member = group.members.find((item) => item.id === group.myMemberId)
+    return member ? [{ group, member }] : []
+  })
+  const first = mine[0]
+  const currentAvatar = mine.find((item) => item.member.avatar)?.member.avatar
+
+  async function applyPhoto(dataUrl: string | undefined) {
+    setBusy(true)
+    try {
+      const updated: Group[] = []
+      for (const { group, member } of mine) {
+        updated.push(await updateMemberAvatar(group, member.id, dataUrl))
+        if (group.inviteCode) {
+          // Si no hay conexión, el cambio queda solo en este celular.
+          void setRemoteAvatar(
+            group.inviteCode,
+            member.id,
+            dataUrl ?? null,
+          ).catch(() => undefined)
+        }
+      }
+      setGroups((previous) =>
+        previous.map(
+          (group) => updated.find((item) => item.id === group.id) ?? group,
+        ),
+      )
+      setEditingPhoto(false)
+    } finally {
+      setBusy(false)
+    }
+  }
 
   return (
     <Screen>
@@ -61,6 +105,22 @@ export function ProfileScreen() {
         }
       />
       <ScreenContent>
+        {first && (
+          <div className={styles.photo}>
+            <EditableAvatar
+              name={first.member.name}
+              color={
+                avatarColors(first.group.members.map((item) => item.id))[
+                  first.member.id
+                ]
+              }
+              src={currentAvatar}
+              size={88}
+              onEdit={() => setEditingPhoto(true)}
+            />
+          </div>
+        )}
+
         {summary && summary.total === 0 ? (
           <EmptyNote>Todavía no jugaste ninguna partida</EmptyNote>
         ) : null}
@@ -112,6 +172,19 @@ export function ProfileScreen() {
           </>
         )}
       </ScreenContent>
+      {editingPhoto && (
+        <PhotoDialog
+          hasPhoto={!!currentAvatar}
+          busy={busy}
+          onFile={(file) => {
+            void fileToAvatarDataUrl(file).then((dataUrl) =>
+              applyPhoto(dataUrl),
+            )
+          }}
+          onRemove={() => void applyPhoto(undefined)}
+          onClose={() => setEditingPhoto(false)}
+        />
+      )}
     </Screen>
   )
 }

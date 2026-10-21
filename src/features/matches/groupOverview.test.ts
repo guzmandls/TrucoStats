@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { Group } from '../groups/types'
 import { groupOverview, matchWhen } from './groupOverview'
+import { START_POINTS } from './points'
 import type { Match } from './types'
 
 const group: Group = {
@@ -82,12 +83,12 @@ describe('groupOverview', () => {
     expect(overview.matchCount).toBe(1)
   })
 
-  it('quien no jugó no tiene posición pero sí puntos (0)', () => {
+  it('quien no jugó no tiene posición pero sí los puntos de inicio', () => {
     const matches = [match('p1', ['m2'], ['m3'], [30, 10], at(20))]
     const overview = groupOverview(group, matches)
 
     expect(overview.position).toBeNull()
-    expect(overview.points).toBe(0)
+    expect(overview.points).toBe(START_POINTS)
   })
 
   it('sin saber quién es la persona no hay posición ni puntos', () => {
