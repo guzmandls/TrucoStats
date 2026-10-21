@@ -230,9 +230,11 @@
 /* ---------- Pestañas ---------- */
 
 /* Pestañas de borde a borde, separadas de la barra superior por una línea
-   crema: la activa va en crema, las demás en negro. */
+   crema. La barra es negra y la pestaña activa va en crema, rodeada de negro
+   (su contorno). */
 .tabs {
   display: flex;
+  padding: var(--space-2);
   background: var(--ink);
   border-top: var(--rule-width) solid var(--paper);
   border-bottom: var(--rule-width) solid var(--paper);
@@ -263,6 +265,7 @@
 }
 
 .tabActive {
+  border-radius: 10px;
   background: var(--paper);
   color: var(--ink);
 }
