@@ -182,7 +182,12 @@ describe('ParticipantsScreen (administración)', () => {
     await saveGroup({ ...adminGroup, adminMemberIds: ['m1'] })
     renderParticipants()
 
-    // Pedro (m2) ya fue elegido; Luis (m3) no.
+    // Pedro (m2) ya fue elegido; Luis (m3) no. Se espera a que llegue del
+    // servidor quién eligió a quién.
+    await waitFor(() =>
+      expect(calls.some((call) => call.method === 'GET')).toBe(true),
+    )
+    await new Promise((resolve) => setTimeout(resolve, 100))
     fireEvent.click(
       await screen.findByRole('button', { name: 'Opciones de Pedro' }),
     )
