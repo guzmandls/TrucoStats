@@ -39,8 +39,10 @@ import { HistoryRow } from './HistoryRow'
 import type { MatchAction } from './matchActions'
 import { filterMatches } from '../matches/search'
 import { ApiError } from '../../lib/api'
+import { getToken } from '../../lib/session'
 import {
   cancelRemoteMatch,
+  leaveRemoteGroup,
   registerGroup,
   restoreRemoteMatch,
 } from './groupsApi'
@@ -79,6 +81,7 @@ export function GroupScreen() {
   const [inviting, setInviting] = useState(false)
   const [adding, setAdding] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
+  const [leaveError, setLeaveError] = useState<string | null>(null)
   // Aviso de puntos que deja la partida recién terminada: se lee al abrir la
   // pantalla y desaparece solo a los 4 segundos.
   const [pointsDelta, setPointsDelta] = useState<string | null>(readPointsDelta)
@@ -302,6 +305,26 @@ export function GroupScreen() {
   }
 
   const handleLeave = async () => {
+    // Con el grupo en el servidor y sesión iniciada, primero se avisa al
+    // servidor para que el integrante quede libre. Sin conexión no se sale, para
+    // no dejarlo vinculado; si el servidor ya no nos reconoce, se sale igual.
+    if (group.inviteCode && getToken()) {
+      try {
+        await leaveRemoteGroup(group.inviteCode)
+      } catch (error) {
+        const unknown =
+          error instanceof ApiError && [401, 403, 404].includes(error.status)
+        if (!unknown) {
+          setConfirmingLeave(false)
+          setLeaveError(
+            error instanceof ApiError
+              ? error.message
+              : 'Necesitas conexión a Internet para salir del grupo.',
+          )
+          return
+        }
+      }
+    }
     await leaveGroup(group)
     removeMembership(group.id)
     navigate('/')
@@ -515,6 +538,11 @@ export function GroupScreen() {
       {inviteError && (
         <Dialog title={inviteError} onClose={() => setInviteError(null)}>
           <Button onClick={() => setInviteError(null)}>Entendido</Button>
+        </Dialog>
+      )}
+      {leaveError && (
+        <Dialog title={leaveError} onClose={() => setLeaveError(null)}>
+          <Button onClick={() => setLeaveError(null)}>Entendido</Button>
         </Dialog>
       )}
       {confirmingLeave && (

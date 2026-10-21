@@ -34,10 +34,6 @@ No son requisitos nuevos: son notas para no olvidarlas.
   celular y se pierde en la próxima sincronización (el servidor manda). Lo mismo
   ocurriría con un cambio de nombre fallido, pero ese no se puede hacer fuera
   del flujo de unirse.
-- Salir del grupo sigue siendo solo local: no avisa al servidor, así que el
-  integrante queda vinculado a su cuenta y, si era administrador, conserva el rol
-  allí. Conviene un "salir" que libere al integrante y active el traspaso
-  automático del rol.
 - Las estadísticas y los participantes leen lo que hay en el celular: la
   sincronización ocurre al abrir la pantalla del grupo.
 - Una partida que el servidor rechaza (por ejemplo, porque incluye a un integrante

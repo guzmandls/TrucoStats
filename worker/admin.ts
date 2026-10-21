@@ -80,7 +80,7 @@ async function activeMemberCount(groupId: string, env: Env): Promise<number> {
 // Si el grupo se quedó sin administradores (porque el último se fue, fue dado
 // de baja o liberado), el rol pasa solo al integrante con cuenta más antiguo; si
 // ninguno tiene cuenta, al integrante más antiguo.
-async function ensureAdmin(groupId: string, env: Env): Promise<void> {
+export async function ensureAdmin(groupId: string, env: Env): Promise<void> {
   const admins = await env.DB.prepare(
     'SELECT COUNT(*) AS total FROM members WHERE group_id = ? AND active = 1 AND is_admin = 1',
   )

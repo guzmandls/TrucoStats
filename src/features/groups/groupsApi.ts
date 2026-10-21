@@ -147,6 +147,12 @@ export async function setRemoteMemberAdmin(
   )
 }
 
+// Avisa al servidor que la persona sale del grupo: su integrante queda libre y,
+// si era administrador, el rol pasa a otro.
+export async function leaveRemoteGroup(inviteCode: string): Promise<void> {
+  await postJson(`/api/grupos/${inviteCode}/salir`, {})
+}
+
 interface MatchesResponse {
   matches: Match[]
 }

@@ -1019,3 +1019,19 @@ Conceptos nuevos:
   formato anterior al leerlos, así nadie pierde sus grupos al actualizar.
 - **Dejar de depender de un dato viejo:** `groups.admin_member_id` queda como dato
   histórico (el creador); los permisos salen de `members.is_admin`.
+
+## Etapa 32 — Salir del grupo avisa al servidor
+
+Hecho:
+
+- Nuevo pedido `POST /api/grupos/:código/salir` (`worker/leave.ts`): el integrante
+  queda libre (otra persona puede elegirlo) y conserva sus partidas; si era
+  administrador pierde el rol y, si el grupo se queda sin administradores, pasa solo
+  a otro (traspaso automático). Si era el único integrante, el grupo se elimina.
+- En la app, "Salir del grupo" primero avisa al servidor. Sin conexión no se sale
+  (para no dejar al integrante vinculado a una cuenta que ya se fue); si el servidor
+  ya no reconoce a la persona (401/403/404), se sale igual.
+
+Concepto nuevo: **orden de operaciones entre servidor y celular**. Primero se
+confirma en el servidor y recién después se cambia lo local; así los dos lados no
+quedan contradiciéndose si falla la conexión.

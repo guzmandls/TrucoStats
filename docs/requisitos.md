@@ -66,7 +66,8 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Mientras no exista el sistema de cuentas, el dispositivo tendrá una lista local de pertenencia: los grupos que aparecen en la pantalla inicial.
 - Un usuario podrá salir de un grupo; al hacerlo, el grupo deja de aparecer en su pantalla inicial (se quita de su lista de pertenencia).
 - Salir de un grupo no descuenta las partidas ya jugadas: las partidas jugadas por el usuario siguen contando en su perfil personal aunque el grupo se elimine.
-- Si el usuario que sale es el administrador y quedan otros integrantes, la administración pasa a otro integrante y el grupo se conserva con sus partidas y estadísticas. El integrante que representaba al usuario queda en el grupo (desvinculado) para que sus estadísticas sigan mostrándose.
+- Al salir de un grupo que está en el servidor, la app avisa al servidor (necesita conexión; sin ella no se sale, para no dejar al integrante vinculado): el integrante queda libre para que otra persona lo elija y deja de ser administrador si lo era.
+- Si el usuario que sale es el administrador y quedan otros integrantes, la administración pasa a otro integrante (el integrante con cuenta más antiguo, salvo que quede otro administrador) y el grupo se conserva con sus partidas y estadísticas. El integrante que representaba al usuario queda en el grupo (desvinculado) para que sus estadísticas sigan mostrándose.
 - Si el usuario que sale es el administrador y era el único integrante, el grupo se elimina completo (historial y estadísticas de grupo), tras un aviso que advierte que se borrarán esas estadísticas. Las partidas ya jugadas se conservan para el perfil personal.
 
 ### 3.4. Pantalla principal

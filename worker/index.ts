@@ -4,6 +4,7 @@ import { addMember, releaseMember, removeMember, setMemberAdmin } from './admin'
 import { updateMember } from './members'
 import { cancelMatch, restoreMatch } from './cancel'
 import { joinGroup } from './join'
+import { leaveGroup } from './leave'
 import { createMatch, listMatches } from './matches'
 import { currentUser, login, logout, register } from './users'
 
@@ -16,6 +17,7 @@ const MEMBER_ACTION =
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
 const MATCH_ACTION =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/(cancelar|restaurar)$/
+const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 
 export default {
@@ -84,6 +86,13 @@ export default {
       return action === 'cancelar'
         ? cancelMatch(code, id, request, env)
         : restoreMatch(code, id, request, env)
+    }
+
+    const leaveOfGroup = LEAVE_GROUP.exec(pathname)
+    if (leaveOfGroup) {
+      return request.method === 'POST'
+        ? leaveGroup(leaveOfGroup[1], request, env)
+        : errorResponse('Método no permitido', 405)
     }
 
     const joinOfGroup = JOIN_GROUP.exec(pathname)

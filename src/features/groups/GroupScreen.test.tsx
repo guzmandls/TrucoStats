@@ -17,6 +17,7 @@ import {
   saveGame,
   type PersistedGame,
 } from '../counter/gameStorage'
+import { clearSession, saveSession } from '../../lib/session'
 import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { GroupScreen } from './GroupScreen'
@@ -111,6 +112,7 @@ function renderGroup() {
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  clearSession()
 })
 
 async function openInvite() {
@@ -506,6 +508,61 @@ describe('GroupScreen', () => {
     expect(await screen.findByText('inicio')).toBeInTheDocument()
     const [saved] = await loadGroups()
     expect(saved.adminMemberIds).toEqual(['m2'])
+  })
+
+  it('avisa al servidor al salir de un grupo que está en el servidor', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123' })
+    const fetchMock = vi.fn(
+      async (path: string) =>
+        new Response(JSON.stringify({ deleted: false, path }), { status: 200 }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    renderGroup()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Salir del grupo' }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Salir' }))
+
+    expect(await screen.findByText('inicio')).toBeInTheDocument()
+    expect(
+      fetchMock.mock.calls.some(
+        ([path]) => path === '/api/grupos/abc123/salir',
+      ),
+    ).toBe(true)
+  })
+
+  it('no sale del grupo si no hay conexión para avisar al servidor', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123' })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    )
+    renderGroup()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Salir del grupo' }),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Salir' }))
+
+    expect(
+      await screen.findByText(
+        'Necesitas conexión a Internet para salir del grupo.',
+      ),
+    ).toBeInTheDocument()
+    expect((await loadGroups()).length).toBe(1)
   })
 
   it('advierte y borra el grupo al salir si es el único integrante', async () => {
