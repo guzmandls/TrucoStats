@@ -550,7 +550,7 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 - Cada sección de una pantalla (formularios, perfil, ficha) es una tarjeta con margen a los costados, borde redondeado y una banda negra de título con letra crema. En las estadísticas del grupo las pestañas y las secciones ocupan todo el ancho (bandas negras de borde a borde); solo los totales son bloques con margen.
 - Los elementos que se tocan (grupos, participantes) tienen forma de botón: tarjeta con margen y una flecha ">" sobre fondo negro; no ocupan el ancho completo de la pantalla.
 - Las cifras principales (victorias, derrotas, jugadas, partidas, promedio) van en bloques negros con el número grande en crema y la etiqueta en mayúsculas.
-- Las pestañas ocupan todo el ancho, separadas de la barra superior por una línea crema: la barra es negra y la activa va en crema, rodeada de negro (su contorno).
+- Las pestañas ocupan todo el ancho, con la misma separación de la barra superior que las demás zonas: la activa va en crema y las demás en negro, y una línea negra arriba y abajo separa a la activa del crema que la rodea.
 - En el podio, todos los escalones son negros y se apoyan en la base de su tarjeta (no flotan).
 - La posición en un ranking se muestra en un cuadro negro con el número en crema.
 - En los récords de partidas (estadísticas) el dato que importa (duración o diferencia) va grande a la derecha del título; debajo, el bloque negro de puntajes con los dos equipos y la fecha.
