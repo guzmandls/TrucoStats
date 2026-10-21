@@ -129,6 +129,7 @@ function groupResponse(
   group: GroupRow,
   members: MemberRow[],
   myMemberId: string | null = null,
+  aliases: Map<string, string[]> = new Map(),
 ) {
   return {
     group: {
@@ -138,11 +139,14 @@ function groupResponse(
         .filter((member) => member.is_admin === 1)
         .map((member) => member.id),
       createdAt: group.created_at,
-      members: members.map((member) =>
-        member.avatar === null
-          ? { id: member.id, name: member.name }
-          : { id: member.id, name: member.name, avatar: member.avatar },
-      ),
+      members: members.map((member) => ({
+        id: member.id,
+        name: member.name,
+        ...(member.avatar === null ? {} : { avatar: member.avatar }),
+        ...(aliases.get(member.id)?.length
+          ? { aliases: aliases.get(member.id) }
+          : {}),
+      })),
     },
     inviteCode: group.invite_code,
     // Qué integrantes ya eligió alguien (sin decir quién), y cuál soy yo.
@@ -251,8 +255,23 @@ export async function getGroupByInviteCode(
     .bind(group.id)
     .all<MemberRow>()
 
+  const { results: aliasRows } = await env.DB.prepare(
+    'SELECT member_id, alias FROM member_aliases WHERE group_id = ? ORDER BY id',
+  )
+    .bind(group.id)
+    .all<{ member_id: string; alias: string }>()
+  const aliases = new Map<string, string[]>()
+  for (const row of aliasRows) {
+    aliases.set(row.member_id, [
+      ...(aliases.get(row.member_id) ?? []),
+      row.alias,
+    ])
+  }
+
   // Con sesión iniciada, la respuesta dice qué integrante es quien pregunta.
   const user = await authenticate(request, env)
   const membership = user ? await membershipOf(user.id, group.id, env) : null
-  return json(groupResponse(group, results, membership?.memberId ?? null))
+  return json(
+    groupResponse(group, results, membership?.memberId ?? null, aliases),
+  )
 }

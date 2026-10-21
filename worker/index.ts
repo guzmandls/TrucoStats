@@ -1,6 +1,7 @@
 import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { addMember, releaseMember, removeMember, setMemberAdmin } from './admin'
+import { setAliases } from './aliases'
 import { updateMember } from './members'
 import { cancelMatch, restoreMatch } from './cancel'
 import { matchHistory } from './history'
@@ -14,7 +15,7 @@ const MEMBER_OF_GROUP =
   /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})$/
 const MEMBERS_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/integrantes$/
 const MEMBER_ACTION =
-  /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})\/(liberar|administrador)$/
+  /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})\/(liberar|administrador|apodos)$/
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
 const MATCH_ACTION =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/(cancelar|restaurar)$/
@@ -130,6 +131,9 @@ export default {
       const id = decodeURIComponent(memberId)
       if (action === 'liberar' && request.method === 'POST') {
         return releaseMember(code, id, request, env)
+      }
+      if (action === 'apodos' && request.method === 'PUT') {
+        return setAliases(code, id, request, env)
       }
       if (action === 'administrador' && request.method === 'PUT') {
         return setMemberAdmin(code, id, request, env)

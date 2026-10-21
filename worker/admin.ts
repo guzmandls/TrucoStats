@@ -175,11 +175,15 @@ export async function removeMember(
   if ((await activeMemberCount(context.groupId, env)) <= 1) {
     return errorResponse('El grupo necesita al menos un integrante', 409)
   }
-  await env.DB.prepare(
-    'UPDATE members SET active = 0, is_admin = 0 WHERE id = ?',
-  )
-    .bind(memberId)
-    .run()
+  await env.DB.batch([
+    env.DB.prepare(
+      'UPDATE members SET active = 0, is_admin = 0 WHERE id = ?',
+    ).bind(memberId),
+    // Sus apodos quedan libres para otros integrantes.
+    env.DB.prepare('DELETE FROM member_aliases WHERE member_id = ?').bind(
+      memberId,
+    ),
+  ])
   await ensureAdmin(context.groupId, env)
   return json({ ok: true })
 }

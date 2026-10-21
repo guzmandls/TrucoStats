@@ -5,9 +5,12 @@ import { errorResponse, json } from './http'
 type Team = 'nos' | 'ellos'
 type Modality = '1v1' | '2v2' | '3v3'
 
+// Quien jugó. Un invitado (guest) no es integrante del grupo: se anotó solo
+// con su nombre y no suma ni resta puntos.
 interface Participant {
   id: string
   name: string
+  guest?: true
 }
 
 // Partida de grupo tal como la guarda y la lee la app.
@@ -66,7 +69,14 @@ function parseTeam(value: unknown): Participant[] | null {
     ) {
       return null
     }
-    team.push({ id: raw.id, name: raw.name.trim() })
+    if (raw.guest !== undefined && raw.guest !== true) {
+      return null
+    }
+    team.push({
+      id: raw.id,
+      name: raw.name.trim(),
+      ...(raw.guest === true ? { guest: true as const } : {}),
+    })
   }
   return team
 }
@@ -136,6 +146,14 @@ export function parseMatch(body: unknown, groupId: string): MatchData | string {
   ) {
     return `La modalidad ${modality} necesita ${TEAM_SIZE[modality]} por equipo`
   }
+  // Pueden jugar personas que no son del grupo, pero cada equipo necesita al
+  // menos un integrante: así la partida cuenta para el grupo.
+  if (
+    nos.every((participant) => participant.guest) ||
+    ellos.every((participant) => participant.guest)
+  ) {
+    return 'Cada equipo necesita al menos un integrante del grupo'
+  }
   const ids = [...nos, ...ellos].map((participant) => participant.id)
   if (new Set(ids).size !== ids.length) {
     return 'Un integrante no puede repetirse en la partida'
@@ -177,13 +195,18 @@ interface PlayerRow {
   member_id: string
   name: string
   team: Team
+  is_guest: number
 }
 
 function toMatch(row: MatchRow, players: PlayerRow[]): MatchData {
   const team = (side: Team): Participant[] =>
     players
       .filter((player) => player.team === side)
-      .map((player) => ({ id: player.member_id, name: player.name }))
+      .map((player) => ({
+        id: player.member_id,
+        name: player.name,
+        ...(player.is_guest === 1 ? { guest: true as const } : {}),
+      }))
   return {
     id: row.id,
     type: 'group',
@@ -241,7 +264,7 @@ export async function loadMatch(
     return null
   }
   const { results } = await env.DB.prepare(
-    'SELECT match_id, member_id, name, team FROM match_players WHERE match_id = ? ORDER BY rowid',
+    'SELECT match_id, member_id, name, team, is_guest FROM match_players WHERE match_id = ? ORDER BY rowid',
   )
     .bind(matchId)
     .all<PlayerRow>()
@@ -281,17 +304,27 @@ export async function createMatch(
       : errorResponse('Ya existe una partida con ese id', 409)
   }
 
-  const memberIds = [...match.teams.nos, ...match.teams.ellos].map(
-    (participant) => participant.id,
-  )
+  const everyone = [...match.teams.nos, ...match.teams.ellos]
+  const memberIds = everyone
+    .filter((participant) => !participant.guest)
+    .map((participant) => participant.id)
+  const guestIds = everyone
+    .filter((participant) => participant.guest)
+    .map((participant) => participant.id)
   const { results: members } = await env.DB.prepare(
-    `SELECT id FROM members WHERE group_id = ? AND id IN (${memberIds.map(() => '?').join(', ')})`,
+    `SELECT id FROM members WHERE group_id = ? AND id IN (${everyone.map(() => '?').join(', ')})`,
   )
-    .bind(groupId, ...memberIds)
+    .bind(groupId, ...everyone.map((participant) => participant.id))
     .all<{ id: string }>()
   if (members.length !== memberIds.length) {
     return errorResponse(
-      'Todos los jugadores deben ser integrantes del grupo',
+      'Los jugadores que no son invitados deben ser integrantes del grupo',
+      400,
+    )
+  }
+  if (members.some((member) => guestIds.includes(member.id))) {
+    return errorResponse(
+      'Un invitado no puede usar el id de un integrante',
       400,
     )
   }
@@ -299,8 +332,14 @@ export async function createMatch(
   const players = (['nos', 'ellos'] as const).flatMap((team) =>
     match.teams[team].map((participant) =>
       env.DB.prepare(
-        'INSERT INTO match_players (match_id, member_id, name, team) VALUES (?, ?, ?, ?)',
-      ).bind(match.id, participant.id, participant.name, team),
+        'INSERT INTO match_players (match_id, member_id, name, team, is_guest) VALUES (?, ?, ?, ?, ?)',
+      ).bind(
+        match.id,
+        participant.id,
+        participant.name,
+        team,
+        participant.guest ? 1 : 0,
+      ),
     ),
   )
 
@@ -352,7 +391,7 @@ export async function listMatches(
     .bind(groupId)
     .all<MatchRow>()
   const { results: players } = await env.DB.prepare(
-    'SELECT mp.match_id, mp.member_id, mp.name, mp.team FROM match_players mp JOIN matches m ON m.id = mp.match_id WHERE m.group_id = ? ORDER BY mp.rowid',
+    'SELECT mp.match_id, mp.member_id, mp.name, mp.team, mp.is_guest FROM match_players mp JOIN matches m ON m.id = mp.match_id WHERE m.group_id = ? ORDER BY mp.rowid',
   )
     .bind(groupId)
     .all<PlayerRow>()
