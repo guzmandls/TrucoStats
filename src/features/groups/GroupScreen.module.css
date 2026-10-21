@@ -9,6 +9,18 @@
   border-top: var(--hairline-width) solid var(--line-thin);
 }
 
+.matchCanceled .matchBody {
+  opacity: 0.6;
+}
+
+.matchCanceled .matchFlag {
+  background: var(--ink-muted);
+}
+
+.matchCanceled .matchScore {
+  text-decoration: line-through;
+}
+
 .matchFlag {
   flex: 0 0 auto;
   width: 4px;

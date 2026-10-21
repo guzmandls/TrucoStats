@@ -14,6 +14,7 @@ import {
 } from '../../components/ui'
 import { loadGroups } from '../groups/groupsStorage'
 import { loadMatches } from '../matches/matchesStorage'
+import { activeMatches } from '../matches/status'
 import { formatDuration, personalSummary } from '../matches/stats'
 import type { Match } from '../matches/types'
 import { winRateColor } from '../matches/winRateColor'
@@ -46,7 +47,7 @@ export function ProfileScreen() {
     }
   }, [])
 
-  const summary = matches ? personalSummary(matches) : null
+  const summary = matches ? personalSummary(activeMatches(matches)) : null
 
   return (
     <Screen>

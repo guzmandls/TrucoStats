@@ -5,7 +5,7 @@ import type {
   ReactNode,
 } from 'react'
 import { Link, type LinkProps } from 'react-router-dom'
-import { AvatarSilhouette, CloseIcon, MenuIcon } from './Icons'
+import { AvatarSilhouette, CloseIcon, DotsIcon, MenuIcon } from './Icons'
 import styles from './ui.module.css'
 
 function cx(...values: Array<string | false | undefined>): string {
@@ -680,6 +680,76 @@ export function Dialog({
         )}
         {children && <div className={styles.confirmActions}>{children}</div>}
       </div>
+    </div>
+  )
+}
+
+interface OverflowMenuProps {
+  label: string
+  items: { label: string; onClick: () => void }[]
+}
+
+// Botón de tres puntos con un menú de opciones, para acciones por fila. Se
+// cierra al elegir una opción, al tocar afuera o con Escape.
+export function OverflowMenu({ label, items }: OverflowMenuProps) {
+  const [open, setOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div ref={containerRef} className={styles.overflow}>
+      <button
+        type="button"
+        className={styles.overflowButton}
+        aria-label={label}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <DotsIcon size={20} />
+      </button>
+      {open && (
+        <div className={styles.overflowPanel} role="menu">
+          {items.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              role="menuitem"
+              className={styles.overflowItem}
+              onClick={() => {
+                setOpen(false)
+                item.onClick()
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

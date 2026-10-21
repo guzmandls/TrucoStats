@@ -24,6 +24,7 @@ function searchText(match: Match): string {
       `${match.scores.nos}-${match.scores.ellos}`,
       match.modality ?? '',
       `${match.target} puntos`,
+      match.canceled ? `cancelada ${match.canceled.reason ?? ''}` : '',
     ].join(' '),
   )
 }

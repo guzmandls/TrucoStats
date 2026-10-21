@@ -26,6 +26,7 @@ import {
   type PersistedGame,
 } from '../counter/gameStorage'
 import { loadMatches } from '../matches/matchesStorage'
+import { activeMatches } from '../matches/status'
 import { loadGroups } from './groupsStorage'
 import { hasMembership, loadMembership, replaceMembership } from './membership'
 import type { Group } from './types'
@@ -85,7 +86,7 @@ export function HomeScreen() {
         return
       }
       const counts: Record<string, number> = {}
-      for (const match of all) {
+      for (const match of activeMatches(all)) {
         if (match.groupId) {
           counts[match.groupId] = (counts[match.groupId] ?? 0) + 1
         }

@@ -51,6 +51,72 @@
   box-shadow: var(--shadow-raised);
 }
 
+.overflow {
+  position: relative;
+  flex: 0 0 auto;
+  align-self: flex-start;
+}
+
+.overflowButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--tap-min);
+  min-height: var(--tap-min);
+  margin: calc(var(--space-2) * -1) calc(var(--space-3) * -1) 0 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.overflowButton:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: -2px;
+}
+
+.overflowPanel {
+  position: absolute;
+  top: calc(100% - var(--space-2));
+  right: calc(var(--space-3) * -1);
+  z-index: 15;
+  min-width: 200px;
+  background: var(--ink);
+  border: var(--hairline-width) solid var(--line-paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-raised);
+  overflow: hidden;
+}
+
+.overflowItem {
+  display: block;
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--paper);
+  font-family: inherit;
+  font-size: var(--text-md);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.overflowItem + .overflowItem {
+  border-top: var(--hairline-width) solid var(--line-paper);
+}
+
+.overflowItem:hover {
+  background: color-mix(in srgb, var(--paper) 8%, transparent);
+}
+
+.overflowItem:focus-visible {
+  outline: var(--border-width) solid var(--paper);
+  outline-offset: -3px;
+}
+
 .dialogHeadRow {
   display: flex;
   align-items: stretch;

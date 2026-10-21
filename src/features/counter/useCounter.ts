@@ -45,6 +45,7 @@ import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { computePointsDelta } from '../matches/points'
 import { loadMatchesByGroupId } from '../matches/matchesStorage'
+import { activeMatches } from '../matches/status'
 
 export const DEFAULT_TARGET = 30
 export const MIN_TARGET = 10
@@ -324,7 +325,9 @@ export function useCounter(
       void saveMatch(match).then(() => syncPendingMatches())
       if (state.context.groupId) {
         void (async () => {
-          const existing = await loadMatchesByGroupId(state.context.groupId!)
+          const existing = activeMatches(
+            await loadMatchesByGroupId(state.context.groupId!),
+          )
           const ids = new Set<string>()
           for (const m of existing) {
             for (const side of ['nos', 'ellos'] as Team[]) {

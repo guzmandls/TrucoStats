@@ -796,3 +796,34 @@ Conceptos nuevos:
 - Encabezado `Authorization: Bearer <token>` agregado en un único lugar
   (`apiRequest`), para que ninguna llamada se olvide de él.
 - Redirigir con "a dónde volver": `navigate('/registrarse', { state: { from } })`.
+
+## Etapa 26 — Cancelar y restaurar partidas
+
+Hecho:
+
+- Una partida cancelada no se borra: queda en el historial tachada, con la marca
+  "Cancelada" y el motivo si lo hay, y deja de contar para los puntos y las
+  estadísticas.
+- Cada partida con permiso muestra un botón "⋯" con "Cancelar partida" o
+  "Restaurar partida". Si no tienes permiso, el botón no aparece. Cancelan el
+  administrador o quien registró la partida; restauran el administrador o quien
+  la canceló.
+- Al cancelar se puede escribir un motivo (opcional). Se necesita conexión.
+- Servidor: `POST .../partidas/<id>/cancelar` y `.../restaurar`, migración 0004
+  (estado en la partida y una tabla `match_events` con cada cancelación y
+  restauración). Las partidas ahora informan quién las registró.
+- Los otros celulares se enteran al abrir el grupo.
+- Probado con dos celulares: B (quien registró la partida) la cancela con motivo;
+  A (administrador) la ve cancelada, con sus puntos en 0, y la restaura; B ve que
+  volvió a contar.
+
+Conceptos nuevos:
+
+- Borrado lógico (`soft delete`): en lugar de borrar la fila, se la marca. Así hay
+  rastro y se puede deshacer. Es lo que impide que alguien oculte partidas.
+- Registro de auditoría (`audit log`): tabla donde solo se agregan eventos
+  (quién, qué y cuándo); nunca se editan.
+- Permisos por fila: el botón aparece solo si la persona puede usarlo, y el
+  servidor lo vuelve a comprobar (la app nunca es la única barrera).
+- Menú desplegable por fila (`OverflowMenu`): reutilizable, se cierra al elegir,
+  tocar afuera o con Escape.
