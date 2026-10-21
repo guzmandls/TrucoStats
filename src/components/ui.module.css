@@ -259,7 +259,7 @@
 
 /* Dos pestañas inactivas (negras) contiguas llevan una línea crema entre ellas. */
 .tab + .tab {
-  border-left: var(--hairline-width) solid var(--paper);
+  border-left: var(--rule-width) solid var(--paper);
 }
 
 .tabActive {

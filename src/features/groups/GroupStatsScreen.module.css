@@ -358,10 +358,11 @@ a.recordMember:hover {
 
 /* ---------- Grilla simétrica de enfrentamientos ---------- */
 
-/* Aire arriba para que la fila negra de avatares no se pegue a las pestañas. */
+/* Una línea crema del grosor estándar separa la fila negra de avatares de las
+   pestañas, igual que en el resto de la app. */
 .gridWrap {
   overflow-x: hidden;
-  margin-top: var(--space-4);
+  margin-top: var(--rule-width);
 }
 
 .grid {
@@ -394,7 +395,7 @@ a.recordMember:hover {
 }
 
 .gridPagerButton + .gridPagerButton {
-  border-left: var(--hairline-width) solid var(--grid-line-paper);
+  border-left: var(--rule-width) solid var(--paper);
 }
 
 .gridPagerButton:disabled {
@@ -411,11 +412,11 @@ a.recordMember:hover {
 }
 
 .gridColHead + .gridColHead {
-  border-left: var(--hairline-width) solid var(--grid-line-paper);
+  border-left: var(--rule-width) solid var(--paper);
 }
 
 .gridCorner + .gridColHead {
-  border-left: var(--hairline-width) solid var(--grid-line-paper);
+  border-left: var(--rule-width) solid var(--paper);
 }
 
 .gridRowHead {
@@ -428,11 +429,11 @@ a.recordMember:hover {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  border-right: var(--hairline-width) solid var(--grid-line-paper);
+  border-right: var(--rule-width) solid var(--paper);
 }
 
 tr + tr .gridRowHead {
-  border-top: var(--hairline-width) solid var(--grid-line-paper);
+  border-top: var(--rule-width) solid var(--paper);
 }
 
 .gridCell {
