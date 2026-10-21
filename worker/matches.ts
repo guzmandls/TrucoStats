@@ -1,5 +1,7 @@
 import type { Env } from './groups'
+import { membershipOf } from './access'
 import { errorResponse, json } from './http'
+import { authenticate } from './users'
 
 type Team = 'nos' | 'ellos'
 type Modality = '1v1' | '2v2' | '3v3'
@@ -218,6 +220,22 @@ async function loadMatch(matchId: string, env: Env): Promise<MatchData | null> {
   return toMatch(row, results)
 }
 
+// Solo los integrantes vinculados a una cuenta pueden ver y registrar partidas.
+async function requireMember(
+  groupId: string,
+  request: Request,
+  env: Env,
+): Promise<{ userId: string } | Response> {
+  const user = await authenticate(request, env)
+  if (!user) {
+    return errorResponse('No iniciaste sesión', 401)
+  }
+  if (!(await membershipOf(user.id, groupId, env))) {
+    return errorResponse('No eres integrante de este grupo', 403)
+  }
+  return { userId: user.id }
+}
+
 export async function createMatch(
   inviteCode: string,
   request: Request,
@@ -226,6 +244,10 @@ export async function createMatch(
   const groupId = await findGroupIdByCode(inviteCode, env)
   if (!groupId) {
     return errorResponse('Grupo no encontrado', 404)
+  }
+  const access = await requireMember(groupId, request, env)
+  if (access instanceof Response) {
+    return access
   }
 
   let body: unknown
@@ -274,7 +296,7 @@ export async function createMatch(
   try {
     await env.DB.batch([
       env.DB.prepare(
-        'INSERT INTO matches (id, type, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT INTO matches (id, type, group_id, modality, played_at, duration_seconds, target, winner, nos_score, ellos_score, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       ).bind(
         match.id,
         'group',
@@ -286,6 +308,7 @@ export async function createMatch(
         match.winner,
         match.scores.nos,
         match.scores.ellos,
+        access.userId,
       ),
       ...players,
     ])
@@ -298,11 +321,16 @@ export async function createMatch(
 
 export async function listMatches(
   inviteCode: string,
+  request: Request,
   env: Env,
 ): Promise<Response> {
   const groupId = await findGroupIdByCode(inviteCode, env)
   if (!groupId) {
     return errorResponse('Grupo no encontrado', 404)
+  }
+  const access = await requireMember(groupId, request, env)
+  if (access instanceof Response) {
+    return access
   }
 
   const { results: rows } = await env.DB.prepare(

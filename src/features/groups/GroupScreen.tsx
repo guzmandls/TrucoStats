@@ -4,6 +4,7 @@ import {
   ExitIcon,
   BackIcon,
   ChartIcon,
+  CloseIcon,
   CloudOffIcon,
   PeopleIcon,
   SearchIcon,
@@ -265,6 +266,7 @@ export function GroupScreen() {
         {searching && (
           <div className={styles.searchBar}>
             <TextInput
+              className={styles.searchInput}
               type="search"
               aria-label="Buscar en el historial"
               placeholder="Jugador, fecha o resultado"
@@ -275,6 +277,14 @@ export function GroupScreen() {
                 setVisible(PAGE_SIZE)
               }}
             />
+            <button
+              type="button"
+              className={styles.searchClose}
+              aria-label="Cerrar búsqueda"
+              onClick={toggleSearch}
+            >
+              <CloseIcon size={20} />
+            </button>
           </div>
         )}
         {matches.length === 0 ? (

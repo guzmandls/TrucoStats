@@ -1,4 +1,5 @@
 import { apiRequest, patchJson, postJson } from '../../lib/api'
+import { saveSession, type Account } from '../../lib/session'
 import type { Match } from '../matches/types'
 import type { Group } from './types'
 
@@ -22,20 +23,51 @@ export async function registerGroup(group: Group): Promise<string> {
 interface GroupResponse {
   group: Group
   inviteCode: string
+  claimedMemberIds?: string[]
+  myMemberId?: string | null
+}
+
+export interface RemoteGroup {
+  group: Group
+  // Integrantes que ya eligió alguien.
+  claimedMemberIds: string[]
+  // Cuál integrante es la persona con la sesión iniciada (null si ninguno).
+  myMemberId: string | null
 }
 
 // Trae del servidor el grupo al que corresponde el código de invitación.
-export async function fetchGroupByCode(inviteCode: string): Promise<Group> {
+export async function fetchGroupByCode(
+  inviteCode: string,
+): Promise<RemoteGroup> {
   const response = await apiRequest<GroupResponse>(`/api/grupos/${inviteCode}`)
-  return { ...response.group, inviteCode: response.inviteCode }
+  return {
+    group: { ...response.group, inviteCode: response.inviteCode },
+    claimedMemberIds: response.claimedMemberIds ?? [],
+    myMemberId: response.myMemberId ?? null,
+  }
 }
 
-export async function renameRemoteMember(
+interface JoinResponse {
+  user: Account
+  token?: string
+  memberId: string
+}
+
+// Elige un integrante del grupo (con el nombre que la persona quiere usar). Si
+// todavía no tenía sesión, el servidor le crea una cuenta invitada y la app
+// guarda su token.
+export async function joinRemoteGroup(
   inviteCode: string,
   memberId: string,
   name: string,
 ): Promise<void> {
-  await patchJson(`/api/grupos/${inviteCode}/integrantes/${memberId}`, { name })
+  const response = await postJson<JoinResponse>(
+    `/api/grupos/${inviteCode}/unirse`,
+    { memberId, name },
+  )
+  if (response.token) {
+    saveSession({ token: response.token, user: response.user })
+  }
 }
 
 // Envía una partida de grupo. Es idempotente: reenviarla no la duplica.

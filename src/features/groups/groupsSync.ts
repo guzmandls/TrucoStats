@@ -35,7 +35,7 @@ export async function pullGroup(groupId: string): Promise<boolean> {
   let remoteMatches: Match[]
   try {
     ;[remote, remoteMatches] = await Promise.all([
-      fetchGroupByCode(local.inviteCode),
+      fetchGroupByCode(local.inviteCode).then((response) => response.group),
       fetchRemoteMatches(local.inviteCode),
     ])
   } catch {

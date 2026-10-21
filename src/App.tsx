@@ -1,3 +1,4 @@
+import { AuthScreen } from './features/auth/AuthScreen'
 import { HomeScreen } from './features/groups/HomeScreen'
 import { CounterScreen } from './features/counter/CounterScreen'
 import { CreateGroupScreen } from './features/groups/CreateGroupScreen'
@@ -18,6 +19,8 @@ function App() {
         <Route path="/partida" element={<CounterScreen />} />
         <Route path="/partida-grupo/:id" element={<StartGroupGameScreen />} />
         <Route path="/crear-grupo" element={<CreateGroupScreen />} />
+        <Route path="/registrarse" element={<AuthScreen mode="register" />} />
+        <Route path="/iniciar-sesion" element={<AuthScreen mode="login" />} />
         <Route path="/unirse/:code" element={<JoinGroupScreen />} />
         <Route path="/grupo/:id" element={<GroupScreen />} />
         <Route path="/grupo/:id/estadisticas" element={<GroupStatsScreen />} />

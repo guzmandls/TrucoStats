@@ -5,7 +5,7 @@ import type {
   ReactNode,
 } from 'react'
 import { Link, type LinkProps } from 'react-router-dom'
-import { AvatarSilhouette, MenuIcon } from './Icons'
+import { AvatarSilhouette, CloseIcon, MenuIcon } from './Icons'
 import styles from './ui.module.css'
 
 function cx(...values: Array<string | false | undefined>): string {
@@ -292,13 +292,31 @@ export function StatRow({ label, value }: StatRowProps) {
 
 interface SectionProps {
   title?: string
+  // Botón "?" en el título que abre una explicación breve.
+  help?: { label: string; onClick: () => void }
   children: ReactNode
 }
 
-export function Section({ title, children }: SectionProps) {
+export function Section({ title, help, children }: SectionProps) {
   return (
     <section className={styles.section}>
-      {title && <h2 className={styles.sectionHead}>{title}</h2>}
+      {title && (
+        <h2 className={styles.sectionHead}>
+          {title}
+          {help && (
+            <button
+              type="button"
+              className={styles.sectionHelp}
+              aria-label={help.label}
+              onClick={help.onClick}
+            >
+              <span className={styles.sectionHelpMark} aria-hidden="true">
+                ?
+              </span>
+            </button>
+          )}
+        </h2>
+      )}
       <div className={styles.sectionBody}>{children}</div>
     </section>
   )
@@ -612,11 +630,19 @@ export function ScreenFooter({ children }: ScreenFooterProps) {
 interface DialogProps {
   title: string
   onClose: () => void
-  children: ReactNode
+  // Muestra una X arriba a la derecha para cerrarlo; sirve para mensajes que
+  // no necesitan botones.
+  closeButton?: boolean
+  children?: ReactNode
 }
 
 // Diálogo modal superpuesto: título negro y contenido. Escape lo cierra.
-export function Dialog({ title, onClose, children }: DialogProps) {
+export function Dialog({
+  title,
+  onClose,
+  closeButton = false,
+  children,
+}: DialogProps) {
   const titleId = useId()
 
   useEffect(() => {
@@ -637,8 +663,22 @@ export function Dialog({ title, onClose, children }: DialogProps) {
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <PanelHeader id={titleId}>{title}</PanelHeader>
-        <div className={styles.confirmActions}>{children}</div>
+        {closeButton ? (
+          <div className={styles.dialogHeadRow}>
+            <PanelHeader id={titleId}>{title}</PanelHeader>
+            <button
+              type="button"
+              className={styles.dialogClose}
+              aria-label="Cerrar"
+              onClick={onClose}
+            >
+              <CloseIcon size={20} />
+            </button>
+          </div>
+        ) : (
+          <PanelHeader id={titleId}>{title}</PanelHeader>
+        )}
+        {children && <div className={styles.confirmActions}>{children}</div>}
       </div>
     </div>
   )

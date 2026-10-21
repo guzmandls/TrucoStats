@@ -38,6 +38,17 @@
   outline-color: var(--paper);
 }
 
+.choice:disabled {
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+.taken {
+  margin-left: auto;
+  font-size: var(--text-sm);
+  font-weight: 400;
+}
+
 .nameField {
   padding: var(--space-4);
 }

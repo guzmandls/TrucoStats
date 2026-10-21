@@ -201,7 +201,6 @@ describe('GroupScreen', () => {
       screen.getByText('Ninguna partida coincide con la búsqueda'),
     ).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar búsqueda' }))
     expect(screen.getAllByTestId('partida')).toHaveLength(2)
   })

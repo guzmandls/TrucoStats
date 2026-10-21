@@ -13,5 +13,8 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
     css: true,
+    // Con todos los archivos en paralelo, algunos tests de pantalla tardan más
+    // de los 5 s por defecto aunque solos tarden ~1 s.
+    testTimeout: 15000,
   },
 })

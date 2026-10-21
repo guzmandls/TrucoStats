@@ -707,3 +707,92 @@ Conceptos nuevos:
 - Buscar en el celular, no en el servidor: tras sincronizar, todas las partidas
   del grupo ya están en el celular, así la búsqueda funciona también sin
   conexión.
+
+## Etapa 23 — Cuentas en el servidor (6a)
+
+Hecho:
+
+- Rutas nuevas: `POST /api/registro` (usuario, contraseña y correo opcional; abre sesión),
+  `POST /api/sesion` (iniciar sesión), `DELETE /api/sesion` (cerrar sesión) y
+  `GET /api/yo` (quién soy según la sesión).
+- Migración `0003_cuentas.sql`: tablas de usuarios y sesiones, y la columna
+  `user_id` en los integrantes (para el vínculo, que viene después).
+- Decisiones del usuario: cuenta con usuario y contraseña (el correo es
+  opcional y sirve para recuperar la contraseña); obligatoria solo para crear
+  grupos (la partida rápida sigue sin cuenta). Se entra con usuario o correo.
+
+Conceptos nuevos:
+
+- Hash de contraseña: nunca se guarda la contraseña, sino el resultado de
+  mezclarla con una sal aleatoria muchas veces (PBKDF2, 100.000 vueltas). Es
+  lento a propósito para que probar contraseñas robadas sea inviable.
+- Sal (`salt`): texto aleatorio distinto por usuario; evita que dos personas con
+  la misma contraseña tengan el mismo hash.
+- Sesión con token: al iniciar sesión el servidor entrega un código largo
+  aleatorio; la app lo manda en cada pedido (`Authorization: Bearer ...`). En
+  la base solo se guarda su hash, así leer la base no permite usar sesiones.
+- Mismo error para "no existe" y "contraseña mala" (401): así nadie puede
+  averiguar qué correos tienen cuenta.
+- Comparación en tiempo constante: no se corta en la primera diferencia, para
+  no filtrar información por el tiempo de respuesta.
+
+## Etapa 24 — Invitados, unirse y permisos en el servidor (6b)
+
+Hecho:
+
+- Cuenta invitada: al unirse a un grupo sin sesión, el servidor crea una cuenta
+  sin correo ni contraseña y devuelve su token. La persona no ve nada de esto.
+- Ruta `POST /api/grupos/<código>/unirse`: elige un integrante, opcionalmente
+  cambia su nombre (también en las partidas ya guardadas) y queda vinculado.
+  Un integrante ya elegido por otra persona responde 409.
+- Una invitada se convierte en cuenta con correo registrándose con su misma
+  sesión: es la misma cuenta, con su integrante y su historial.
+- Permisos: crear grupo exige cuenta con correo; cambiar un nombre o foto, solo
+  el administrador o el propio integrante; ver y registrar partidas, solo los
+  integrantes vinculados. Cada partida guarda quién la registró (`created_by`).
+- `GET /api/grupos/<código>` ahora dice qué integrantes ya fueron elegidos y,
+  con sesión, cuál eres tú (`myMemberId`).
+- Se editó la migración 0003 (todavía no estaba en producción) para que el correo
+  y la contraseña puedan estar vacíos.
+
+Conceptos nuevos:
+
+- Autenticación vs. autorización: la primera responde "¿quién eres?" (la sesión);
+  la segunda, "¿puedes hacer esto?" (ser administrador, ser el integrante). Los
+  códigos HTTP lo reflejan: 401 = no iniciaste sesión, 403 = estás identificado
+  pero no tienes permiso.
+- Cuenta invitada (guest): patrón común para dar identidad sin fricción y
+  pedir datos reales solo cuando hacen falta.
+- Los tests de permisos prueban a quien no debería poder: sin sesión, de
+  afuera del grupo, otro integrante.
+
+## Etapa 25 — Cuentas en la app (6c)
+
+Hecho:
+
+- Pantallas "Registrarse" (usuario, contraseña y correo opcional; un botón "?"
+  junto al título del correo explica para qué sirve) e "Iniciar sesión" (con
+  usuario o correo). Se abren desde el menú de las tres rayas de la pantalla
+  principal, que ofrece "Cerrar sesión" cuando hay sesión.
+- Crear grupo pide una cuenta registrada: si falta, manda a registrarse y vuelve.
+  Tu integrante aparece con tu usuario como sugerencia de nombre (editable).
+- Unirse con el enlace no pide cuenta: se eligen integrantes que no estén
+  tomados (los demás dicen "Ya elegido"), y el servidor crea la cuenta invitada
+  en segundo plano. Quien ya tiene sesión en otro celular entra directo.
+- Toda llamada al servidor lleva el token de la sesión. Sin sesión (401), los
+  envíos de partidas quedan pendientes.
+- Probado con dos celulares reales: A se registra y crea el grupo; B entra sin
+  cuenta, elige a Pedro y lo renombra; B registra una partida y A la ve; B no puede
+  renombrar al administrador (403) ni ver partidas sin sesión (401).
+
+Conceptos nuevos:
+
+- `localStorage` para la sesión y `useSyncExternalStore`: el hook `useSession`
+  se suscribe a los cambios de la sesión, así el menú se actualiza solo al
+  iniciar o cerrar sesión.
+- Diálogos de mensaje: `Dialog` acepta `closeButton` para mostrar una X arriba a
+  la derecha en lugar de botones (la ayuda del correo). La búsqueda del historial
+  también tiene su X a la derecha del campo.
+- Encabezado `Authorization: Bearer <token>` agregado en un único lugar
+  (`apiRequest`), para que ninguna llamada se olvide de él.
+- Redirigir con "a dónde volver": `navigate('/registrarse', { state: { from } })`.

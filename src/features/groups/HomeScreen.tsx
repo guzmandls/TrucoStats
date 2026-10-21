@@ -9,7 +9,15 @@ import {
   ScreenContent,
   ScreenFooter,
 } from '../../components/ui'
-import { GroupPlusIcon, PersonIcon } from '../../components/Icons'
+import {
+  ExitIcon,
+  GroupPlusIcon,
+  LoginIcon,
+  PersonIcon,
+  UserPlusIcon,
+} from '../../components/Icons'
+import { logoutAccount } from '../auth/authApi'
+import { useSession } from '../../lib/session'
 import {
   QUICK_SLOT,
   gameScore,
@@ -36,6 +44,8 @@ export function HomeScreen() {
   const [groups, setGroups] = useState<Group[]>([])
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [matchCounts, setMatchCounts] = useState<Record<string, number>>({})
+  const session = useSession()
+  const loggedIn = session?.user.username != null
 
   useEffect(() => {
     let active = true
@@ -103,6 +113,26 @@ export function HomeScreen() {
                 icon: <GroupPlusIcon />,
               },
               { label: 'Ver perfil', to: '/perfil', icon: <PersonIcon /> },
+              ...(loggedIn
+                ? [
+                    {
+                      label: 'Cerrar sesión',
+                      onClick: () => void logoutAccount(),
+                      icon: <ExitIcon />,
+                    },
+                  ]
+                : [
+                    {
+                      label: 'Iniciar sesión',
+                      to: '/iniciar-sesion',
+                      icon: <LoginIcon />,
+                    },
+                    {
+                      label: 'Registrarse',
+                      to: '/registrarse',
+                      icon: <UserPlusIcon />,
+                    },
+                  ]),
             ]}
           />
         }

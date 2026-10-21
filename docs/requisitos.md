@@ -26,7 +26,13 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Podrá estar vinculado a integrantes en uno o varios grupos.
 - Podrá consultar sus estadísticas individuales globales, sumando las partidas de los integrantes a los que está vinculado, en todos sus grupos.
 - El perfil personal será visible para los integrantes de los grupos en los que participa.
-- El sistema de registro y recuperación de cuentas está pendiente de definición.
+- El registro pide un usuario (identificador único para entrar, en minúsculas; no tiene por qué ser el nombre de la persona) y una contraseña. El correo es opcional; junto a su título hay un botón "?" que explica que sirve para recuperar la contraseña. Se inicia sesión con el usuario o con el correo. La recuperación de contraseña por correo queda para más adelante.
+- La cuenta registrada (con usuario) es obligatoria solo para crear un grupo: el administrador necesita una identidad estable. El contador y la partida rápida funcionan sin cuenta.
+- Al crear un grupo, el integrante del creador aparece con su usuario como sugerencia de nombre y puede cambiarlo.
+- Unirse a un grupo con el enlace no exige cuenta: al unirse, el servidor crea automáticamente una cuenta invitada (sin correo ni contraseña, invisible para la persona) vinculada a su integrante. Con esa identidad solo ella o el administrador pueden cambiar su nombre, y puede registrar partidas.
+- Una cuenta invitada se puede convertir después en una cuenta registrada (usuario y contraseña) sin perder su integrante ni su historial. Si nunca lo hace, funciona igual en ese celular; si lo pierde, pierde esa identidad.
+- Solo los integrantes vinculados a una cuenta (con correo o invitada) pueden registrar partidas del grupo. Un integrante ya elegido por otra persona no se puede elegir de nuevo; el administrador podrá liberarlo.
+- Desde el menú de las tres rayas de la pantalla principal hay opciones separadas "Iniciar sesión" y "Registrarse" (sin sesión, en ese orden, después de "Crear grupo" y "Ver perfil") y "Cerrar sesión" (con sesión). Crear un grupo pide la cuenta si hace falta.
 - Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
 ### 3.2. Integrantes
@@ -39,7 +45,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Un integrante sin cuenta no tiene estadísticas individuales globales, porque no tiene una identidad por fuera del grupo.
 - Al ingresar a un grupo con el enlace de invitación, se pregunta "¿Cuál de los integrantes eres?" y el usuario elige a cuál de los integrantes existentes corresponde.
 - Al elegir, el usuario puede cambiar el nombre del integrante por el suyo; el cambio lo ven todos los integrantes del grupo y también se actualiza en las partidas ya guardadas.
-- Mientras no existan las cuentas, cualquier persona con el enlace del grupo puede cambiar el nombre de un integrante; después, ese permiso quedará limitado al administrador y al propio integrante.
+- Solo el administrador y el propio integrante (con su cuenta, también la invitada) pueden cambiar el nombre de un integrante.
 - El vínculo entre cuenta e integrante es auto-declarado y no verificado; el administrador podrá corregirlo.
 - Desvincular una cuenta no modifica las partidas ya registradas; solo afecta a los vínculos futuros.
 
@@ -432,7 +438,7 @@ Entra:
 - Publicación en Cloudflare (ya implementado).
 - Backend mínimo (Cloudflare Workers + D1) para guardar y compartir grupos y partidas entre dispositivos.
 - Sincronización de las partidas guardadas sin conexión al recuperar la conectividad.
-- Cuentas simples (registro e inicio de sesión) y vínculo usuario ↔ integrante.
+- Cuentas con usuario y contraseña, y correo opcional (registro e inicio de sesión), y vínculo usuario ↔ integrante.
 - Invitaciones: cada grupo tiene un código o enlace secreto, compartible por WhatsApp, para que otras personas entren.
 - Mientras no existan las cuentas, cualquier persona puede crear un grupo.
 

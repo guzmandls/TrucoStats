@@ -16,7 +16,7 @@ import {
 } from '../../components/ui'
 import { ApiError } from '../../lib/api'
 import { avatarColors } from './avatar'
-import { fetchGroupByCode, renameRemoteMember } from './groupsApi'
+import { fetchGroupByCode, joinRemoteGroup } from './groupsApi'
 import { loadGroups, saveGroup } from './groupsStorage'
 import { addMembership } from './membership'
 import type { Group } from './types'
@@ -39,6 +39,7 @@ export function JoinGroupScreen() {
   const [status, setStatus] = useState<Status>('loading')
   const [problem, setProblem] = useState<string | null>(null)
   const [group, setGroup] = useState<Group | null>(null)
+  const [claimed, setClaimed] = useState<string[]>([])
   const [memberId, setMemberId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [joining, setJoining] = useState(false)
@@ -48,7 +49,7 @@ export function JoinGroupScreen() {
   useEffect(() => {
     let active = true
     void fetchGroupByCode(code)
-      .then(async (remote) => {
+      .then(async ({ group: remote, claimedMemberIds, myMemberId }) => {
         // Si ya está en este celular, se abre directamente.
         const existing = (await loadGroups()).find(
           (item) => item.id === remote.id,
@@ -60,7 +61,16 @@ export function JoinGroupScreen() {
           navigate(`/grupo/${existing.id}`, { replace: true })
           return
         }
+        // Con la sesión iniciada en otro celular, el servidor ya sabe quién es
+        // la persona: no hace falta preguntar.
+        if (myMemberId) {
+          await saveGroup({ ...remote, myMemberId })
+          addMembership(remote.id)
+          navigate(`/grupo/${remote.id}`, { replace: true })
+          return
+        }
         setGroup(remote)
+        setClaimed(claimedMemberIds)
         setStatus('ready')
       })
       .catch((error: unknown) => {
@@ -93,9 +103,7 @@ export function JoinGroupScreen() {
     setJoining(true)
     setProblem(null)
     try {
-      if (finalName !== chosen.name) {
-        await renameRemoteMember(code, memberId, finalName)
-      }
+      await joinRemoteGroup(code, memberId, finalName)
       const joined: Group = {
         ...group,
         members: group.members.map((member) =>
@@ -106,9 +114,11 @@ export function JoinGroupScreen() {
       await saveGroup(joined)
       addMembership(joined.id)
       navigate(`/grupo/${joined.id}`, { replace: true })
-    } catch {
+    } catch (error) {
       setProblem(
-        'No se pudo unir al grupo. Revisa tu conexión e inténtalo de nuevo.',
+        error instanceof ApiError
+          ? error.message
+          : 'No se pudo unir al grupo. Revisa tu conexión e inténtalo de nuevo.',
       )
       setJoining(false)
     }
@@ -165,6 +175,7 @@ export function JoinGroupScreen() {
                     role="radio"
                     aria-label={member.name}
                     aria-checked={member.id === memberId}
+                    disabled={claimed.includes(member.id)}
                     className={`${styles.choice} ${member.id === memberId ? styles.choiceOn : ''}`}
                     onClick={() => choose(member.id, member.name)}
                   >
@@ -175,6 +186,9 @@ export function JoinGroupScreen() {
                       size={40}
                     />
                     {member.name}
+                    {claimed.includes(member.id) && (
+                      <span className={styles.taken}>Ya elegido</span>
+                    )}
                   </button>
                 ))}
               </div>
