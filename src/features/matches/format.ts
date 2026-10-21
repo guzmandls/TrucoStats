@@ -34,6 +34,14 @@ export function matchMetaParts(match: Match): string[] {
   return parts.filter((part): part is string => part !== null)
 }
 
+// Duración en minutos para la línea de datos de una partida: "26 min" (null si
+// no se registró).
+export function matchDurationLabel(match: Match): string | null {
+  return match.durationSeconds === null
+    ? null
+    : `${Math.round(match.durationSeconds / 60)} min`
+}
+
 // Con `includeDate` en false se omite la fecha (el historial ya la muestra en el
 // título del día).
 export function matchMeta(match: Match, includeDate = true): string {

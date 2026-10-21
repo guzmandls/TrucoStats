@@ -554,7 +554,7 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 - En el podio, todos los escalones son negros y se apoyan en la base de su tarjeta (no flotan).
 - La posición en un ranking se muestra en un cuadro negro con el número en crema.
 - Los grosores de línea siguen una jerarquía de tres niveles y no se usan otros: **3 px** para las divisiones estructurales entre zonas negras grandes (entre la barra superior, las pestañas y las bandas de título, y los separadores verticales de la barra superior y de las pestañas); **2 px** para contornos (tarjetas, recuadros, botones, controles); **1 px** para las divisiones finas dentro de una zona (filas de listas, separación entre equipos y entre puntajes, celdas y separadores de la grilla de enfrentamientos).
-- En los récords de partidas (estadísticas) el dato que importa (duración o diferencia) va grande a la derecha del título; debajo, el bloque negro de puntajes con los dos equipos y la fecha.
+- En los récords de partidas (estadísticas) el dato que importa (duración o diferencia) va grande a la derecha del título; debajo va la misma tarjeta de partida del historial, sin modalidad ni objetivo (se ven en la propia tarjeta), con una única línea superior que muestra la duración, la hora en que se jugó y, si corresponde, "Sin enviar".
 
 ---
 

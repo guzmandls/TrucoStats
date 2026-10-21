@@ -6,6 +6,17 @@
   border-bottom: var(--hairline-width) solid var(--line-thin);
 }
 
+/* En las estadísticas la tarjeta va dentro de otra sección: sin margen propio ni
+   línea de abajo. */
+.compact {
+  padding: 0;
+  border-bottom: 0;
+}
+
+.compact .head {
+  min-height: 24px;
+}
+
 /* Barra negra al costado de cada partida. */
 .flag {
   flex: 0 0 6px;

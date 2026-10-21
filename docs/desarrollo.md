@@ -976,3 +976,8 @@ divisiones estructurales entre zonas negras, 2 px contornos, 1 px divisiones
 finas internas; ver requisitos §12.11). Las divisiones de la grilla de
 enfrentamientos volvieron a ser finas, y la línea entre puntajes pasó a 1 px
 para igualar la que divide a los equipos.
+
+Récords de partidas: ahora reutilizan la tarjeta del historial (`HistoryRow` con la
+opción `compact`), sin modalidad ni objetivo y con duración, hora y "Sin enviar"
+en la línea de arriba. Reutilizar el mismo componente evita que las dos
+pantallas se desalineen con el tiempo.

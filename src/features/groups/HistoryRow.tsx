@@ -1,6 +1,11 @@
 import { CloudOffIcon } from '../../components/Icons'
 import { AvatarStack, OverflowMenu } from '../../components/ui'
-import { matchMetaParts, participantNames } from '../matches/format'
+import {
+  matchDurationLabel,
+  matchMetaParts,
+  participantNames,
+} from '../matches/format'
+import { matchWhen } from '../matches/groupOverview'
 import type { Match, Participant } from '../matches/types'
 import { avatarColor, avatarColors } from './avatar'
 import { availableActions, type MatchAction } from './matchActions'
@@ -13,8 +18,11 @@ interface HistoryRowProps {
   group: Group
   // Puntos que sumó (+) o restó (−) la persona de este celular en esta partida;
   // null si no jugó o no se sabe.
-  pointChange: number | null
-  onAction: (match: Match, action: MatchAction) => void
+  pointChange?: number | null
+  onAction?: (match: Match, action: MatchAction) => void
+  // Versión para las estadísticas: sin modalidad ni objetivo, con la hora de la
+  // partida y si se envió en la misma línea de arriba, y sin opciones.
+  compact?: boolean
 }
 
 function TeamLine({
@@ -55,24 +63,36 @@ function TeamLine({
 export function HistoryRow({
   match,
   group,
-  pointChange,
-  onAction,
+  pointChange = null,
+  onAction = () => {},
+  compact = false,
 }: HistoryRowProps) {
-  const actions = availableActions(match, group)
+  const actions = compact ? [] : availableActions(match, group)
+  const metaParts = compact
+    ? [matchDurationLabel(match), matchWhen(match)].filter(
+        (part): part is string => part !== null,
+      )
+    : matchMetaParts(match)
   const showChange =
     pointChange !== null && pointChange !== 0 && !match.canceled
   return (
     <div
       data-testid="partida"
-      className={`${styles.row} ${match.canceled ? styles.canceled : ''}`}
+      className={`${styles.row} ${compact ? styles.compact : ''} ${match.canceled ? styles.canceled : ''}`}
     >
       <span className={styles.flag} aria-hidden="true" />
       <div className={styles.content}>
         <div className={styles.head}>
           <div className={styles.meta}>
-            {matchMetaParts(match).map((part) => (
+            {metaParts.map((part) => (
               <span key={part}>{part}</span>
             ))}
+            {compact && isPending(match) && (
+              <span className={styles.note}>
+                <CloudOffIcon size={14} />
+                Sin enviar
+              </span>
+            )}
           </div>
           <div className={styles.headEnd}>
             {showChange && (
@@ -123,7 +143,7 @@ export function HistoryRow({
             </span>
           </div>
         </div>
-        {(isPending(match) || match.canceled) && (
+        {!compact && (isPending(match) || match.canceled) && (
           <div className={styles.foot}>
             {isPending(match) && (
               <span className={styles.note}>

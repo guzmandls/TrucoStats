@@ -15,12 +15,7 @@ import {
   Tabs,
   WinRateRing,
 } from '../../components/ui'
-import {
-  joinNames,
-  matchDate,
-  participantNames,
-  scoreDifferenceLabel,
-} from '../matches/format'
+import { joinNames, scoreDifferenceLabel } from '../matches/format'
 import { gridColumns } from '../matches/gridColumns'
 import {
   groupSummary,
@@ -36,6 +31,7 @@ import { formatDuration } from '../matches/stats'
 import type { Match } from '../matches/types'
 import { winRateColor } from '../matches/winRateColor'
 import { avatarColors } from './avatar'
+import { HistoryRow } from './HistoryRow'
 import type { Group } from './types'
 import { useGroup } from './useGroup'
 import styles from './GroupStatsScreen.module.css'
@@ -255,6 +251,7 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
         <div className={styles.recordList}>
           {summary.longestMatch && (
             <MatchRecord
+              group={group}
               label="Más larga"
               match={summary.longestMatch}
               value={
@@ -266,6 +263,7 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           )}
           {summary.shortestMatch && (
             <MatchRecord
+              group={group}
               label="Más corta"
               match={summary.shortestMatch}
               value={
@@ -277,6 +275,7 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           )}
           {summary.closestMatch && (
             <MatchRecord
+              group={group}
               label="Más pareja"
               match={summary.closestMatch}
               value={scoreDifferenceLabel(summary.closestMatch)}
@@ -284,6 +283,7 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           )}
           {summary.biggestBlowout && (
             <MatchRecord
+              group={group}
               label="Mayor diferencia"
               match={summary.biggestBlowout}
               value={scoreDifferenceLabel(summary.biggestBlowout)}
@@ -356,42 +356,21 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
 function MatchRecord({
   label,
   match,
+  group,
   value,
 }: {
   label: string
   match: Match
+  group: Group
   value: string | null
 }) {
-  const nos = participantNames(match.teams.nos)
-  const ellos = participantNames(match.teams.ellos)
-  const winnerIsNos = match.winner === 'nos'
   return (
     <div className={styles.recordItem}>
       <div className={styles.matchRecordHead}>
         <span className={styles.matchRecordLabel}>{label}</span>
         {value && <span className={styles.matchRecordValue}>{value}</span>}
       </div>
-      <div className={styles.matchRecordBody}>
-        <div className={styles.matchRecordScores}>
-          <span className={winnerIsNos ? styles.scoreWin : undefined}>
-            {match.scores.nos}
-          </span>
-          <span className={winnerIsNos ? undefined : styles.scoreWin}>
-            {match.scores.ellos}
-          </span>
-        </div>
-        {nos && ellos && (
-          <div className={styles.matchRecordTeams}>
-            <span className={winnerIsNos ? styles.teamWin : styles.teamLoss}>
-              {nos}
-            </span>
-            <span className={winnerIsNos ? styles.teamLoss : styles.teamWin}>
-              {ellos}
-            </span>
-          </div>
-        )}
-      </div>
-      <span className={styles.recordMeta}>{matchDate(match)}</span>
+      <HistoryRow match={match} group={group} compact />
     </div>
   )
 }

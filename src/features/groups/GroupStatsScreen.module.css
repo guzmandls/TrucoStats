@@ -116,66 +116,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-.matchRecordBody {
-  display: flex;
-  align-items: stretch;
-  gap: var(--space-3);
-}
-
-/* Bloque negro con los dos puntajes, como en el historial. */
-.matchRecordScores {
-  flex: 0 0 56px;
-  display: flex;
-  flex-direction: column;
-  border-radius: 8px;
-  background: var(--ink);
-  overflow: hidden;
-}
-
-.matchRecordScores > span {
-  flex: 1;
-  min-height: 34px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--paper-muted);
-  font-size: var(--text-lg);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
-
-.matchRecordScores > span + span {
-  border-top: var(--hairline-width) solid var(--paper);
-}
-
-.matchRecordScores > .scoreWin {
-  color: var(--paper);
-  font-weight: 800;
-}
-
-.matchRecordTeams {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  font-size: var(--text-md);
-}
-
-/* Cada equipo ocupa la misma altura que su celda de puntaje. */
-.matchRecordTeams > span {
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.teamWin {
-  font-weight: 800;
-}
-
-.teamLoss {
-  color: var(--ink-muted);
-}
-
 .recordLabel {
   font-size: var(--text-xs);
   letter-spacing: var(--tracking-wide);
