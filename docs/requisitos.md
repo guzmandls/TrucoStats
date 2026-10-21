@@ -380,7 +380,7 @@ La idea: **cada integrante suma al ganar y resta al perder según SUS PROPIOS pu
 2. Cada integrante del equipo ganador **suma** `tamaño × factor de victoria × ajuste por el rival`. El factor de victoria depende de sus puntos: × 4,5 en 0, × 1 en 1500 y × 0,7 desde 2250; entre un valor y otro baja de forma pareja.
 3. Cada integrante del equipo perdedor **resta** `tamaño × factor de derrota × ajuste por el rival`. El factor de derrota depende de sus puntos: × 0,25 en 0, × 1 en 1500 y × 1,4 desde 2250; entre un valor y otro sube de forma pareja.
 4. Ajuste por el rival (diferencia entre el promedio de puntos de los dos equipos, cada 4000 puntos de diferencia ajustan 100%, con tope de 25%): si el rival tiene más puntos, ganarle vale hasta 25% más y perderle resta hasta 25% menos; si tiene menos, ganarle vale hasta 25% menos y perderle resta hasta 25% más.
-5. Los resultados se redondean y nadie baja de 0.
+5. Los resultados se redondean. **No hay puntos negativos:** nadie baja de 0. Si alguien con 0 puntos pierde, queda en 0 (y en el historial no se le muestra ningún cambio en esa partida); si tiene pocos puntos y la derrota le restaría más de los que tiene, queda en 0.
 
 **Cuánto mueve una partida a 30 puntos con diferencia media y rival parejo**
 
