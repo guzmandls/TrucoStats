@@ -38,8 +38,10 @@ describe('groupsStorage', () => {
     await saveGroup(group)
     const updated = await setGroupInviteCode('g1', 'abc123')
 
-    expect(updated).toEqual({ ...group, inviteCode: 'abc123' })
-    expect(await loadGroups()).toEqual([{ ...group, inviteCode: 'abc123' }])
+    // Un grupo creado en este celular es de su administrador (m1).
+    const expected = { ...group, inviteCode: 'abc123', myMemberId: 'm1' }
+    expect(updated).toEqual(expected)
+    expect(await loadGroups()).toEqual([expected])
   })
 
   it('no inventa un grupo al guardar el código de uno que no existe', async () => {
@@ -86,7 +88,7 @@ describe('groupsStorage', () => {
 
   it('guarda y recupera un grupo', async () => {
     await saveGroup(group)
-    expect(await loadGroups()).toEqual([group])
+    expect(await loadGroups()).toEqual([{ ...group, myMemberId: 'm1' }])
   })
 
   it('guarda varios grupos', async () => {
@@ -99,7 +101,20 @@ describe('groupsStorage', () => {
   it('reemplaza el grupo al guardar el mismo id', async () => {
     await saveGroup(group)
     await saveGroup({ ...group, name: 'Renombrado' })
-    expect(await loadGroups()).toEqual([{ ...group, name: 'Renombrado' }])
+    expect(await loadGroups()).toEqual([
+      { ...group, name: 'Renombrado', myMemberId: 'm1' },
+    ])
+  })
+
+  it('un grupo creado antes de las cuentas es de su administrador; uno del servidor no se asume', async () => {
+    const withoutMe = { ...group, adminMemberIds: ['m2'] }
+    await saveGroup(withoutMe)
+    await saveGroup({ ...withoutMe, id: 'g2', inviteCode: 'abc123' })
+
+    const loaded = await loadGroups()
+
+    expect(loaded.find((item) => item.id === 'g1')?.myMemberId).toBe('m2')
+    expect(loaded.find((item) => item.id === 'g2')?.myMemberId).toBeUndefined()
   })
 
   it('elimina un grupo', async () => {

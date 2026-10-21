@@ -41,9 +41,10 @@ import { HistoryRow } from './HistoryRow'
 import type { MatchAction } from './matchActions'
 import { filterMatches } from '../matches/search'
 import { ApiError } from '../../lib/api'
-import { getToken } from '../../lib/session'
+import { getToken, isRegistered, useSession } from '../../lib/session'
 import {
   cancelRemoteMatch,
+  fetchGroupByCode,
   leaveRemoteGroup,
   registerGroup,
   restoreRemoteMatch,
@@ -51,6 +52,7 @@ import {
 import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { AddMemberDialog } from './AddMemberDialog'
+import { ClaimMemberDialog } from './ClaimMemberDialog'
 import { isGroupAdmin } from './groupAdmin'
 import { InviteDialog } from './InviteDialog'
 import { MatchHistoryDialog } from './MatchHistoryDialog'
@@ -80,6 +82,7 @@ export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { group, matches, allMatches, setGroup, reload } = useGroup(id)
+  const session = useSession()
   const [game, setGame] = useState<PersistedGame | null>(null)
   // Partidas de grupo que están contando otros integrantes (se ven desde aquí);
   // la que cuenta esta misma persona no se muestra.
@@ -89,6 +92,10 @@ export function GroupScreen() {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [adding, setAdding] = useState(false)
+  // Grupo del servidor sin nadie vinculado (creado antes de las cuentas): la
+  // persona que lo creó elige cuál integrante es.
+  const [claiming, setClaiming] = useState(false)
+  const [claimDismissed, setClaimDismissed] = useState(false)
   const [historyOf, setHistoryOf] = useState<Match | null>(null)
   const [inviteError, setInviteError] = useState<string | null>(null)
   const [leaveError, setLeaveError] = useState<string | null>(null)
@@ -138,6 +145,32 @@ export function GroupScreen() {
     )
     return map.get(userId) ?? null
   }, [group, matches, userId])
+
+  const claimCode = group?.inviteCode
+  const claimNeeded =
+    group !== null && !group.myMemberId && !!claimCode && isRegistered(session)
+  useEffect(() => {
+    if (!claimNeeded || !claimCode || claimDismissed) {
+      return
+    }
+    let active = true
+    fetchGroupByCode(claimCode)
+      .then((remote) => {
+        // Si el servidor ya sabe quién es, la sincronización lo completa; solo
+        // se pregunta cuando el grupo no tiene a nadie vinculado.
+        if (
+          active &&
+          !remote.myMemberId &&
+          remote.claimedMemberIds.length === 0
+        ) {
+          setClaiming(true)
+        }
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [claimNeeded, claimCode, claimDismissed])
 
   useEffect(() => {
     if (!group) {
@@ -547,6 +580,20 @@ export function GroupScreen() {
           </ButtonLink>
         )}
       </ScreenFooter>
+      {claiming && group.inviteCode && (
+        <ClaimMemberDialog
+          group={group}
+          inviteCode={group.inviteCode}
+          onClose={() => {
+            setClaiming(false)
+            setClaimDismissed(true)
+          }}
+          onClaimed={() => {
+            setClaiming(false)
+            void pullGroup(group.id).then(reload)
+          }}
+        />
+      )}
       {historyOf && group.inviteCode && (
         <MatchHistoryDialog
           inviteCode={group.inviteCode}

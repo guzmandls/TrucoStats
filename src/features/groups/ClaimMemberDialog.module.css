@@ -1,0 +1,39 @@
+.help {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  max-height: 40svh;
+  overflow-y: auto;
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius);
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--tap-height);
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--text-md);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice + .choice {
+  border-top: var(--hairline-width) solid var(--line-thin);
+}
+
+.choiceOn {
+  background: var(--ink);
+  color: var(--paper);
+}

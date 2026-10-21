@@ -5,6 +5,7 @@ import { setAliases } from './aliases'
 import { updateMember } from './members'
 import { cancelMatch, restoreMatch } from './cancel'
 import { matchHistory } from './history'
+import { claimMember } from './claim'
 import { joinGroup } from './join'
 import { leaveGroup } from './leave'
 import { listLive, publishLive, stopLive } from './live'
@@ -24,6 +25,7 @@ const MATCH_HISTORY =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/historial$/
 const LIVES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo$/
 const LIVE_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo\/([^/]{1,100})$/
+const CLAIM_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/reclamar$/
 const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 
@@ -124,6 +126,13 @@ export default {
         return stopLive(liveOfGroup[1], id, request, env)
       }
       return errorResponse('Método no permitido', 405)
+    }
+
+    const claimOfGroup = CLAIM_GROUP.exec(pathname)
+    if (claimOfGroup) {
+      return request.method === 'POST'
+        ? claimMember(claimOfGroup[1], request, env)
+        : errorResponse('Método no permitido', 405)
     }
 
     const leaveOfGroup = LEAVE_GROUP.exec(pathname)
