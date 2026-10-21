@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
   ExitIcon,
   BackIcon,
   ChartIcon,
   CloseIcon,
+  ChevronRightIcon,
   CloudOffIcon,
   PeopleIcon,
   SearchIcon,
@@ -35,6 +36,7 @@ import {
   type PersistedGame,
 } from '../counter/gameStorage'
 import { dayKey, dayLabel } from '../matches/dayLabel'
+import { participantNames } from '../matches/format'
 import { HistoryRow } from './HistoryRow'
 import type { MatchAction } from './matchActions'
 import { filterMatches } from '../matches/search'
@@ -58,6 +60,7 @@ import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints, pointChanges } from '../matches/points'
 import { removeMembership } from './membership'
 import { useGroup } from './useGroup'
+import { useLiveMatch } from './useLiveMatch'
 import styles from './GroupScreen.module.css'
 
 const POINTS_DELTA_KEY = 'trucostats:pointsDelta'
@@ -78,6 +81,9 @@ export function GroupScreen() {
   const navigate = useNavigate()
   const { group, matches, allMatches, setGroup, reload } = useGroup(id)
   const [game, setGame] = useState<PersistedGame | null>(null)
+  // Partida de grupo que está contando otro integrante (se ve desde aquí). Si
+  // esta persona ya tiene una partida en curso, no se muestra.
+  const { live } = useLiveMatch(group, 6000, game === null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [adding, setAdding] = useState(false)
@@ -402,6 +408,23 @@ export function GroupScreen() {
         }
       />
       <ScreenContent flush>
+        {live && game === null && (
+          <Link to={`/grupo/${group.id}/en-vivo`} className={styles.live}>
+            <span className={styles.liveTag}>En vivo</span>
+            <span className={styles.liveBody}>
+              <span className={styles.liveTeams}>
+                {participantNames(live.state.teams.nos) ?? 'Nosotros'} vs{' '}
+                {participantNames(live.state.teams.ellos) ?? 'Ellos'}
+              </span>
+              <span className={styles.liveScore}>
+                {live.state.scores.nos} – {live.state.scores.ellos}
+              </span>
+            </span>
+            <span className={styles.liveGo}>
+              <ChevronRightIcon size={24} />
+            </span>
+          </Link>
+        )}
         {searching && (
           <div className={styles.searchBar}>
             <TextInput

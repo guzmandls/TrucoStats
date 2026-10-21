@@ -411,6 +411,76 @@ describe('GroupScreen', () => {
     )
   })
 
+  it('muestra el aviso de partida en vivo y lleva a mirarla', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = String(input)
+        if (url.endsWith('/en-vivo')) {
+          return new Response(
+            JSON.stringify({
+              live: {
+                state: {
+                  teams: {
+                    nos: [{ id: 'm1', name: 'Juan' }],
+                    ellos: [{ id: 'm2', name: 'Pedro' }],
+                  },
+                  target: 30,
+                  scores: { nos: 12, ellos: 8 },
+                  paused: false,
+                  elapsedSeconds: 60,
+                  winner: null,
+                },
+                startedAt: '2026-10-01T20:00:00.000Z',
+                updatedAt: '2026-10-01T20:01:00.000Z',
+              },
+            }),
+            { status: 200 },
+          )
+        }
+        return new Response(JSON.stringify({ matches: [] }), { status: 200 })
+      }),
+    )
+    renderGroup()
+
+    const link = await screen.findByRole('link', { name: /En vivo/ })
+    expect(link).toHaveAttribute('href', `/grupo/${group.id}/en-vivo`)
+    expect(link).toHaveTextContent('Juan vs Pedro')
+    expect(link).toHaveTextContent('12 – 8')
+  })
+
+  it('no muestra el aviso si no hay partida en vivo', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async (input: RequestInfo | URL) =>
+          new Response(
+            JSON.stringify(
+              String(input).endsWith('/en-vivo')
+                ? { live: null }
+                : { matches: [] },
+            ),
+            { status: 200 },
+          ),
+      ),
+    )
+    renderGroup()
+
+    await screen.findByRole('button', { name: 'Menú' })
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    expect(screen.queryByRole('link', { name: /En vivo/ })).toBeNull()
+  })
+
   it('ofrece agregar un integrante solo a los administradores', async () => {
     await saveGroup({
       ...group,

@@ -16,6 +16,7 @@ import {
 } from '../../components/ui'
 import { HoldButton } from '../../components/HoldButton'
 import { Counter } from './Counter'
+import { useLiveBroadcast } from './useLiveBroadcast'
 import { quickContext, type GameContext } from './gameContext'
 import { formatClock } from './gameTimer'
 import {
@@ -47,6 +48,7 @@ export function CounterScreen() {
   )
   const counter = useCounter(nav?.target ?? DEFAULT_TARGET, initialContext)
   const drawingRef = useRef<HTMLDivElement>(null)
+  useLiveBroadcast(counter)
 
   const nosPoints = counter.points('nos')
   const ellosPoints = counter.points('ellos')

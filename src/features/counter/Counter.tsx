@@ -5,7 +5,9 @@ import { type CounterController } from './useCounter'
 import styles from './Counter.module.css'
 
 interface CounterProps {
-  counter: CounterController
+  // Solo se usan el objetivo, si empezó y los puntos: así también sirve para
+  // mirar una partida en vivo desde otro celular.
+  counter: Pick<CounterController, 'target' | 'started' | 'points'>
   drawingRef: RefObject<HTMLDivElement | null>
 }
 

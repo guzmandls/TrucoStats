@@ -1091,3 +1091,29 @@ Conceptos nuevos:
   antes (sin integrante vinculado) sin tocar nada guardado.
 - **Normalizar para comparar:** nombres en minúsculas y sin tildes, para que
   "Juancho" y "JUANCHÓ" sean el mismo apodo.
+
+## Etapa 36 — Partida en vivo
+
+Hecho:
+
+- **Servidor** (`worker/live.ts`, migración `0007_partida_en_vivo.sql`): una fila por
+  grupo con el estado de la partida que se está contando. Pedidos: `PUT` (publicar),
+  `DELETE` (terminar) y `GET` (ver) en `/api/grupos/:código/en-vivo`, solo para
+  integrantes. Si nadie la actualiza durante 5 minutos, `GET` devuelve null.
+- **Contador** (`useLiveBroadcast`): publica cada cambio (con una espera corta para
+  juntar toques seguidos) y cada 20 segundos; al salir del contador la borra. No hace
+  nada en la partida rápida ni sin sesión o conexión.
+- **Mirar** (`useLiveMatch`, `LiveMatchScreen`): la pantalla del grupo muestra la
+  tarjeta "En vivo"; al tocarla se ve el mismo dibujo del contador, sin botones,
+  actualizado cada 3 segundos.
+
+Conceptos nuevos:
+
+- **Polling (consulta periódica):** el celular que mira le pregunta al servidor cada
+  pocos segundos. Es más simple y gratis que mantener una conexión abierta
+  (WebSocket), y alcanza para un marcador.
+- **Latido (heartbeat):** quien cuenta vuelve a publicar cada tanto aunque no cambien
+  los puntos; así el servidor sabe que la partida sigue viva y, si deja de llegar, la
+  descarta sola.
+- **Reutilizar un componente con un tipo más chico:** el dibujo del contador pidió solo
+  `target`, `started` y `points`, así sirve igual para mirar una partida en vivo.

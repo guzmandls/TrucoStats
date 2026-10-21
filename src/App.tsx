@@ -4,6 +4,7 @@ import { CounterScreen } from './features/counter/CounterScreen'
 import { CreateGroupScreen } from './features/groups/CreateGroupScreen'
 import { GroupScreen } from './features/groups/GroupScreen'
 import { JoinGroupScreen } from './features/groups/JoinGroupScreen'
+import { LiveMatchScreen } from './features/groups/LiveMatchScreen'
 import { GroupStatsScreen } from './features/groups/GroupStatsScreen'
 import { MemberScreen } from './features/groups/MemberScreen'
 import { ParticipantsScreen } from './features/groups/ParticipantsScreen'
@@ -23,6 +24,7 @@ function App() {
         <Route path="/iniciar-sesion" element={<AuthScreen mode="login" />} />
         <Route path="/unirse/:code" element={<JoinGroupScreen />} />
         <Route path="/grupo/:id" element={<GroupScreen />} />
+        <Route path="/grupo/:id/en-vivo" element={<LiveMatchScreen />} />
         <Route path="/grupo/:id/estadisticas" element={<GroupStatsScreen />} />
         <Route
           path="/grupo/:id/participantes"
