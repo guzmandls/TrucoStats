@@ -873,3 +873,15 @@ a la app (fondos negros con letra crema). Se corrigió:
   perfil y Cerrar sesión.
 - Lección: el diseño de una app no es solo la distribución; el contraste entre
   zonas claras y oscuras es parte de su identidad y hay que mantenerlo.
+
+### Limpieza de calidad
+
+- Se resolvieron los 4 problemas de lint que arrastrábamos: bloques `catch`
+  vacíos (ahora explican por qué se ignora el error), una dependencia sobrante
+  en un `useCallback` y un `setState` dentro de un efecto en el aviso de puntos
+  (ahora el valor se lee al crear el estado y el efecto solo lo borra y programa
+  su desaparición).
+- Prettier: `endOfLine: "auto"` acepta saltos de línea de Windows y de Linux, así
+  `prettier --check .` pasa en cualquier máquina.
+- Concepto: `eslint` encuentra errores de lógica y malas prácticas; `prettier`
+  solo da formato. Tenerlos en cero evita que la deuda se acumule.

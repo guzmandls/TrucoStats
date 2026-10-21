@@ -54,6 +54,16 @@ import { removeMembership } from './membership'
 import { useGroup } from './useGroup'
 import styles from './GroupScreen.module.css'
 
+const POINTS_DELTA_KEY = 'trucostats:pointsDelta'
+
+function readPointsDelta(): string | null {
+  try {
+    return sessionStorage.getItem(POINTS_DELTA_KEY)
+  } catch {
+    return null
+  }
+}
+
 // Cuántas partidas se muestran de una vez; al llegar al final se cargan más.
 const PAGE_SIZE = 20
 
@@ -65,7 +75,9 @@ export function GroupScreen() {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
-  const [pointsDelta, setPointsDelta] = useState<string | null>(null)
+  // Aviso de puntos que deja la partida recién terminada: se lee al abrir la
+  // pantalla y desaparece solo a los 4 segundos.
+  const [pointsDelta, setPointsDelta] = useState<string | null>(readPointsDelta)
   // Partida sobre la que se está cancelando o restaurando.
   const [acting, setActing] = useState<{
     match: Match
@@ -163,16 +175,17 @@ export function GroupScreen() {
   }, [id, reload])
 
   useEffect(() => {
+    if (!pointsDelta) {
+      return
+    }
     try {
-      const v = sessionStorage.getItem('trucostats:pointsDelta')
-      if (v) {
-        setPointsDelta(v)
-        sessionStorage.removeItem('trucostats:pointsDelta')
-        const t = setTimeout(() => setPointsDelta(null), 4000)
-        return () => clearTimeout(t)
-      }
-    } catch {}
-  }, [])
+      sessionStorage.removeItem(POINTS_DELTA_KEY)
+    } catch {
+      // Sin almacenamiento no hay nada que borrar.
+    }
+    const timer = setTimeout(() => setPointsDelta(null), 4000)
+    return () => clearTimeout(timer)
+  }, [pointsDelta])
 
   if (!group || !matches) {
     return (

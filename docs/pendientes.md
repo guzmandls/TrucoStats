@@ -75,13 +75,10 @@ No son requisitos nuevos: son notas para no olvidarlas.
 
 ## Calidad de código
 
-- `npm run lint` marca 3 errores y 1 aviso que ya existían: bloques `catch`
-  vacíos en `useCounter.ts` (línea ~352) y `GroupScreen.tsx` (línea ~91),
-  `setState` dentro de un efecto en `GroupScreen.tsx` (línea ~86, aviso de pulsos
-  de puntos guardado en sessionStorage) y una dependencia sobrante en un
-  `useCallback`.
-- `prettier --check .` marca 8 archivos de la raíz (README, package.json,
-  index.html, etc.), probablemente por saltos de línea CRLF/LF en Windows.
+- `npm run lint` y `prettier --check .` pasan sin avisos (se resolvieron los 4
+  problemas antiguos de lint y se configuró `endOfLine: auto` para los saltos
+  de línea de Windows). Mantenerlos en cero: si aparece algo nuevo, corregirlo en
+  el momento.
 
 ## Diseño
 
