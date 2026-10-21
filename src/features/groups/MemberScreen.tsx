@@ -12,6 +12,7 @@ import {
 import { memberStats } from '../matches/groupStats'
 import { avatarColors } from './avatar'
 import { fileToAvatarDataUrl } from './imageFile'
+import { setRemoteAvatar } from './groupsApi'
 import { updateMemberAvatar } from './groupsStorage'
 import { MemberStatsFicha, MemberStatsRows } from './MemberStats'
 import { useGroup } from './useGroup'
@@ -73,6 +74,7 @@ export function MemberScreen() {
       const dataUrl = await fileToAvatarDataUrl(file)
       const updated = await updateMemberAvatar(group, member!.id, dataUrl)
       setGroup(updated)
+      shareAvatar(dataUrl)
     } finally {
       setBusy(false)
     }
@@ -84,6 +86,17 @@ export function MemberScreen() {
     }
     const updated = await updateMemberAvatar(group, member!.id, undefined)
     setGroup(updated)
+    shareAvatar(null)
+  }
+
+  // Aviso al servidor para que los demás celulares vean la foto. Si no hay
+  // conexión, el cambio queda solo en este celular.
+  function shareAvatar(avatar: string | null) {
+    if (group?.inviteCode) {
+      void setRemoteAvatar(group.inviteCode, member!.id, avatar).catch(
+        () => undefined,
+      )
+    }
   }
 
   return (

@@ -609,6 +609,41 @@ export function ScreenFooter({ children }: ScreenFooterProps) {
   return <footer className={styles.footer}>{children}</footer>
 }
 
+interface DialogProps {
+  title: string
+  onClose: () => void
+  children: ReactNode
+}
+
+// Diálogo modal superpuesto: título negro y contenido. Escape lo cierra.
+export function Dialog({ title, onClose, children }: DialogProps) {
+  const titleId = useId()
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  return (
+    <div className={styles.overlay}>
+      <div
+        className={styles.dialog}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+      >
+        <PanelHeader id={titleId}>{title}</PanelHeader>
+        <div className={styles.confirmActions}>{children}</div>
+      </div>
+    </div>
+  )
+}
+
 interface ConfirmDialogProps {
   title: string
   confirmLabel?: string
@@ -624,35 +659,13 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
-  const titleId = useId()
-
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onCancel()
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onCancel])
-
   return (
-    <div className={styles.overlay}>
-      <div
-        className={styles.dialog}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-      >
-        <PanelHeader id={titleId}>{title}</PanelHeader>
-        <div className={styles.confirmActions}>
-          <Button onClick={onConfirm}>{confirmLabel}</Button>
-          <Button variant="secondary" autoFocus onClick={onCancel}>
-            {cancelLabel}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <Dialog title={title} onClose={onCancel}>
+      <Button onClick={onConfirm}>{confirmLabel}</Button>
+      <Button variant="secondary" autoFocus onClick={onCancel}>
+        {cancelLabel}
+      </Button>
+    </Dialog>
   )
 }
 

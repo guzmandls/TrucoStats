@@ -1,6 +1,15 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { deleteGroup, leaveGroup, loadGroups, saveGroup } from './groupsStorage'
+import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
+import type { Match } from '../matches/types'
+import {
+  deleteGroup,
+  leaveGroup,
+  loadGroups,
+  renameMember,
+  saveGroup,
+  setGroupInviteCode,
+} from './groupsStorage'
 import type { Group } from './types'
 
 const group: Group = {
@@ -23,6 +32,56 @@ describe('groupsStorage', () => {
 
   it('devuelve una lista vacía cuando no hay grupos', async () => {
     expect(await loadGroups()).toEqual([])
+  })
+
+  it('guarda el código de invitación sin perder el resto del grupo', async () => {
+    await saveGroup(group)
+    const updated = await setGroupInviteCode('g1', 'abc123')
+
+    expect(updated).toEqual({ ...group, inviteCode: 'abc123' })
+    expect(await loadGroups()).toEqual([{ ...group, inviteCode: 'abc123' }])
+  })
+
+  it('no inventa un grupo al guardar el código de uno que no existe', async () => {
+    expect(await setGroupInviteCode('nada', 'abc123')).toBeNull()
+    expect(await loadGroups()).toEqual([])
+  })
+
+  it('cambia el nombre de un integrante en el grupo y en sus partidas', async () => {
+    for (const existing of await loadMatches()) {
+      await deleteMatch(existing.id)
+    }
+    await saveGroup(group)
+    const match: Match = {
+      id: 'p1',
+      type: 'group',
+      groupId: 'g1',
+      modality: '1v1',
+      playedAt: '2026-10-05T20:00:00.000Z',
+      durationSeconds: 600,
+      target: 30,
+      winner: 'nos',
+      teams: {
+        nos: [{ id: 'm1', name: 'Juan' }],
+        ellos: [{ id: 'm2', name: 'Pedro' }],
+      },
+      scores: { nos: 30, ellos: 10 },
+    }
+    await saveMatch(match)
+
+    const updated = await renameMember('g1', 'm2', 'Pedrito')
+
+    expect(updated?.members.map((member) => member.name)).toEqual([
+      'Juan',
+      'Pedrito',
+    ])
+    const [stored] = await loadMatches()
+    expect(stored.teams.ellos[0].name).toBe('Pedrito')
+    expect(stored.teams.nos[0].name).toBe('Juan')
+  })
+
+  it('no hace nada al renombrar en un grupo que no existe', async () => {
+    expect(await renameMember('nada', 'm1', 'Ana')).toBeNull()
   })
 
   it('guarda y recupera un grupo', async () => {

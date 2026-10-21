@@ -1,0 +1,50 @@
+.choices {
+  display: flex;
+  flex-direction: column;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: var(--tap-height);
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: inherit;
+  font-size: var(--text-md);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.choice + .choice {
+  border-top: var(--hairline-width) solid var(--line-thin);
+}
+
+.choiceOn {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.choice:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: calc(var(--border-width) * -1);
+}
+
+.choiceOn:focus-visible {
+  outline-color: var(--paper);
+}
+
+.nameField {
+  padding: var(--space-4);
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}

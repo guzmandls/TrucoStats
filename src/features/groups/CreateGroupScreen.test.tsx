@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { CreateGroupScreen } from './CreateGroupScreen'
 import { deleteGroup, loadGroups } from './groupsStorage'
 
@@ -31,6 +31,10 @@ async function location(): Promise<string> {
   )
   return screen.getByTestId('location').textContent ?? ''
 }
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
 
 describe('CreateGroupScreen', () => {
   beforeEach(async () => {
@@ -86,6 +90,49 @@ describe('CreateGroupScreen', () => {
     }
     expect(screen.getByLabelText('Integrante 21')).toBeInTheDocument()
     expect(add).not.toBeDisabled()
+  })
+
+  it('registra el grupo en el servidor y guarda su código de invitación', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ inviteCode: 'abc123' }), { status: 201 }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    renderScreen()
+    fireEvent.change(screen.getByLabelText('Nombre del grupo'), {
+      target: { value: 'Los del truco' },
+    })
+    fireEvent.change(memberInput(2), { target: { value: 'Pedro' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar grupo' }))
+    expect(await location()).toBe('/')
+
+    await waitFor(async () =>
+      expect((await loadGroups())[0].inviteCode).toBe('abc123'),
+    )
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('guarda el grupo igual si no hay conexión', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Promise.reject(new TypeError('sin red'))),
+    )
+    renderScreen()
+    fireEvent.change(memberInput(2), { target: { value: 'Pedro' } })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar grupo' }))
+    expect(await location()).toBe('/')
+
+    const groups = await loadGroups()
+    expect(groups).toHaveLength(1)
+    expect(groups[0].inviteCode).toBeUndefined()
+  })
+
+  it('exige el nombre de cada integrante', () => {
+    renderScreen()
+
+    expect(memberInput(2)).toBeRequired()
   })
 
   it('guarda el grupo y vuelve al home', async () => {

@@ -10,4 +10,8 @@ export interface Group {
   members: Member[]
   adminMemberId: string
   createdAt: string
+  /** Código secreto para invitar; existe una vez que el grupo está en el servidor. */
+  inviteCode?: string
+  /** Qué integrante es la persona de este celular. Solo se guarda en el celular. */
+  myMemberId?: string
 }

@@ -1,4 +1,5 @@
 import { GROUPS_STORE, put, readAll, remove } from '../../lib/db'
+import { loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Group, Member } from './types'
 
 function isMember(value: unknown): value is Member {
@@ -23,6 +24,8 @@ function isGroup(value: unknown): value is Group {
     typeof group.name === 'string' &&
     typeof group.adminMemberId === 'string' &&
     typeof group.createdAt === 'string' &&
+    (group.inviteCode === undefined || typeof group.inviteCode === 'string') &&
+    (group.myMemberId === undefined || typeof group.myMemberId === 'string') &&
     Array.isArray(group.members) &&
     group.members.every(isMember)
   )
@@ -35,6 +38,56 @@ export async function loadGroups(): Promise<Group[]> {
 
 export function saveGroup(group: Group): Promise<void> {
   return put(GROUPS_STORE, group)
+}
+
+// Cambia el nombre de un integrante en el grupo y en las partidas ya guardadas.
+export async function renameMember(
+  groupId: string,
+  memberId: string,
+  name: string,
+): Promise<Group | null> {
+  const current = (await loadGroups()).find((group) => group.id === groupId)
+  if (!current) {
+    return null
+  }
+  const updated: Group = {
+    ...current,
+    members: current.members.map((member) =>
+      member.id === memberId ? { ...member, name } : member,
+    ),
+  }
+  await saveGroup(updated)
+  for (const match of await loadMatches()) {
+    const sides = [...match.teams.nos, ...match.teams.ellos]
+    if (sides.some((player) => player.id === memberId)) {
+      const rename = (team: typeof match.teams.nos) =>
+        team.map((player) =>
+          player.id === memberId ? { ...player, name } : player,
+        )
+      await saveMatch({
+        ...match,
+        teams: {
+          nos: rename(match.teams.nos),
+          ellos: rename(match.teams.ellos),
+        },
+      })
+    }
+  }
+  return updated
+}
+
+// Guarda el código de invitación sobre la versión más reciente del grupo.
+export async function setGroupInviteCode(
+  groupId: string,
+  inviteCode: string,
+): Promise<Group | null> {
+  const current = (await loadGroups()).find((group) => group.id === groupId)
+  if (!current) {
+    return null
+  }
+  const updated: Group = { ...current, inviteCode }
+  await saveGroup(updated)
+  return updated
 }
 
 export function deleteGroup(id: string): Promise<void> {

@@ -2,6 +2,7 @@ import { HomeScreen } from './features/groups/HomeScreen'
 import { CounterScreen } from './features/counter/CounterScreen'
 import { CreateGroupScreen } from './features/groups/CreateGroupScreen'
 import { GroupScreen } from './features/groups/GroupScreen'
+import { JoinGroupScreen } from './features/groups/JoinGroupScreen'
 import { GroupStatsScreen } from './features/groups/GroupStatsScreen'
 import { MemberScreen } from './features/groups/MemberScreen'
 import { ParticipantsScreen } from './features/groups/ParticipantsScreen'
@@ -17,6 +18,7 @@ function App() {
         <Route path="/partida" element={<CounterScreen />} />
         <Route path="/partida-grupo/:id" element={<StartGroupGameScreen />} />
         <Route path="/crear-grupo" element={<CreateGroupScreen />} />
+        <Route path="/unirse/:code" element={<JoinGroupScreen />} />
         <Route path="/grupo/:id" element={<GroupScreen />} />
         <Route path="/grupo/:id/estadisticas" element={<GroupStatsScreen />} />
         <Route

@@ -556,3 +556,130 @@ Conceptos y herramientas nuevos:
   que los jugadores pertenezcan al grupo), no solo el formato.
 - Consulta con unión (`JOIN`): trae en una sola consulta los jugadores de todas
   las partidas del grupo, en lugar de una consulta por partida.
+
+## Etapa 18 — La app envía el grupo al servidor (5a)
+
+Hecho:
+
+- Al crear un grupo, la app lo guarda primero en el celular y luego intenta
+  registrarlo en el servidor en segundo plano. Si funciona, guarda el código de
+  invitación en el grupo. Sin conexión no pasa nada: el grupo ya está guardado.
+- Nueva opción **Invitar** en el menú del grupo: si el grupo todavía no está en
+  el servidor, lo registra; después muestra un diálogo con el enlace y los
+  botones Compartir (menú de compartir del teléfono) y Copiar enlace.
+- Cada integrante debe tener nombre al crear el grupo (el servidor los exige).
+- En desarrollo, las rutas `/api` de la app se redirigen al Worker local
+  (`vite.config.ts`), así se prueba todo junto.
+- Componentes compartidos nuevos: `Dialog` (base de los diálogos) e icono de
+  compartir.
+- Probado de punta a punta con Chrome: se creó un grupo desde la pantalla y el
+  servidor lo devolvió con su código.
+
+Conceptos y herramientas nuevos:
+
+- Offline-first en la práctica: lo local manda; el servidor es una copia que se
+  actualiza cuando hay conexión. Si falla, se reintenta cuando la persona lo
+  necesita (al invitar).
+- Cliente de API (`src/lib/api.ts`): un único lugar que hace los pedidos al
+  backend, con límite de tiempo (8 s) y errores uniformes.
+- Proxy de desarrollo: Vite reenvía `/api` al Worker, así la app y el backend
+  parecen un solo sitio, igual que en producción.
+- Web Share API (`navigator.share`): abre el menú de compartir del sistema
+  (WhatsApp, etc.); si no existe, queda el botón de copiar.
+- Fallar sin romper: lo que depende de la red se atrapa (`catch`) y se
+  comunica con un mensaje claro, en lugar de dejar la app trabada.
+
+## Etapa 19 — Unirse a un grupo con el enlace (5b)
+
+Hecho:
+
+- Pantalla `/unirse/<código>`: trae el grupo del servidor y pregunta "¿Cuál de
+  los integrantes eres?". Al elegir uno aparece su nombre para cambiarlo por el
+  tuyo. Al confirmar, el grupo se guarda en el celular y se abre.
+- Ruta nueva en el servidor: `PATCH /api/grupos/<código>/integrantes/<id>`
+  cambia el nombre de un integrante (también en las partidas ya guardadas).
+- La app recuerda qué integrante es cada persona en cada grupo (`myMemberId`,
+  solo en el celular). Con eso el encabezado del grupo vuelve a mostrar tus
+  puntos; antes dependía de un dato que nunca se guardaba.
+- Casos cubiertos: enlace inexistente, sin conexión (con "Reintentar"), grupo
+  que ya estaba en el celular, nombre vacío y fallo al guardar el nombre.
+- Probado con dos "celulares" (dos perfiles de Chrome): uno crea el grupo, el
+  otro se une, se renombra y el servidor refleja el cambio.
+
+Conceptos y herramientas nuevos:
+
+- `PATCH`: método HTTP para modificar una parte de algo que ya existe (`POST`
+  crea, `GET` lee, `PATCH` cambia un campo).
+- Parámetro en la ruta del servidor: `/integrantes/<id>` indica a cuál se
+  refiere, igual que `:code` en las rutas de la app.
+- Identidad por celular: sin cuentas, el celular recuerda "yo soy este
+  integrante". Se guarda dentro del grupo local y nunca se envía al servidor.
+- Accesibilidad (`radiogroup` y `aria-label`): la lista de integrantes se marca
+  como grupo de opciones para que los lectores de pantalla la entiendan.
+- Dependencias de un efecto: al reintentar, cambiar un contador (`attempt`) hace
+  que el efecto vuelva a ejecutarse.
+- Probar con dos clientes: abrir dos perfiles de navegador es la forma más simple
+  de simular dos celulares distintos.
+
+## Etapa 20 — Enviar partidas al servidor (5c)
+
+Hecho:
+
+- Al terminar una partida de grupo se guarda primero en el celular y después se
+  intenta enviar al servidor. Si no hay conexión, queda "pendiente" y se reenvía
+  sola al abrir el grupo o cuando vuelve Internet. Pueden juntarse varias.
+- Aviso discreto en el encabezado del grupo: un icono de nube tachada con la
+  cantidad de partidas sin enviar. Cada partida pendiente también dice "Sin
+  enviar". Todo desaparece cuando el servidor las confirma.
+- Si el grupo todavía no estaba en el servidor (se creó sin conexión), se
+  registra antes de enviar las partidas.
+- Probado con el servidor real: una partida sin confirmar se envía al abrir el
+  grupo y queda guardada en la base de datos.
+
+Conceptos nuevos:
+
+- Estado de sincronización: cada partida guarda `syncedAt` (cuándo la confirmó
+  el servidor). Si falta, está pendiente. Solo vive en el celular.
+- Idempotencia en la práctica: como el servidor ignora una partida repetida, se
+  puede reintentar sin miedo a duplicarla.
+- Reintentar con criterio: sin conexión o con el servidor caído se frena y se
+  prueba más tarde; si el servidor rechaza una partida concreta, se sigue con las
+  demás.
+- Evitar envíos simultáneos: si ya hay un envío en curso y llega una partida
+  nueva, se pide una vuelta más en lugar de lanzar dos envíos a la vez.
+- Evento `online` del navegador: avisa cuando vuelve la conexión.
+
+Pendiente de definir (ya en requisitos): cancelar y restaurar partidas, y
+cambiar de administrador, necesitan cuentas.
+
+Dato para más adelante: la PWA se puede publicar en Play Store (con PWABuilder,
+unos 25 USD únicos) y App Store (con Capacitor, 99 USD por año); casi todo el
+código se reutiliza. En iPhone, solo la app instalada en la pantalla de inicio
+conserva sus datos de forma fiable y recibe notificaciones.
+
+## Etapa 21 — Ver lo que hacen los demás (5d)
+
+Hecho:
+
+- Al abrir un grupo (y cuando vuelve la conexión) la app primero envía lo
+  pendiente y después trae del servidor las partidas de los demás, los nombres
+  cambiados, las fotos y el nombre del grupo. Dos celulares ven el mismo
+  historial.
+- Las partidas que ya estaban se actualizan si alguien cambió un nombre.
+- Lo propio que todavía no se envió nunca se pisa; "quién soy yo" y el código de
+  invitación se conservan.
+- Las fotos de los integrantes ahora también viajan al servidor: el mismo
+  `PATCH` de integrantes acepta nombre, foto o ambos (`null` quita la foto).
+- Probado con dos celulares reales (dos perfiles de Chrome): cada uno jugó una
+  partida, ambos terminaron con las dos y uno vio el nombre nuevo del otro.
+
+Conceptos nuevos:
+
+- Sincronización en dos sentidos: subir (push) lo propio y bajar (pull) lo
+  ajeno. Siempre en ese orden, para no perder partidas propias.
+- "El servidor manda": cuando hay conflicto sobre algo ya confirmado, vale la
+  versión del servidor. Es la regla más simple y evita que dos celulares se
+  pisen entre sí.
+- Fusionar (`merge`): en lugar de reemplazar todo, se actualiza lo que cambió y
+  se conserva lo que solo existe en el celular (como el código de invitación).
+- Pedidos en paralelo (`Promise.all`): el grupo y sus partidas se piden a la vez.

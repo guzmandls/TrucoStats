@@ -37,7 +37,9 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - La foto de perfil se podrá elegir, cambiar o quitar desde la ficha del integrante dentro del grupo.
 - Un integrante sin cuenta vinculada es igualmente válido: acumula partidas y estadísticas dentro de su grupo.
 - Un integrante sin cuenta no tiene estadísticas individuales globales, porque no tiene una identidad por fuera del grupo.
-- Al ingresar a un grupo, un usuario elegirá a cuál de los integrantes existentes corresponde.
+- Al ingresar a un grupo con el enlace de invitación, se pregunta "¿Cuál de los integrantes eres?" y el usuario elige a cuál de los integrantes existentes corresponde.
+- Al elegir, el usuario puede cambiar el nombre del integrante por el suyo; el cambio lo ven todos los integrantes del grupo y también se actualiza en las partidas ya guardadas.
+- Mientras no existan las cuentas, cualquier persona con el enlace del grupo puede cambiar el nombre de un integrante; después, ese permiso quedará limitado al administrador y al propio integrante.
 - El vínculo entre cuenta e integrante es auto-declarado y no verificado; el administrador podrá corregirlo.
 - Desvincular una cuenta no modifica las partidas ya registradas; solo afecta a los vínculos futuros.
 
@@ -51,7 +53,8 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Los integrantes podrán consultar las estadísticas correspondientes a su grupo.
 - El administrador podrá administrar el grupo: editar a los integrantes (agregar, renombrar y dar de baja) y vincular o desvincular cuentas.
 - Dar de baja a un integrante con partidas jugadas lo ocultará de la lista sin borrar sus partidas ni sus estadísticas.
-- El administrador tendrá acceso a las funciones de administración y al historial de partidas anuladas.
+- El administrador tendrá acceso a las funciones de administración y podrá cancelar y restaurar partidas del grupo.
+- La administración podrá cambiar de manos (por ejemplo, si el administrador actual abusa de su poder). El procedimiento exacto está por definir.
 - Mientras no exista el sistema de cuentas, el dispositivo tendrá una lista local de pertenencia: los grupos que aparecen en la pantalla inicial.
 - Un usuario podrá salir de un grupo; al hacerlo, el grupo deja de aparecer en su pantalla inicial (se quita de su lista de pertenencia).
 - Salir de un grupo no descuenta las partidas ya jugadas: las partidas jugadas por el usuario siguen contando en su perfil personal aunque el grupo se elimine.
@@ -190,11 +193,13 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 - El creador podrá cancelar una partida mientras esté en curso.
 - El creador podrá anular una partida finalizada durante los primeros 15 minutos.
 - Después de ese plazo, únicamente el administrador del grupo podrá anularla.
-- Las partidas anuladas no contarán para las estadísticas.
-- Las partidas anuladas no aparecerán en el historial general de partidas jugadas.
-- El administrador tendrá acceso a un historial separado de partidas anuladas de su grupo.
+- Las partidas anuladas no contarán para las estadísticas ni para los puntos.
+- Las partidas anuladas seguirán apareciendo en el historial del grupo, marcadas como "Cancelada", para que el administrador no pueda ocultar partidas. El texto es neutro: no insinúa trampa, porque una partida se cancela también por errores al contar o al armar los equipos.
+- El administrador podrá restaurar una partida cancelada si se equivocó; la partida vuelve a contar y queda registrado.
 - Se conservarán los datos originales de las partidas anuladas.
-- Se registrará quién anuló cada partida, cuándo y el motivo.
+- Se registrará quién canceló y quién restauró cada partida, cuándo y el motivo.
+- Una partida que aún no terminó puede cancelarse o reiniciarse libremente, sin dejar registro.
+- Motivo de este diseño: cualquier integrante puede registrar partidas (incluso a propósito para ganarlas), así que el administrador es quien valida; y como el administrador también podría abusar, nada se borra, solo se marca.
 - Las partidas finalizadas no podrán eliminarse físicamente mediante las funciones normales de la aplicación.
 
 ### 4.7. Duración de la partida
@@ -226,6 +231,12 @@ Cada grupo dispondrá de un historial de partidas finalizadas válidas. El histo
 
 Las partidas rápidas no generan historial: se juegan de forma rápida y solo cuentan para las estadísticas personales del usuario.
 
+### 5.1. Navegar y buscar
+
+- El historial se recorre deslizando hacia abajo. Carga las partidas por tandas: al llegar al final de las cargadas, trae las siguientes automáticamente (scroll infinito), sin botones de paginación.
+- El encabezado del historial tendrá una lupa para buscar partidas por fecha, participantes, resultado u otros datos de la partida.
+- La búsqueda cubre todo el historial del grupo, no solo las partidas ya cargadas.
+
 Para cada partida se guardará:
 
 - Fecha de la partida.
@@ -242,9 +253,7 @@ Cada partida de grupo se identifica por los integrantes de cada equipo (por ejem
 
 El historial y las estadísticas de grupo dependen de que existan grupos e integrantes: sin ellos no hay a quién atribuir cada partida de grupo. Por eso los grupos y los integrantes deben implementarse antes que el historial y las estadísticas de grupo.
 
-Las partidas anuladas estarán excluidas del historial general.
-
-El administrador dispondrá de un historial independiente de partidas anuladas.
+Las partidas anuladas aparecerán en el historial marcadas como "Cancelada" y estarán excluidas de las estadísticas (ver 4.6).
 
 ## 6. Estadísticas
 
@@ -429,7 +438,7 @@ Entra:
 Queda para después:
 
 - Dibujo asistido con gestos (los botones alcanzan en el MVP).
-- Anulación de partidas e historial de anuladas.
+- Cancelación y restauración de partidas por el administrador (necesita cuentas).
 - Perfil personal visible para otros integrantes.
 - Copias de seguridad y recuperación de cuentas.
 

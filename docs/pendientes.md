@@ -23,6 +23,36 @@ No son requisitos nuevos: son notas para no olvidarlas.
   hay cuentas ni perfil. Cuando existan, debe aparecer ahí el nombre del usuario
   que crea el grupo.
 
+## Sincronización
+
+- Si un grupo se registró en el servidor pero la app no llegó a guardar el código
+  de invitación (por ejemplo, se cerró justo en ese momento), al invitar el
+  servidor responde que el grupo ya existe (409) y no hay forma de recuperar el
+  código. Cuando existan las cuentas, el administrador podrá pedirlo de nuevo.
+- El primer integrante se guarda en el servidor con el nombre "Administrador".
+  Debe usar el nombre de quien crea el grupo cuando existan las cuentas.
+
+- Un integrante que entra por el enlace no es el administrador, pero `leaveGroup`
+  sigue suponiendo que este celular es el administrador. Al salir, transfiere la
+  administración en la copia local aunque no corresponda. Revisar con las cuentas.
+- Los otros celulares reciben nombres, fotos y partidas al abrir el grupo con
+  conexión (5d). Si un cambio de foto se hace sin conexión, queda solo en ese
+  celular y se pierde en la próxima sincronización (el servidor manda). Lo mismo
+  ocurriría con un cambio de nombre fallido, pero ese no se puede hacer fuera
+  del flujo de unirse.
+- La app todavía no puede agregar ni dar de baja integrantes después de crear el
+  grupo; cuando exista, hay que enviarlo al servidor y a los demás celulares.
+- Las estadísticas y los participantes leen lo que hay en el celular: la
+  sincronización ocurre al abrir la pantalla del grupo.
+- Una partida que el servidor rechaza (por ejemplo, porque incluye a un integrante
+  que el servidor no conoce) queda "sin enviar" para siempre y el aviso del
+  encabezado no desaparece. Hoy no debería pasar, pero conviene decidir qué hacer
+  con una partida rechazada de forma definitiva.
+- Las partidas de grupo jugadas antes de existir la sincronización se envían la
+  primera vez que se abre el grupo con conexión.
+- El nombre se puede cambiar sin controles: cualquiera con el enlace puede
+  renombrar a cualquier integrante (ver requisitos §3.2).
+
 ## Modelo de datos
 
 - Al salir del grupo siendo el único integrante, se borra el grupo pero **no** sus

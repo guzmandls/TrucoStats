@@ -1,8 +1,11 @@
 import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
+import { updateMember } from './members'
 import { createMatch, listMatches } from './matches'
 
 const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
+const MEMBER_OF_GROUP =
+  /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})$/
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
 
 export default {
@@ -37,6 +40,19 @@ export default {
         return listMatches(matchesOfGroup[1], env)
       }
       return errorResponse('Método no permitido', 405)
+    }
+
+    const memberOfGroup = MEMBER_OF_GROUP.exec(pathname)
+    if (memberOfGroup) {
+      if (request.method !== 'PATCH') {
+        return errorResponse('Método no permitido', 405)
+      }
+      return updateMember(
+        memberOfGroup[1],
+        decodeURIComponent(memberOfGroup[2]),
+        request,
+        env,
+      )
     }
 
     return errorResponse('No encontrado', 404)

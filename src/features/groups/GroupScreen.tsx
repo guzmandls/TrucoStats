@@ -4,11 +4,15 @@ import {
   ExitIcon,
   BackIcon,
   ChartIcon,
+  CloudOffIcon,
   PeopleIcon,
+  ShareIcon,
 } from '../../components/Icons'
 import {
   ButtonLink,
+  Button,
   ConfirmDialog,
+  Dialog,
   EmptyNote,
   HeaderIconButton,
   HeaderMenu,
@@ -27,7 +31,12 @@ import {
   type PersistedGame,
 } from '../counter/gameStorage'
 import { matchMeta, participantNames } from '../matches/format'
-import { leaveGroup } from './groupsStorage'
+import { ApiError } from '../../lib/api'
+import { registerGroup } from './groupsApi'
+import { InviteDialog } from './InviteDialog'
+import { syncGroup } from './groupsSync'
+import { isPending } from './matchesSync'
+import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints } from '../matches/points'
 import { removeMembership } from './membership'
 import { useGroup } from './useGroup'
@@ -36,14 +45,14 @@ import styles from './GroupScreen.module.css'
 export function GroupScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { group, matches } = useGroup(id)
-  const userId =
-    typeof localStorage !== 'undefined'
-      ? localStorage.getItem('trucostats:profileId')
-      : null
+  const { group, matches, setGroup, reload } = useGroup(id)
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
+  const [inviting, setInviting] = useState(false)
+  const [inviteError, setInviteError] = useState<string | null>(null)
   const [pointsDelta, setPointsDelta] = useState<string | null>(null)
+  // Qué integrante es la persona de este celular (null si no se sabe).
+  const userId = group?.myMemberId ?? null
   const myPoints = useMemo(() => {
     if (!group || !matches || !userId) {
       return null
@@ -69,6 +78,24 @@ export function GroupScreen() {
       active = false
     }
   }, [group])
+
+  // Al abrir el grupo y cuando vuelve la conexión: envía las partidas
+  // pendientes y trae lo que cambiaron los demás.
+  useEffect(() => {
+    if (!id) {
+      return
+    }
+    const sync = () => {
+      void syncGroup(id).then((changed) => {
+        if (changed) {
+          reload()
+        }
+      })
+    }
+    sync()
+    window.addEventListener('online', sync)
+    return () => window.removeEventListener('online', sync)
+  }, [id, reload])
 
   useEffect(() => {
     try {
@@ -98,9 +125,32 @@ export function GroupScreen() {
     )
   }
 
+  const pendingCount = matches.filter(isPending).length
   const inProgress = game && hasMoves(game) ? game : null
   const score = inProgress ? gameScore(inProgress) : null
   const willDelete = group.members.length === 1
+
+  // Si el grupo todavía no está en el servidor, se registra antes de invitar.
+  const handleInvite = async () => {
+    if (group.inviteCode) {
+      setInviting(true)
+      return
+    }
+    try {
+      const inviteCode = await registerGroup(group)
+      const updated = await setGroupInviteCode(group.id, inviteCode)
+      if (updated) {
+        setGroup(updated)
+      }
+      setInviting(true)
+    } catch (error) {
+      setInviteError(
+        error instanceof ApiError
+          ? error.message
+          : 'Necesitas conexión a Internet para invitar a otras personas.',
+      )
+    }
+  }
 
   const handleLeave = async () => {
     await leaveGroup(group)
@@ -113,8 +163,23 @@ export function GroupScreen() {
       <PageHeader
         title={group.name}
         center={
-          myPoints === null ? undefined : (
-            <span className={styles.headerPoints}>{myPoints} Pts</span>
+          myPoints === null && pendingCount === 0 ? undefined : (
+            <span className={styles.headerInfo}>
+              {pendingCount > 0 && (
+                <span
+                  className={styles.pendingBadge}
+                  role="status"
+                  aria-label={`${pendingCount} ${pendingCount === 1 ? 'partida sin enviar' : 'partidas sin enviar'}`}
+                  title="Se enviarán al servidor cuando haya conexión"
+                >
+                  <CloudOffIcon size={18} />
+                  {pendingCount}
+                </span>
+              )}
+              {myPoints !== null && (
+                <span className={styles.headerPoints}>{myPoints} Pts</span>
+              )}
+            </span>
           )
         }
         leading={
@@ -135,6 +200,11 @@ export function GroupScreen() {
                 label: 'Participantes',
                 to: `/grupo/${group.id}/participantes`,
                 icon: <PeopleIcon />,
+              },
+              {
+                label: 'Invitar',
+                onClick: handleInvite,
+                icon: <ShareIcon />,
               },
               {
                 label: 'Salir del grupo',
@@ -191,6 +261,7 @@ export function GroupScreen() {
                       )}
                       <span className={styles.matchMeta}>
                         {matchMeta(match)}
+                        {isPending(match) && ' · Sin enviar'}
                       </span>
                     </div>
                   </div>
@@ -236,6 +307,17 @@ export function GroupScreen() {
           </ButtonLink>
         )}
       </ScreenFooter>
+      {inviting && group.inviteCode && (
+        <InviteDialog
+          group={{ ...group, inviteCode: group.inviteCode }}
+          onClose={() => setInviting(false)}
+        />
+      )}
+      {inviteError && (
+        <Dialog title={inviteError} onClose={() => setInviteError(null)}>
+          <Button onClick={() => setInviteError(null)}>Entendido</Button>
+        </Dialog>
+      )}
       {confirmingLeave && (
         <ConfirmDialog
           title={
