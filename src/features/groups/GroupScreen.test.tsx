@@ -270,22 +270,66 @@ describe('GroupScreen', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('muestra el historial de partidas del grupo', async () => {
+  it('muestra cada equipo en su línea con su puntaje', async () => {
     await saveMatch(buildMatch({ id: 'm1' }))
     renderGroup()
 
+    const row = await screen.findByTestId('partida')
+    const lines = within(row)
+      .getAllByText(/Juan - Pedro|Luis - Ana/)
+      .map((element) => element.parentElement?.textContent ?? '')
+    expect(lines).toEqual(['Juan - Pedro30', 'Luis - Ana21'])
+    expect(within(row).getByText(/2v2 · 30 puntos/)).toBeInTheDocument()
+  })
+
+  it('resalta al equipo ganador', async () => {
+    await saveMatch(buildMatch({ id: 'm1' }))
+    renderGroup()
+
+    const row = await screen.findByTestId('partida')
+    const winner = within(row).getByText('Juan - Pedro').parentElement
+    const loser = within(row).getByText('Luis - Ana').parentElement
+    expect(winner?.className).not.toBe(loser?.className)
+  })
+
+  it('agrupa las partidas por día con su título', async () => {
+    const day = (offset: number) => {
+      const date = new Date()
+      date.setDate(date.getDate() - offset)
+      date.setHours(12, 0, 0, 0)
+      return date.toISOString()
+    }
+    await saveMatch(buildMatch({ id: 'm1', playedAt: day(0) }))
+    await saveMatch(buildMatch({ id: 'm2', playedAt: day(0) }))
+    await saveMatch(buildMatch({ id: 'm3', playedAt: day(1) }))
+    renderGroup()
+
     const history = await screen.findByTestId('historial')
-    expect(
-      within(history).getByText((_, element) => {
-        return (
-          element?.textContent?.replace(/\s+/g, ' ').trim() ===
-          'Juan - Pedro vs Luis - Ana'
-        )
+    const headings = within(history)
+      .getAllByRole('heading', { level: 2 })
+      .map((heading) => heading.textContent)
+    expect(headings).toEqual(['Hoy', 'Ayer'])
+    expect(within(history).getAllByTestId('partida')).toHaveLength(3)
+  })
+
+  it('muestra los puntos que sumaste o restaste si jugaste, y nada si no', async () => {
+    await saveGroup({ ...group, myMemberId: 'm1' })
+    await saveMatch(buildMatch({ id: 'm1' }))
+    await saveMatch(
+      buildMatch({
+        id: 'm2',
+        playedAt: '2026-03-06T20:00:00.000Z',
+        teams: {
+          nos: [{ id: 'm3', name: 'Luis' }],
+          ellos: [{ id: 'm4', name: 'Ana' }],
+        },
       }),
-    ).toBeInTheDocument()
-    expect(within(history).getByText('30')).toBeInTheDocument()
-    expect(within(history).getByText('21')).toBeInTheDocument()
-    expect(within(history).getByText(/2v2 · 30 puntos/)).toBeInTheDocument()
+    )
+    renderGroup()
+
+    const rows = await screen.findAllByTestId('partida')
+    expect(within(rows[1]).getByText(/^[+][0-9]+ Pts$/)).toBeInTheDocument()
+    expect(within(rows[0]).queryByText(/Pts$/)).not.toBeInTheDocument()
   })
 
   it('ordena las partidas de más recientes a más antiguas', async () => {
@@ -309,8 +353,8 @@ describe('GroupScreen', () => {
     const titles = within(history)
       .getAllByTestId('partida')
       .map((row) => row.textContent ?? '')
-    expect(titles[0]).toContain('30–21')
-    expect(titles[1]).toContain('30–15')
+    expect(titles[0]).toContain('21')
+    expect(titles[1]).toContain('15')
   })
 
   it('no muestra partidas de otros grupos ni partidas rápidas', async () => {

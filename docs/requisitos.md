@@ -72,7 +72,9 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - La pantalla inicial mostrará los grupos de la lista de pertenencia del dispositivo; al salir de un grupo, este deja de mostrarse.
 - La pantalla inicial permitirá iniciar una partida rápida, sin grupo ni integrantes.
 - La pantalla de un grupo ofrecerá la opción de salir del grupo.
-- Los grupos se presentarán mediante tarjetas (cards).
+- Cada grupo se presenta como una fila (no como tarjeta), con el nombre primero y más grande. Debajo, en gris, "N integrantes · M partidas jugadas"; luego los avatares de los integrantes (hasta 4 y "+N") ordenados por posición en el ranking de puntos; y la última partida ("Última: ganaste 30 – 21 · hoy", o quién ganó si la persona no jugó; "Sin partidas todavía" si no hay).
+- A la derecha de la fila va la posición de la persona en el grupo: con un trofeo dorado, plateado o de bronce si es 1º, 2º o 3º, y solo el número ("5º") del cuarto lugar en adelante. Debajo, sus puntos ("105 Pts") en tamaño menor al nombre. Sin partidas no hay posición ni puntos.
+- Si el grupo tiene partidas sin enviar, la nube tachada con la cantidad aparece junto al nombre.
 - Al seleccionar un grupo, se accederá a su historial de partidas. Las estadísticas y los participantes se consultan con botones de icono del sector superior, que llevan a sus propias pantallas.
 - La pantalla de estadísticas del grupo permitirá alternar entre estadísticas grupales, individuales y enfrentamientos. El sector superior se separa de las pestañas por una línea horizontal, y la pestaña activa se distingue solo por la inversión de colores.
 - Los enfrentamientos se muestran como una grilla simétrica: cada fila y cada columna corresponde a un integrante y cada celda, al resultado entre ambos.
@@ -241,7 +243,14 @@ Cada grupo dispondrá de un historial de partidas finalizadas válidas. El histo
 
 Las partidas rápidas no generan historial: se juegan de forma rápida y solo cuentan para las estadísticas personales del usuario.
 
-### 5.1. Navegar y buscar
+### 5.1. Presentación
+
+- El historial se agrupa por día, con un título: "Hoy", "Ayer" y después la fecha corta ("18 oct", y con el año si es de otro año).
+- Cada partida muestra a cada equipo en su línea, con sus avatares, los nombres y su puntaje a la derecha; el equipo ganador va resaltado en negrita y el perdedor atenuado.
+- La barra del costado indica cómo le fue a la persona: llena si ganó, hueca si perdió, gris si no jugó.
+- Si la persona jugó, se muestra cuántos puntos sumó o restó en esa partida ("+12 Pts", "−8 Pts"). No se muestra si no jugó, si la partida fue cancelada o si el cambio fue de 0.
+
+### 5.2. Navegar y buscar
 
 - El historial se recorre deslizando hacia abajo. Carga las partidas por tandas: al llegar al final de las cargadas, trae las siguientes automáticamente (scroll infinito), sin botones de paginación.
 - El menú del grupo (las tres rayas) tendrá la opción "Búsqueda", con una lupa, para buscar partidas por fecha (número o mes), participantes, resultado, modalidad u otros datos. Cada palabra escrita debe aparecer en la partida.

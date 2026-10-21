@@ -86,7 +86,7 @@ interface Tally {
   losses: number
 }
 
-function sideOf(match: Match, memberId: string): Side | null {
+export function sideOf(match: Match, memberId: string): Side | null {
   if (match.teams.nos.some((participant) => participant.id === memberId)) {
     return 'nos'
   }

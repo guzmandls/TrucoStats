@@ -829,3 +829,32 @@ Conceptos nuevos:
   servidor lo vuelve a comprobar (la app nunca es la única barrera).
 - Menú desplegable por fila (`OverflowMenu`): reutilizable, se cierra al elegir,
   tocar afuera o con Escape.
+
+## Etapa 27 — Nuevo diseño del home y del historial
+
+Hecho:
+
+- Home: los grupos pasan de tarjetas a filas. El nombre va primero y grande;
+  debajo las cantidades, los avatares ordenados por ranking y la última
+  partida; a la derecha, tu posición (trofeo dorado, plateado o de bronce para
+  el 1º, 2º y 3º; solo el número del 4º en adelante) y tus puntos en tamaño
+  menor. La nube de "sin enviar" aparece junto al nombre.
+- Historial: partidas agrupadas por día (Hoy, Ayer, fecha corta); cada equipo en
+  su línea con avatares y puntaje, el ganador en negrita; una barra al costado
+  (llena si ganaste, hueca si perdiste, gris si no jugaste) y los puntos que
+  sumaste o restaste (+12 Pts, −8 Pts).
+- El diseño se eligió mirando una maqueta HTML con los colores y componentes
+  reales antes de escribir código.
+
+Conceptos nuevos:
+
+- Maqueta antes de implementar: una página HTML estática con los mismos tokens
+  del diseño permite comparar opciones sin tocar la app.
+- Tokens de color (`--trophy-gold`, `--trophy-silver`, `--trophy-bronze`): los
+  colores nuevos se declaran una vez en `index.css` y se reutilizan.
+- Funciones de resumen puras (`groupOverview`, `pointChanges`): el cálculo del
+  ranking, la última partida y los cambios de puntos está separado de la
+  pantalla, así se prueba sin dibujar nada.
+- Un solo recorrido para los puntos por partida: `pointChanges` reutiliza la
+  misma regla que `computePoints` y guarda cuánto cambió en cada paso, en lugar
+  de recalcular todo el historial para cada partida.

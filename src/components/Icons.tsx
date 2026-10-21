@@ -194,6 +194,39 @@ export function ShareIcon({ size = 22 }: IconProps) {
   )
 }
 
+// Trofeo del ranking: dorado el 1º, plateado el 2º y bronce el 3º.
+export function TrophyIcon({
+  place,
+  size = 26,
+}: {
+  place: 1 | 2 | 3
+  size?: number
+}) {
+  const fill = {
+    1: 'var(--trophy-gold)',
+    2: 'var(--trophy-silver)',
+    3: 'var(--trophy-bronze)',
+  }[place]
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M7 3h10v6a5 5 0 0 1-10 0z" style={{ fill }} />
+      <path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" />
+      <path d="M12 14v3M8.5 21h7M10 17h4v4h-4z" style={{ fill }} />
+    </svg>
+  )
+}
+
 export function DotsIcon({ size = 22 }: IconProps) {
   return (
     <svg

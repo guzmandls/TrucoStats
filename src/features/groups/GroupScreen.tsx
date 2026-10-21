@@ -19,12 +19,10 @@ import {
   HeaderIconButton,
   HeaderMenu,
   Notice,
-  OverflowMenu,
   PageHeader,
   Screen,
   ScreenContent,
   ScreenFooter,
-  Section,
   TextInput,
 } from '../../components/ui'
 import {
@@ -35,7 +33,9 @@ import {
   loadGame,
   type PersistedGame,
 } from '../counter/gameStorage'
-import { matchMeta, participantNames } from '../matches/format'
+import { dayKey, dayLabel } from '../matches/dayLabel'
+import { HistoryRow } from './HistoryRow'
+import type { MatchAction } from './matchActions'
 import { filterMatches } from '../matches/search'
 import { ApiError } from '../../lib/api'
 import {
@@ -43,14 +43,13 @@ import {
   registerGroup,
   restoreRemoteMatch,
 } from './groupsApi'
-import { availableActions, type MatchAction } from './matchActions'
 import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { InviteDialog } from './InviteDialog'
 import { syncGroup } from './groupsSync'
 import { isPending, syncPendingMatches } from './matchesSync'
 import { leaveGroup, setGroupInviteCode } from './groupsStorage'
-import { computePoints } from '../matches/points'
+import { computePoints, pointChanges } from '../matches/points'
 import { removeMembership } from './membership'
 import { useGroup } from './useGroup'
 import styles from './GroupScreen.module.css'
@@ -89,6 +88,17 @@ export function GroupScreen() {
   const hasMore = shown.length < found.length
   // Qué integrante es la persona de este celular (null si no se sabe).
   const userId = group?.myMemberId ?? null
+  // Cuántos puntos sumó o restó la persona en cada partida.
+  const changes = useMemo(
+    () =>
+      group && matches
+        ? pointChanges(
+            group.members.map((member) => member.id),
+            matches,
+          )
+        : new Map<string, Map<string, number>>(),
+    [group, matches],
+  )
   const myPoints = useMemo(() => {
     if (!group || !matches || !userId) {
       return null
@@ -181,6 +191,20 @@ export function GroupScreen() {
   }
 
   const pendingCount = matches.filter(isPending).length
+  // El historial se muestra agrupado por día.
+  const days = shown.reduce<{ key: string; label: string; matches: Match[] }[]>(
+    (groups, match) => {
+      const key = dayKey(match.playedAt)
+      const last = groups[groups.length - 1]
+      if (last?.key === key) {
+        last.matches.push(match)
+      } else {
+        groups.push({ key, label: dayLabel(match.playedAt), matches: [match] })
+      }
+      return groups
+    },
+    [],
+  )
   const inProgress = game && hasMoves(game) ? game : null
   const score = inProgress ? gameScore(inProgress) : null
   const willDelete = group.members.length === 1
@@ -357,73 +381,24 @@ export function GroupScreen() {
           <EmptyNote>Ninguna partida coincide con la búsqueda</EmptyNote>
         ) : (
           <div data-testid="historial">
-            <Section>
-              {shown.map((match) => {
-                const nos = participantNames(match.teams.nos)
-                const ellos = participantNames(match.teams.ellos)
-                const actions = availableActions(match, group)
-                return (
-                  <div
+            {days.map((day) => (
+              <section key={day.key}>
+                <h2 className={styles.day}>{day.label}</h2>
+                {day.matches.map((match) => (
+                  <HistoryRow
                     key={match.id}
-                    data-testid="partida"
-                    className={`${styles.matchRow} ${match.canceled ? styles.matchCanceled : ''}`}
-                  >
-                    <span className={styles.matchFlag} aria-hidden="true" />
-                    <div className={styles.matchBody}>
-                      <div className={styles.matchScore}>
-                        <span
-                          className={
-                            match.winner === 'nos'
-                              ? styles.scoreWin
-                              : styles.scoreLoss
-                          }
-                        >
-                          {match.scores.nos}
-                        </span>
-                        <span className={styles.scoreDash}>–</span>
-                        <span
-                          className={
-                            match.winner === 'ellos'
-                              ? styles.scoreWin
-                              : styles.scoreLoss
-                          }
-                        >
-                          {match.scores.ellos}
-                        </span>
-                      </div>
-                      {nos && ellos && (
-                        <span className={styles.matchTeams}>
-                          {nos} <span className={styles.matchVs}>vs</span>{' '}
-                          {ellos}
-                        </span>
-                      )}
-                      <span className={styles.matchMeta}>
-                        {matchMeta(match)}
-                        {isPending(match) && ' · Sin enviar'}
-                        {match.canceled && ' · Cancelada'}
-                      </span>
-                      {match.canceled?.reason && (
-                        <span className={styles.matchMeta}>
-                          Motivo: {match.canceled.reason}
-                        </span>
-                      )}
-                    </div>
-                    {actions.length > 0 && (
-                      <OverflowMenu
-                        label="Opciones de la partida"
-                        items={actions.map((action) => ({
-                          label:
-                            action === 'cancel'
-                              ? 'Cancelar partida'
-                              : 'Restaurar partida',
-                          onClick: () => setActing({ match, action }),
-                        }))}
-                      />
-                    )}
-                  </div>
-                )
-              })}
-            </Section>
+                    match={match}
+                    group={group}
+                    pointChange={
+                      changes.get(match.id)?.get(userId ?? '') ?? null
+                    }
+                    onAction={(target, action) =>
+                      setActing({ match: target, action })
+                    }
+                  />
+                ))}
+              </section>
+            ))}
             {hasMore && <div ref={sentinelRef} aria-hidden="true" />}
           </div>
         )}

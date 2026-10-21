@@ -47,56 +47,83 @@ function average(points: Map<string, number>, ids: string[]): number {
   return total / ids.length
 }
 
-export function computePoints(
-  memberIds: string[],
-  matches: Match[],
-): Map<string, number> {
+function startingPoints(memberIds: string[]): Map<string, number> {
   const points = new Map<string, number>()
   for (const id of memberIds) {
     points.set(id, 0)
   }
+  return points
+}
 
-  const ordered = matches
-    .slice()
-    .sort((a, b) => a.playedAt.localeCompare(b.playedAt))
+function inOrder(matches: Match[]): Match[] {
+  return matches.slice().sort((a, b) => a.playedAt.localeCompare(b.playedAt))
+}
 
-  for (const match of ordered) {
-    const teamIds = (side: Team) =>
-      match.teams[side]
-        .map((participant) => participant.id)
-        .filter((id) => points.has(id))
-    const nos = teamIds('nos')
-    const ellos = teamIds('ellos')
-    if (nos.length === 0 || ellos.length === 0) {
-      continue
-    }
-    const avgNos = average(points, nos)
-    const avgEllos = average(points, ellos)
-    const winnerAvg = match.winner === 'nos' ? avgNos : avgEllos
-    const loserAvg = match.winner === 'nos' ? avgEllos : avgNos
-    const factor = matchFactor(match)
-    const nivel = nivelFactor(winnerAvg, loserAvg)
+// Aplica una partida a los puntos de los integrantes y devuelve cuánto cambió
+// cada uno (los que no jugaron no aparecen).
+function applyMatch(
+  points: Map<string, number>,
+  match: Match,
+): Map<string, number> {
+  const changes = new Map<string, number>()
+  const teamIds = (side: Team) =>
+    match.teams[side]
+      .map((participant) => participant.id)
+      .filter((id) => points.has(id))
+  const nos = teamIds('nos')
+  const ellos = teamIds('ellos')
+  if (nos.length === 0 || ellos.length === 0) {
+    return changes
+  }
+  const avgNos = average(points, nos)
+  const avgEllos = average(points, ellos)
+  const winnerAvg = match.winner === 'nos' ? avgNos : avgEllos
+  const loserAvg = match.winner === 'nos' ? avgEllos : avgNos
+  const factor = matchFactor(match)
+  const nivel = nivelFactor(winnerAvg, loserAvg)
 
-    for (const side of ['nos', 'ellos'] as Team[]) {
-      const isWinner = match.winner === side
-      for (const id of teamIds(side)) {
-        const current = points.get(id) ?? 0
-        if (isWinner) {
-          const gain = Math.round(
-            match.target * factor * nivel * winBoost(current),
+  for (const side of ['nos', 'ellos'] as Team[]) {
+    const isWinner = match.winner === side
+    for (const id of teamIds(side)) {
+      const current = points.get(id) ?? 0
+      const next = isWinner
+        ? current +
+          Math.round(match.target * factor * nivel * winBoost(current))
+        : Math.max(
+            0,
+            current -
+              Math.round(match.target * factor * nivel * lossFactor(current)),
           )
-          points.set(id, current + gain)
-        } else {
-          const loss = Math.round(
-            match.target * factor * nivel * lossFactor(current),
-          )
-          points.set(id, Math.max(0, current - loss))
-        }
-      }
+      points.set(id, next)
+      changes.set(id, next - current)
     }
   }
+  return changes
+}
 
+export function computePoints(
+  memberIds: string[],
+  matches: Match[],
+): Map<string, number> {
+  const points = startingPoints(memberIds)
+  for (const match of inOrder(matches)) {
+    applyMatch(points, match)
+  }
   return points
+}
+
+// Cuántos puntos sumó o restó cada integrante en cada partida, recorriendo las
+// partidas en orden cronológico. La clave de afuera es el id de la partida.
+export function pointChanges(
+  memberIds: string[],
+  matches: Match[],
+): Map<string, Map<string, number>> {
+  const points = startingPoints(memberIds)
+  const byMatch = new Map<string, Map<string, number>>()
+  for (const match of inOrder(matches)) {
+    byMatch.set(match.id, applyMatch(points, match))
+  }
+  return byMatch
 }
 
 export function computePointsDelta(

@@ -4,7 +4,6 @@ import {
   EmptyNote,
   HeaderMenu,
   PageHeader,
-  PanelLink,
   Screen,
   ScreenContent,
   ScreenFooter,
@@ -26,25 +25,18 @@ import {
   type PersistedGame,
 } from '../counter/gameStorage'
 import { loadMatches } from '../matches/matchesStorage'
-import { activeMatches } from '../matches/status'
 import { loadGroups } from './groupsStorage'
 import { hasMembership, loadMembership, replaceMembership } from './membership'
+import { GroupRow } from './GroupRow'
+import { groupOverview } from '../matches/groupOverview'
+import type { Match } from '../matches/types'
+import { isPending } from './matchesSync'
 import type { Group } from './types'
-import styles from './HomeScreen.module.css'
-
-function membersLabel(group: Group): string {
-  const count = group.members.length
-  return `${count} ${count === 1 ? 'integrante' : 'integrantes'}`
-}
-
-function matchesLabel(count: number): string {
-  return `${count} ${count === 1 ? 'partida jugada' : 'partidas jugadas'}`
-}
 
 export function HomeScreen() {
   const [groups, setGroups] = useState<Group[]>([])
   const [game, setGame] = useState<PersistedGame | null>(null)
-  const [matchCounts, setMatchCounts] = useState<Record<string, number>>({})
+  const [matches, setMatches] = useState<Match[]>([])
   const session = useSession()
   const loggedIn = session?.user.username != null
 
@@ -85,13 +77,7 @@ export function HomeScreen() {
       if (!active) {
         return
       }
-      const counts: Record<string, number> = {}
-      for (const match of activeMatches(all)) {
-        if (match.groupId) {
-          counts[match.groupId] = (counts[match.groupId] ?? 0) + 1
-        }
-      }
-      setMatchCounts(counts)
+      setMatches(all)
     })
     return () => {
       active = false
@@ -138,21 +124,20 @@ export function HomeScreen() {
           />
         }
       />
-      <ScreenContent>
+      <ScreenContent flush>
         {groups.length === 0 ? (
           <EmptyNote>Aún no hay grupos</EmptyNote>
         ) : (
-          <div className={styles.groups}>
+          <div>
             {groups.map((group) => (
-              <PanelLink
+              <GroupRow
                 key={group.id}
-                to={`/grupo/${group.id}`}
-                header={group.name}
-                meta={
-                  <>
-                    <span>{membersLabel(group)}</span>
-                    <span>{matchesLabel(matchCounts[group.id] ?? 0)}</span>
-                  </>
+                group={group}
+                overview={groupOverview(group, matches)}
+                pending={
+                  matches.filter(
+                    (match) => match.groupId === group.id && isPending(match),
+                  ).length
                 }
               />
             ))}
