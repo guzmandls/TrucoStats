@@ -7,6 +7,7 @@ import { cancelMatch, restoreMatch } from './cancel'
 import { matchHistory } from './history'
 import { joinGroup } from './join'
 import { leaveGroup } from './leave'
+import { getLive, publishLive, stopLive } from './live'
 import { createMatch, listMatches } from './matches'
 import { currentUser, login, logout, register } from './users'
 
@@ -21,6 +22,7 @@ const MATCH_ACTION =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/(cancelar|restaurar)$/
 const MATCH_HISTORY =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/historial$/
+const LIVE_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo$/
 const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 
@@ -102,6 +104,20 @@ export default {
       return action === 'cancelar'
         ? cancelMatch(code, id, request, env)
         : restoreMatch(code, id, request, env)
+    }
+
+    const liveOfGroup = LIVE_OF_GROUP.exec(pathname)
+    if (liveOfGroup) {
+      if (request.method === 'GET') {
+        return getLive(liveOfGroup[1], request, env)
+      }
+      if (request.method === 'PUT') {
+        return publishLive(liveOfGroup[1], request, env)
+      }
+      if (request.method === 'DELETE') {
+        return stopLive(liveOfGroup[1], request, env)
+      }
+      return errorResponse('Método no permitido', 405)
     }
 
     const leaveOfGroup = LEAVE_GROUP.exec(pathname)
