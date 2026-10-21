@@ -2,6 +2,7 @@ import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { updateMember } from './members'
 import { createMatch, listMatches } from './matches'
+import { currentUser, login, logout, register } from './users'
 
 const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
 const MEMBER_OF_GROUP =
@@ -14,6 +15,28 @@ export default {
 
     if (pathname === '/api/salud') {
       return json({ estado: 'ok' })
+    }
+
+    if (pathname === '/api/registro') {
+      return request.method === 'POST'
+        ? register(request, env)
+        : errorResponse('Método no permitido', 405)
+    }
+
+    if (pathname === '/api/sesion') {
+      if (request.method === 'POST') {
+        return login(request, env)
+      }
+      if (request.method === 'DELETE') {
+        return logout(request, env)
+      }
+      return errorResponse('Método no permitido', 405)
+    }
+
+    if (pathname === '/api/yo') {
+      return request.method === 'GET'
+        ? currentUser(request, env)
+        : errorResponse('Método no permitido', 405)
     }
 
     if (pathname === '/api/grupos') {

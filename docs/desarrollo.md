@@ -707,3 +707,30 @@ Conceptos nuevos:
 - Buscar en el celular, no en el servidor: tras sincronizar, todas las partidas
   del grupo ya están en el celular, así la búsqueda funciona también sin
   conexión.
+
+## Etapa 23 — Cuentas en el servidor (6a)
+
+Hecho:
+
+- Rutas nuevas: `POST /api/registro` (crea la cuenta y abre sesión),
+  `POST /api/sesion` (iniciar sesión), `DELETE /api/sesion` (cerrar sesión) y
+  `GET /api/yo` (quién soy según la sesión).
+- Migración `0003_cuentas.sql`: tablas de usuarios y sesiones, y la columna
+  `user_id` en los integrantes (para el vínculo, que viene después).
+- Decisiones del usuario: cuenta con correo y contraseña; obligatoria solo para
+  grupos (la partida rápida sigue sin cuenta).
+
+Conceptos nuevos:
+
+- Hash de contraseña: nunca se guarda la contraseña, sino el resultado de
+  mezclarla con una sal aleatoria muchas veces (PBKDF2, 100.000 vueltas). Es
+  lento a propósito para que probar contraseñas robadas sea inviable.
+- Sal (`salt`): texto aleatorio distinto por usuario; evita que dos personas con
+  la misma contraseña tengan el mismo hash.
+- Sesión con token: al iniciar sesión el servidor entrega un código largo
+  aleatorio; la app lo manda en cada pedido (`Authorization: Bearer ...`). En
+  la base solo se guarda su hash, así leer la base no permite usar sesiones.
+- Mismo error para "no existe" y "contraseña mala" (401): así nadie puede
+  averiguar qué correos tienen cuenta.
+- Comparación en tiempo constante: no se corta en la primera diferencia, para
+  no filtrar información por el tiempo de respuesta.

@@ -26,7 +26,8 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Podrá estar vinculado a integrantes en uno o varios grupos.
 - Podrá consultar sus estadísticas individuales globales, sumando las partidas de los integrantes a los que está vinculado, en todos sus grupos.
 - El perfil personal será visible para los integrantes de los grupos en los que participa.
-- El sistema de registro y recuperación de cuentas está pendiente de definición.
+- El registro y el inicio de sesión son con correo y contraseña (el usuario también indica su nombre). La recuperación de contraseña queda para más adelante.
+- La cuenta es obligatoria solo para crear un grupo o unirse a uno con el enlace. El contador y la partida rápida funcionan sin cuenta.
 - Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
 ### 3.2. Integrantes
@@ -432,7 +433,7 @@ Entra:
 - Publicación en Cloudflare (ya implementado).
 - Backend mínimo (Cloudflare Workers + D1) para guardar y compartir grupos y partidas entre dispositivos.
 - Sincronización de las partidas guardadas sin conexión al recuperar la conectividad.
-- Cuentas simples (registro e inicio de sesión) y vínculo usuario ↔ integrante.
+- Cuentas con correo y contraseña (registro e inicio de sesión) y vínculo usuario ↔ integrante.
 - Invitaciones: cada grupo tiene un código o enlace secreto, compartible por WhatsApp, para que otras personas entren.
 - Mientras no existan las cuentas, cualquier persona puede crear un grupo.
 
