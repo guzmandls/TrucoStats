@@ -1,5 +1,6 @@
 import { createGroup, getGroupByInviteCode, type Env } from './groups'
 import { errorResponse, json } from './http'
+import { addMember, releaseMember, removeMember, setMemberAdmin } from './admin'
 import { updateMember } from './members'
 import { cancelMatch, restoreMatch } from './cancel'
 import { joinGroup } from './join'
@@ -9,6 +10,9 @@ import { currentUser, login, logout, register } from './users'
 const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
 const MEMBER_OF_GROUP =
   /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})$/
+const MEMBERS_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/integrantes$/
+const MEMBER_ACTION =
+  /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})\/(liberar|administrador)$/
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
 const MATCH_ACTION =
   /^\/api\/grupos\/([0-9a-f]{32})\/partidas\/([^/]{1,100})\/(cancelar|restaurar)$/
@@ -89,17 +93,37 @@ export default {
         : errorResponse('Método no permitido', 405)
     }
 
+    const membersOfGroup = MEMBERS_OF_GROUP.exec(pathname)
+    if (membersOfGroup) {
+      return request.method === 'POST'
+        ? addMember(membersOfGroup[1], request, env)
+        : errorResponse('Método no permitido', 405)
+    }
+
+    const memberAction = MEMBER_ACTION.exec(pathname)
+    if (memberAction) {
+      const [, code, memberId, action] = memberAction
+      const id = decodeURIComponent(memberId)
+      if (action === 'liberar' && request.method === 'POST') {
+        return releaseMember(code, id, request, env)
+      }
+      if (action === 'administrador' && request.method === 'PUT') {
+        return setMemberAdmin(code, id, request, env)
+      }
+      return errorResponse('Método no permitido', 405)
+    }
+
     const memberOfGroup = MEMBER_OF_GROUP.exec(pathname)
     if (memberOfGroup) {
-      if (request.method !== 'PATCH') {
-        return errorResponse('Método no permitido', 405)
+      const code = memberOfGroup[1]
+      const id = decodeURIComponent(memberOfGroup[2])
+      if (request.method === 'PATCH') {
+        return updateMember(code, id, request, env)
       }
-      return updateMember(
-        memberOfGroup[1],
-        decodeURIComponent(memberOfGroup[2]),
-        request,
-        env,
-      )
+      if (request.method === 'DELETE') {
+        return removeMember(code, id, request, env)
+      }
+      return errorResponse('Método no permitido', 405)
     }
 
     return errorResponse('No encontrado', 404)

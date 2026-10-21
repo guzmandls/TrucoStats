@@ -56,13 +56,14 @@ export async function pullGroup(groupId: string): Promise<boolean> {
   let changed = false
   if (
     remote.name !== local.name ||
-    remote.adminMemberId !== local.adminMemberId ||
+    JSON.stringify(remote.adminMemberIds) !==
+      JSON.stringify(local.adminMemberIds) ||
     !sameMembers(remote.members, local.members)
   ) {
     await saveGroup({
       ...local,
       name: remote.name,
-      adminMemberId: remote.adminMemberId,
+      adminMemberIds: remote.adminMemberIds,
       members: remote.members,
     })
     changed = true

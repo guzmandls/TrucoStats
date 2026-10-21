@@ -8,7 +8,8 @@ export interface Group {
   id: string
   name: string
   members: Member[]
-  adminMemberId: string
+  /** Integrantes administradores (puede haber varios; siempre hay al menos uno). */
+  adminMemberIds: string[]
   createdAt: string
   /** Código secreto para invitar; existe una vez que el grupo está en el servidor. */
   inviteCode?: string

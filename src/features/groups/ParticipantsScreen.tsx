@@ -1,20 +1,67 @@
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { BackIcon, ChevronRightIcon } from '../../components/Icons'
+import { BackIcon, ChevronRightIcon, ShieldIcon } from '../../components/Icons'
 import {
   Avatar,
+  ConfirmDialog,
+  Dialog,
   HeaderIconButton,
+  OverflowMenu,
   PageHeader,
+  Button,
   Screen,
   ScreenContent,
 } from '../../components/ui'
+import { ApiError } from '../../lib/api'
 import { avatarColors } from './avatar'
+import { isGroupAdmin } from './groupAdmin'
+import {
+  fetchGroupByCode,
+  releaseRemoteMember,
+  removeRemoteMember,
+  setRemoteMemberAdmin,
+} from './groupsApi'
+import { pullGroup } from './groupsSync'
+import type { Member } from './types'
 import { useGroup } from './useGroup'
 import styles from './ParticipantsScreen.module.css'
+
+type Pending =
+  { kind: 'remove'; member: Member } | { kind: 'release'; member: Member }
 
 export function ParticipantsScreen() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { group } = useGroup(id)
+  const { group, reload } = useGroup(id)
+  // Qué integrantes ya eligió una persona (solo se consulta si soy administrador).
+  const [claimed, setClaimed] = useState<string[]>([])
+  const [pending, setPending] = useState<Pending | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+
+  const admin = group ? isGroupAdmin(group) : false
+  const inviteCode = group?.inviteCode
+
+  // Cada vez que cambia este número se vuelve a consultar al servidor.
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  useEffect(() => {
+    if (!admin || !inviteCode) {
+      return
+    }
+    let active = true
+    fetchGroupByCode(inviteCode)
+      .then((remote) => {
+        if (active) {
+          setClaimed(remote.claimedMemberIds)
+        }
+      })
+      .catch(() => {
+        // Sin conexión: se muestran solo las acciones que no dependen de eso.
+      })
+    return () => {
+      active = false
+    }
+  }, [admin, inviteCode, refreshKey])
 
   if (!group) {
     return (
@@ -37,6 +84,67 @@ export function ParticipantsScreen() {
 
   const colors = avatarColors(group.members.map((member) => member.id))
 
+  // Ejecuta una acción de administración y vuelve a traer el grupo.
+  const run = async (action: () => Promise<void>) => {
+    setPending(null)
+    try {
+      await action()
+      await pullGroup(group.id)
+      reload()
+      setRefreshKey((value) => value + 1)
+    } catch (error) {
+      setMessage(
+        error instanceof ApiError
+          ? error.message
+          : 'Necesitas conexión a Internet para hacerlo.',
+      )
+    }
+  }
+
+  const menuItems = (member: Member) => {
+    if (!inviteCode) {
+      return []
+    }
+    const isMe = member.id === group.myMemberId
+    const isClaimed = claimed.includes(member.id)
+    const isAdminMember = group.adminMemberIds.includes(member.id)
+    return [
+      ...(isAdminMember
+        ? [
+            {
+              label: 'Quitar como administrador',
+              onClick: () =>
+                void run(() =>
+                  setRemoteMemberAdmin(inviteCode, member.id, false),
+                ),
+            },
+          ]
+        : isClaimed
+          ? [
+              {
+                label: 'Hacer administrador',
+                onClick: () =>
+                  void run(() =>
+                    setRemoteMemberAdmin(inviteCode, member.id, true),
+                  ),
+              },
+            ]
+          : []),
+      ...(isClaimed && !isMe
+        ? [
+            {
+              label: 'Liberar integrante',
+              onClick: () => setPending({ kind: 'release', member }),
+            },
+          ]
+        : []),
+      {
+        label: 'Dar de baja',
+        onClick: () => setPending({ kind: 'remove', member }),
+      },
+    ]
+  }
+
   return (
     <Screen>
       <PageHeader
@@ -52,26 +160,75 @@ export function ParticipantsScreen() {
       />
       <ScreenContent>
         <div className={styles.list}>
-          {group.members.map((member) => (
-            <Link
-              key={member.id}
-              to={`/grupo/${group.id}/participantes/${member.id}`}
-              className={styles.member}
-            >
-              <Avatar
-                name={member.name}
-                color={colors[member.id]}
-                src={member.avatar}
-                size={48}
-              />
-              <span className={styles.memberName}>{member.name}</span>
-              <span className={styles.go}>
-                <ChevronRightIcon size={24} />
-              </span>
-            </Link>
-          ))}
+          {group.members.map((member) => {
+            const items = admin ? menuItems(member) : []
+            const to = `/grupo/${group.id}/participantes/${member.id}`
+            return (
+              <div key={member.id} className={styles.member}>
+                <Link to={to} className={styles.main}>
+                  <Avatar
+                    name={member.name}
+                    color={colors[member.id]}
+                    src={member.avatar}
+                    size={48}
+                  />
+                  <span className={styles.memberName}>{member.name}</span>
+                  {group.adminMemberIds.includes(member.id) && (
+                    <span
+                      className={styles.shield}
+                      role="img"
+                      aria-label="Administrador"
+                    >
+                      <ShieldIcon size={20} />
+                    </span>
+                  )}
+                </Link>
+                {items.length > 0 && (
+                  <div className={styles.menu}>
+                    <OverflowMenu
+                      label={`Opciones de ${member.name}`}
+                      items={items}
+                    />
+                  </div>
+                )}
+                <Link
+                  to={to}
+                  className={styles.go}
+                  aria-hidden="true"
+                  tabIndex={-1}
+                >
+                  <ChevronRightIcon size={24} />
+                </Link>
+              </div>
+            )
+          })}
         </div>
       </ScreenContent>
+      {pending?.kind === 'remove' && (
+        <ConfirmDialog
+          title={`¿Dar de baja a ${pending.member.name}? Dejará de aparecer en el grupo, pero sus partidas se conservan.`}
+          confirmLabel="Dar de baja"
+          onConfirm={() =>
+            void run(() => removeRemoteMember(inviteCode!, pending.member.id))
+          }
+          onCancel={() => setPending(null)}
+        />
+      )}
+      {pending?.kind === 'release' && (
+        <ConfirmDialog
+          title={`¿Liberar a ${pending.member.name}? La persona que lo eligió podrá elegir otro integrante y este quedará libre.`}
+          confirmLabel="Liberar"
+          onConfirm={() =>
+            void run(() => releaseRemoteMember(inviteCode!, pending.member.id))
+          }
+          onCancel={() => setPending(null)}
+        />
+      )}
+      {message && (
+        <Dialog title={message} onClose={() => setMessage(null)}>
+          <Button onClick={() => setMessage(null)}>Entendido</Button>
+        </Dialog>
+      )}
     </Screen>
   )
 }

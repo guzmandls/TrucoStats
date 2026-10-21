@@ -27,7 +27,7 @@ import type { Group } from './types'
 const group: Group = {
   id: 'g1',
   name: 'Los del truco',
-  adminMemberId: 'm1',
+  adminMemberIds: ['m1'],
   createdAt: '2026-01-01T00:00:00.000Z',
   members: [
     { id: 'm1', name: 'Juan' },
@@ -409,6 +409,31 @@ describe('GroupScreen', () => {
     )
   })
 
+  it('ofrece agregar un integrante solo a los administradores', async () => {
+    await saveGroup({
+      ...group,
+      inviteCode: 'abc123',
+      myMemberId: 'm1',
+    })
+    const { unmount } = renderGroup()
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Agregar integrante' }),
+    )
+    expect(await screen.findByRole('dialog')).toHaveTextContent(
+      'Agregar integrante',
+    )
+    unmount()
+
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm2' })
+    renderGroup()
+    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
+    await screen.findByRole('link', { name: 'Participantes' })
+    expect(
+      screen.queryByRole('button', { name: 'Agregar integrante' }),
+    ).toBeNull()
+  })
+
   it('muestra el enlace de invitación si el grupo ya está en el servidor', async () => {
     await saveGroup({ ...group, inviteCode: 'abc123' })
     renderGroup()
@@ -480,7 +505,7 @@ describe('GroupScreen', () => {
 
     expect(await screen.findByText('inicio')).toBeInTheDocument()
     const [saved] = await loadGroups()
-    expect(saved.adminMemberId).toBe('m2')
+    expect(saved.adminMemberIds).toEqual(['m2'])
   })
 
   it('advierte y borra el grupo al salir si es el único integrante', async () => {
@@ -488,7 +513,7 @@ describe('GroupScreen', () => {
     await saveGroup({
       ...group,
       members: [{ id: 'm1', name: 'Juan' }],
-      adminMemberId: 'm1',
+      adminMemberIds: ['m1'],
     })
     renderGroup()
 

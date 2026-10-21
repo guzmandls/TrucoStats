@@ -15,7 +15,7 @@ import type { Group } from './types'
 const group: Group = {
   id: 'g1',
   name: 'Los pibes',
-  adminMemberId: 'm1',
+  adminMemberIds: ['m1'],
   createdAt: '2026-01-01T00:00:00.000Z',
   members: [
     { id: 'm1', name: 'Juan' },
@@ -113,12 +113,37 @@ describe('groupsStorage', () => {
     expect(await loadGroups()).toEqual([])
   })
 
+  it('convierte un grupo guardado con un solo administrador al formato nuevo', async () => {
+    const { adminMemberIds, ...rest } = group
+    void adminMemberIds
+    await saveGroup({ ...rest, adminMemberId: 'm2' } as unknown as Group)
+
+    const [loaded] = await loadGroups()
+
+    expect(loaded.adminMemberIds).toEqual(['m2'])
+    expect('adminMemberId' in loaded).toBe(false)
+  })
+
+  it('al salir, si queda otro administrador no se transfiere el rol', async () => {
+    const twoAdmins: Group = {
+      ...group,
+      myMemberId: 'm1',
+      adminMemberIds: ['m1', 'm2'],
+    }
+    await saveGroup(twoAdmins)
+
+    await leaveGroup(twoAdmins)
+
+    const [saved] = await loadGroups()
+    expect(saved.adminMemberIds).toEqual(['m2'])
+  })
+
   it('transfiere la administración al salir si quedan otros integrantes', async () => {
     await saveGroup(group)
     const result = await leaveGroup(group)
     expect(result).toBe('left')
     const [saved] = await loadGroups()
-    expect(saved.adminMemberId).toBe('m2')
+    expect(saved.adminMemberIds).toEqual(['m2'])
     expect(saved.members).toEqual(group.members)
   })
 
@@ -126,7 +151,7 @@ describe('groupsStorage', () => {
     const solo: Group = {
       ...group,
       members: [{ id: 'm1', name: 'Juan' }],
-      adminMemberId: 'm1',
+      adminMemberIds: ['m1'],
     }
     await saveGroup(solo)
     const result = await leaveGroup(solo)

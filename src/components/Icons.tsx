@@ -343,6 +343,25 @@ export function UserPlusIcon({ size = 22 }: IconProps) {
   )
 }
 
+// Escudo: marca a los administradores de un grupo.
+export function ShieldIcon({ size = 22 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.500V6L12 3Z" />
+    </svg>
+  )
+}
+
 export function LoginIcon({ size = 22 }: IconProps) {
   return (
     <svg

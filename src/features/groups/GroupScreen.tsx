@@ -8,6 +8,7 @@ import {
   CloudOffIcon,
   PeopleIcon,
   SearchIcon,
+  UserPlusIcon,
   ShareIcon,
 } from '../../components/Icons'
 import {
@@ -45,8 +46,10 @@ import {
 } from './groupsApi'
 import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
+import { AddMemberDialog } from './AddMemberDialog'
+import { isGroupAdmin } from './groupAdmin'
 import { InviteDialog } from './InviteDialog'
-import { syncGroup } from './groupsSync'
+import { pullGroup, syncGroup } from './groupsSync'
 import { isPending, syncPendingMatches } from './matchesSync'
 import { leaveGroup, setGroupInviteCode } from './groupsStorage'
 import { computePoints, pointChanges } from '../matches/points'
@@ -74,6 +77,7 @@ export function GroupScreen() {
   const [game, setGame] = useState<PersistedGame | null>(null)
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
+  const [adding, setAdding] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
   // Aviso de puntos que deja la partida recién terminada: se lee al abrir la
   // pantalla y desaparece solo a los 4 segundos.
@@ -349,6 +353,15 @@ export function GroupScreen() {
                 to: `/grupo/${group.id}/participantes`,
                 icon: <PeopleIcon />,
               },
+              ...(isGroupAdmin(group) && group.inviteCode
+                ? [
+                    {
+                      label: 'Agregar integrante',
+                      onClick: () => setAdding(true),
+                      icon: <UserPlusIcon />,
+                    },
+                  ]
+                : []),
               {
                 label: 'Invitar',
                 onClick: handleInvite,
@@ -452,6 +465,16 @@ export function GroupScreen() {
           </ButtonLink>
         )}
       </ScreenFooter>
+      {adding && group.inviteCode && (
+        <AddMemberDialog
+          inviteCode={group.inviteCode}
+          onClose={() => setAdding(false)}
+          onAdded={() => {
+            setAdding(false)
+            void pullGroup(group.id).then(reload)
+          }}
+        />
+      )}
       {inviting && group.inviteCode && (
         <InviteDialog
           group={{ ...group, inviteCode: group.inviteCode }}

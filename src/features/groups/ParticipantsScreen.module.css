@@ -4,41 +4,60 @@
   gap: var(--space-3);
 }
 
-/* Cada participante es un botón con forma de tarjeta: avatar y nombre sobre
-   crema y, a la derecha, un bloque negro con la flecha. */
+/* Cada participante es una tarjeta: avatar, nombre (y escudo si es
+   administrador) sobre crema, el menú de opciones (solo para administradores) y,
+   a la derecha, un bloque negro con la flecha. No lleva overflow oculto porque
+   el menú se despliega fuera de la tarjeta. */
 .member {
   display: flex;
   align-items: stretch;
   border: var(--border-width) solid var(--ink);
   border-radius: var(--radius);
-  overflow: hidden;
   background: var(--paper);
   color: var(--ink);
-  text-decoration: none;
 }
 
-.member:focus-visible {
-  outline: var(--border-width) solid var(--ink);
-  outline-offset: 2px;
-}
-
-.member > :first-child {
-  margin: var(--space-3) 0 var(--space-3) var(--space-4);
-  align-self: center;
-}
-
-.memberName {
+.main {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  padding: 0 var(--space-4);
+  padding: var(--space-3) 0 var(--space-3) var(--space-4);
+  color: inherit;
+  text-decoration: none;
+}
+
+.main:focus-visible,
+.go:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: 2px;
+}
+
+.memberName {
+  flex: 0 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3) 0 var(--space-4);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--text-xl);
   font-weight: 800;
   letter-spacing: var(--tracking-tight);
+}
+
+.shield {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+}
+
+.menu {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3) 0 var(--space-2);
 }
 
 .go {
@@ -48,4 +67,20 @@
   justify-content: center;
   background: var(--ink);
   color: var(--paper);
+  border-radius: 0 calc(var(--radius) - var(--border-width))
+    calc(var(--radius) - var(--border-width)) 0;
+}
+
+/* El botón de opciones va centrado en la tarjeta y su menú es más ancho para
+   que las opciones no se partan en dos líneas. */
+.menu > * {
+  align-self: center;
+}
+
+.menu button[aria-haspopup] {
+  margin: 0;
+}
+
+.menu [role='menu'] {
+  min-width: 250px;
 }

@@ -992,3 +992,30 @@ Ajustes finales de esta pasada:
   la tabla usaba bordes "colapsados" con filas de alto fraccionario. Ahora cada
   celda dibuja solo su línea derecha y su línea de abajo (siempre 1 px) y las
   alturas son fijas, así las líneas llegan de borde a borde y quedan alineadas.
+
+## Etapa 31 — Administración del grupo (varios administradores)
+
+Hecho:
+
+- **Varios administradores:** el rol deja de ser un único `admin_member_id` en el
+  grupo y pasa a ser una marca (`is_admin`) en cada integrante (migración
+  `0005_administradores.sql`, que marca como administrador al creador de cada grupo
+  existente). La app usa `adminMemberIds` (lista); los grupos guardados con el
+  formato viejo se convierten al leerlos.
+- **Acciones del servidor** (solo administradores, archivo `worker/admin.ts`):
+  agregar integrante, dar de baja (se oculta, sus partidas se conservan), liberar
+  (desvincula la cuenta) y dar o quitar el rol de administrador.
+- **Traspaso automático:** si el grupo se queda sin administradores, el rol pasa
+  solo al integrante con cuenta más antiguo.
+- **En la app:** menú "⋯" en cada tarjeta de Participantes (solo para
+  administradores), escudo junto a los administradores y "Agregar integrante" en el
+  menú de tres rayas del grupo.
+
+Conceptos nuevos:
+
+- **Migración que transforma datos:** además de agregar la columna, la migración
+  hace un `UPDATE` para que lo que ya existía siga funcionando.
+- **Compatibilidad de formatos:** la app convierte los datos guardados con el
+  formato anterior al leerlos, así nadie pierde sus grupos al actualizar.
+- **Dejar de depender de un dato viejo:** `groups.admin_member_id` queda como dato
+  histórico (el creador); los permisos salen de `members.is_admin`.

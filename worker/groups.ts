@@ -122,6 +122,7 @@ interface MemberRow {
   name: string
   avatar: string | null
   user_id?: string | null
+  is_admin?: number
 }
 
 function groupResponse(
@@ -133,7 +134,9 @@ function groupResponse(
     group: {
       id: group.id,
       name: group.name,
-      adminMemberId: group.admin_member_id,
+      adminMemberIds: members
+        .filter((member) => member.is_admin === 1)
+        .map((member) => member.id),
       createdAt: group.created_at,
       members: members.map((member) =>
         member.avatar === null
@@ -186,7 +189,7 @@ export async function createGroup(
     ),
     ...group.members.map((member) =>
       env.DB.prepare(
-        'INSERT INTO members (id, group_id, name, avatar, user_id) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO members (id, group_id, name, avatar, user_id, is_admin) VALUES (?, ?, ?, ?, ?, ?)',
       ).bind(
         member.id,
         group.id,
@@ -194,6 +197,7 @@ export async function createGroup(
         member.avatar ?? null,
         // El creador es el administrador y su integrante queda vinculado.
         member.id === group.adminMemberId ? user.id : null,
+        member.id === group.adminMemberId ? 1 : 0,
       ),
     ),
   ]
@@ -219,6 +223,7 @@ export async function createGroup(
         name: member.name,
         avatar: member.avatar ?? null,
         user_id: member.id === group.adminMemberId ? user.id : null,
+        is_admin: member.id === group.adminMemberId ? 1 : 0,
       })),
       group.adminMemberId,
     ),
@@ -241,7 +246,7 @@ export async function getGroupByInviteCode(
   }
 
   const { results } = await env.DB.prepare(
-    'SELECT id, name, avatar, user_id FROM members WHERE group_id = ? AND active = 1 ORDER BY rowid',
+    'SELECT id, name, avatar, user_id, is_admin FROM members WHERE group_id = ? AND active = 1 ORDER BY rowid',
   )
     .bind(group.id)
     .all<MemberRow>()

@@ -14,15 +14,12 @@ export async function membershipOf(
   env: Env,
 ): Promise<Membership | null> {
   const row = await env.DB.prepare(
-    `SELECT m.id, g.admin_member_id FROM members m
-     JOIN groups g ON g.id = m.group_id
-     WHERE m.group_id = ? AND m.user_id = ? AND m.active = 1`,
+    `SELECT id, is_admin FROM members
+     WHERE group_id = ? AND user_id = ? AND active = 1`,
   )
     .bind(groupId, userId)
-    .first<{ id: string; admin_member_id: string }>()
-  return row
-    ? { memberId: row.id, isAdmin: row.id === row.admin_member_id }
-    : null
+    .first<{ id: string; is_admin: number }>()
+  return row ? { memberId: row.id, isAdmin: row.is_admin === 1 } : null
 }
 
 // Solo los integrantes vinculados a una cuenta pueden ver y registrar partidas.

@@ -181,7 +181,7 @@ describe('CreateGroupScreen', () => {
       'Juan',
       'Pedro',
     ])
-    expect(groups[0].adminMemberId).toBe(groups[0].members[0].id)
+    expect(groups[0].adminMemberIds).toEqual([groups[0].members[0].id])
   })
 
   it('pide confirmación antes de cancelar con datos escritos', () => {
