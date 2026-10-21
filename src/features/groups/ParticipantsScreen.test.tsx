@@ -251,6 +251,81 @@ describe('MemberScreen', () => {
     expect(screen.getByText('Al que más le gana')).toBeInTheDocument()
   })
 
+  it('el administrador puede cambiar el nombre de un integrante que nadie eligió', async () => {
+    await deleteGroup(group.id)
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm2' })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              group,
+              inviteCode: 'abc123',
+              claimedMemberIds: ['m2'],
+              myMemberId: 'm2',
+            }),
+            { status: 200 },
+          ),
+      ),
+    )
+    // Juan (m1) no es la persona de este celular: la persona es administradora.
+    await deleteGroup(group.id)
+    await saveGroup({
+      ...group,
+      inviteCode: 'abc123',
+      myMemberId: 'm2',
+      adminMemberIds: ['m2'],
+    })
+    renderMember()
+
+    expect(
+      await screen.findByRole('button', { name: 'Cambiar nombre' }),
+    ).toBeInTheDocument()
+    vi.unstubAllGlobals()
+  })
+
+  it('no ofrece cambiar el nombre de quien ya eligió su lugar (salvo él mismo)', async () => {
+    await deleteGroup(group.id)
+    await saveGroup({
+      ...group,
+      inviteCode: 'abc123',
+      myMemberId: 'm2',
+      adminMemberIds: ['m2'],
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(
+            JSON.stringify({
+              group,
+              inviteCode: 'abc123',
+              claimedMemberIds: ['m1', 'm2'],
+              myMemberId: 'm2',
+            }),
+            { status: 200 },
+          ),
+      ),
+    )
+    renderMember()
+
+    await screen.findByText('Detalle')
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(screen.queryByRole('button', { name: 'Cambiar nombre' })).toBeNull()
+    vi.unstubAllGlobals()
+  })
+
+  it('cada integrante puede cambiar su propio nombre', async () => {
+    await deleteGroup(group.id)
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm1' })
+    renderMember()
+
+    expect(
+      await screen.findByRole('button', { name: 'Cambiar nombre' }),
+    ).toBeInTheDocument()
+  })
+
   it('muestra los apodos y deja editarlos al administrador', async () => {
     await deleteGroup(group.id)
     await saveGroup({

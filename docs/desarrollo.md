@@ -1118,3 +1118,21 @@ Conceptos nuevos:
   descarta sola.
 - **Reutilizar un componente con un tipo más chico:** el dibujo del contador pidió solo
   `target`, `started` y `points`, así sirve igual para mirar una partida en vivo.
+
+## Etapa 37 — Ajustes: escudo, renombrar integrantes y cancelar sin conexión
+
+Hecho:
+
+- **Escudo de administrador:** ahora es de contorno con una tilde adentro (antes era
+  todo negro y no se entendía).
+- **Cambiar el nombre:** en la ficha, cada integrante cambia el suyo y un administrador
+  cambia el de quien nadie eligió todavía (el servidor lo comprueba: si el integrante
+  ya tiene cuenta vinculada, solo él puede).
+- **Cancelar sin conexión:** una partida que todavía no se envió se cancela (y se
+  restaura) en el celular; al sincronizar, primero se envía y después se cancela en
+  el servidor, así llega ya cancelada. Si se corta la conexión entre los dos pasos,
+  sigue pendiente y se reintenta. Las partidas ya enviadas siguen necesitando conexión.
+
+Concepto nuevo: **operaciones en dos pasos con reintento seguro.** Enviar la partida
+es idempotente (repetirlo no la duplica), así que si falla el segundo paso se puede
+volver a empezar desde el primero sin riesgo.
