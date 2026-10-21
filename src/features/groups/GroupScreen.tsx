@@ -218,15 +218,6 @@ export function GroupScreen() {
                 {pendingCount}
               </span>
             )}
-            <button
-              type="button"
-              className={styles.searchButton}
-              aria-label="Buscar partidas"
-              aria-pressed={searching}
-              onClick={toggleSearch}
-            >
-              <SearchIcon size={20} />
-            </button>
             {myPoints !== null && (
               <span className={styles.headerPoints}>{myPoints} Pts</span>
             )}
@@ -241,6 +232,11 @@ export function GroupScreen() {
           <HeaderMenu
             label="Menú"
             items={[
+              {
+                label: searching ? 'Cerrar búsqueda' : 'Buscar partidas',
+                onClick: toggleSearch,
+                icon: <SearchIcon />,
+              },
               {
                 label: 'Estadísticas',
                 to: `/grupo/${group.id}/estadisticas`,

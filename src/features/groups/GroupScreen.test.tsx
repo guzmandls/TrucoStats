@@ -169,7 +169,7 @@ describe('GroupScreen', () => {
     expect(screen.queryByText(/Sin enviar/)).not.toBeInTheDocument()
   })
 
-  it('busca partidas con la lupa del encabezado', async () => {
+  it('busca partidas desde el menú', async () => {
     await saveMatch(buildMatch({ id: 'p1' }))
     await saveMatch(
       buildMatch({
@@ -187,6 +187,7 @@ describe('GroupScreen', () => {
     await screen.findAllByTestId('partida')
     expect(screen.queryByLabelText('Buscar en el historial')).toBeNull()
 
+    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
     fireEvent.click(screen.getByRole('button', { name: 'Buscar partidas' }))
     fireEvent.change(screen.getByLabelText('Buscar en el historial'), {
       target: { value: '12' },
@@ -200,7 +201,8 @@ describe('GroupScreen', () => {
       screen.getByText('Ninguna partida coincide con la búsqueda'),
     ).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Buscar partidas' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar búsqueda' }))
     expect(screen.getAllByTestId('partida')).toHaveLength(2)
   })
 
