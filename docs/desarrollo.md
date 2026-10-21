@@ -954,3 +954,19 @@ Conceptos nuevos:
   sección de borde a borde), se resuelve con un selector en el contenedor
   (`.contentFlush .section`) en vez de duplicar el componente.
 - Al rediseñar, se cambia solo lo que se pidió: lo que ya gustó se conserva.
+
+## Etapa 30 — Revisión de diseño de toda la app
+
+Se recorrieron todas las pantallas con capturas y se corrigió lo que rompía la
+coherencia:
+
+- Enfrentamientos: la fila negra de avatares se pegaba a la barra negra de
+  pestañas; ahora hay aire entre ambas.
+- Avisos (`Notice`): esquinas redondeadas como el resto de las tarjetas; en
+  "Unirse a un grupo" tenían un margen doble.
+- Ficha del participante: avatar y porcentaje centrados (quedaba un hueco).
+- Récords de partidas: cada equipo queda a la altura de su celda de puntaje.
+
+Concepto nuevo: una revisión visual global (capturas de cada pantalla en el
+mismo tamaño) detecta inconsistencias que no se ven mirando una pantalla sola,
+como dos zonas negras que se tocan.

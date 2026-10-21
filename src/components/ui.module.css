@@ -606,7 +606,7 @@
 .notice {
   margin: 0;
   padding: var(--space-3) var(--space-4);
-  border-bottom: var(--hairline-width) solid var(--line-thin);
+  border-radius: var(--radius);
   background: var(--track);
   font-size: var(--text-sm);
   font-weight: 600;
