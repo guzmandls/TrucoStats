@@ -102,6 +102,11 @@ export function AuthScreen({ mode }: AuthScreenProps) {
               {registering && (
                 <p className={styles.hint}>Usa al menos 8 caracteres.</p>
               )}
+              {!registering && (
+                <Link className={styles.switchLink} to="/recuperar">
+                  ¿Olvidaste tu contraseña?
+                </Link>
+              )}
             </div>
           </Section>
 

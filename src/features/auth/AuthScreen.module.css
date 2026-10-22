@@ -38,3 +38,9 @@
   outline: var(--border-width) solid var(--ink);
   outline-offset: 2px;
 }
+
+.text {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: 1.45;
+}

@@ -5,6 +5,12 @@ import {
   type Env,
 } from './groups'
 import { errorResponse, json } from './http'
+import {
+  confirmEmail,
+  requestEmailChange,
+  requestPasswordReset,
+  resetPassword,
+} from './recovery'
 import { addMember, releaseMember, removeMember, setMemberAdmin } from './admin'
 import { setAliases } from './aliases'
 import { updateMember } from './members'
@@ -56,6 +62,21 @@ export default {
         return logout(request, env)
       }
       return errorResponse('Método no permitido', 405)
+    }
+
+    const emailRoutes: Record<
+      string,
+      (request: Request, env: Env) => Promise<Response>
+    > = {
+      '/api/recuperar': requestPasswordReset,
+      '/api/restablecer': resetPassword,
+      '/api/correo': requestEmailChange,
+      '/api/correo/confirmar': confirmEmail,
+    }
+    if (pathname in emailRoutes) {
+      return request.method === 'POST'
+        ? emailRoutes[pathname](request, env)
+        : errorResponse('Método no permitido', 405)
     }
 
     if (pathname === '/api/yo') {

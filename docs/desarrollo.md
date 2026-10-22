@@ -1316,3 +1316,21 @@ primera que falla.
 - **Cancelar:** nueva opción en el menú del contador. En el grupo guarda una partida cancelada (con el marcador que tenía) usando el mismo mecanismo que ya existía para cancelar sin conexión; como una partida cancelada puede estar empatada, el servidor acepta empates solo cuando llega marcada como cancelada.
 - **Sin conexión:** si el aviso de "terminó" o "canceló" no llega, queda pendiente y se reintenta con la sincronización.
 - **Probado** con dos navegadores simulados: seguir en vivo al cerrar el contador, pausa a los 60 s, reabrir, cancelar un 3–3 con motivo y terminar una partida viendo el cartel.
+
+## Etapa 53 — Recuperar la contraseña por correo
+
+- **Qué hace:** "¿Olvidaste tu contraseña?" manda al correo de la cuenta un enlace de un solo uso (vale 1 hora) para elegir una contraseña nueva; al guardarla se cierran las demás sesiones y queda iniciada la de ese celular. Para las cuentas sin correo, en el perfil hay una sección "Correo": se escribe uno, se manda un enlace de confirmación a esa dirección y recién al abrirlo se guarda (así un error de tipeo no manda la recuperación a otra persona).
+- **Enlaces de un solo uso (`email_tokens`, migración 0009):** igual que las sesiones, se guarda el *hash* del token, no el token: quien lea la base de datos no puede usar los enlaces. Cada uno tiene propósito (`reset` o `confirm`), vencimiento y se borra al usarse.
+- **Decisiones de seguridad:**
+  - La respuesta de "recuperar" es siempre la misma, exista o no la cuenta (si no, se podría averiguar quién tiene cuenta).
+  - El enlace usa una dirección fija de la app (`APP_URL`), no la que llega en el pedido: si no, alguien podría pedir un correo cuyo enlace apunte a un sitio malicioso y robar el token.
+  - Máximo 3 correos por hora por cuenta, para que nadie use la app para llenar de correos a otra persona.
+  - Una contraseña corta no gasta el enlace; uno vencido o usado, sí.
+- **El correo (`worker/mail.ts`):** se manda con la API de Brevo (plan gratuito, 300 por día). Sin un dominio propio los servicios gratuitos de correo solo dejan verificar *un remitente*, por eso se eligió Brevo con una dirección tuya verificada; los correos pueden caer en spam. En desarrollo local `MAIL_LOG=1` (archivo `.dev.vars`, que no se sube a Git) escribe el correo en el registro del servidor en vez de enviarlo.
+- **Para activarlo en producción (una sola vez):**
+  1. Crear una cuenta gratis en brevo.com.
+  2. Configuración → Remitentes → Agregar un remitente con tu correo y verificarlo con el enlace que llega.
+  3. SMTP y API → Claves de API → crear una clave y copiarla.
+  4. En la terminal del proyecto: `npx wrangler secret put BREVO_API_KEY` (pegar la clave) y `npx wrangler secret put MAIL_FROM` (pegar el correo verificado).
+  Sin esos dos secretos la app funciona igual, pero no manda correos.
+- **Detalle que apareció probando:** si el enlace de confirmación se abre en otro navegador (la app de Gmail, por ejemplo), el perfil del celular no se enteraba. Ahora el perfil pide los datos de la cuenta al abrirse y al volver a la app (`refreshAccount`).
