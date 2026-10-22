@@ -2,7 +2,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  scrollbar-gutter: stable both-edges;
+  overscroll-behavior-y: contain;
   background-color: var(--paper);
   background-image: repeating-linear-gradient(
     to bottom,
@@ -36,5 +36,12 @@
   left: 0;
   right: 0;
   height: var(--divider-width);
+  background: var(--line-strong);
+}
+
+/* Línea que separa los dos equipos (sigue la del medio de la barra inferior). */
+.divider {
+  flex: 0 0 var(--divider-width);
+  align-self: stretch;
   background: var(--line-strong);
 }

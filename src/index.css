@@ -55,8 +55,12 @@
 
   --tap-min: 44px;
   --header-height: 56px;
+  /* Abajo, el espacio justo para la barra de inicio del teléfono (si la hay) o,
+     si no, el margen de siempre. */
+  --footer-bottom: max(var(--space-5), env(safe-area-inset-bottom, 0px));
   --footer-height: calc(
-    var(--space-5) * 2 + var(--tap-height) + var(--rule-width)
+    var(--space-5) + var(--tap-height) + var(--rule-width) +
+      var(--footer-bottom)
   );
   --shadow-raised: 0 10px 24px color-mix(in srgb, var(--ink) 35%, transparent);
 
@@ -80,24 +84,49 @@ html,
 body {
   height: 100%;
   background: var(--ink);
+  /* La página en sí nunca se desplaza ni rebota: solo se desplaza el contenido
+     de cada pantalla. Así la cabecera y la barra inferior quedan fijas. */
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body {
   margin: 0;
+  /* Como en una app: mantener apretado (por ejemplo, para sumar) no selecciona
+     texto ni abre el menú de copiar. En los campos de texto sí se puede. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Sin barras de desplazamiento visibles: se desplaza con el dedo. */
+* {
+  scrollbar-width: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
 }
 
 /* Marco de la app: ocupa exactamente la pantalla, desde debajo de la hora
    (safe-area-inset-top) hasta el borde de abajo, y el desplazamiento ocurre
    adentro. Se ancla con top/bottom en vez de usar alturas como 100vh o 100svh,
    porque instalada en el iPhone esas alturas pueden calcularse más cortas y
-   dejar una franja vacía abajo. */
+   dejar una franja vacía abajo. El marco no se desplaza: cada pantalla
+   desplaza solo su contenido. */
 #root {
   position: fixed;
   top: env(safe-area-inset-top, 0px);
   right: 0;
   bottom: 0;
   left: 0;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--paper);
 }
 

@@ -10,7 +10,8 @@
 /* Barra inferior: dice qué se está mirando (en vivo, pausada o quién ganó). */
 .status {
   flex: 0 0 auto;
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-4)
+    max(var(--space-4), env(safe-area-inset-bottom, 0px));
   background: var(--ink);
   color: var(--paper);
   border-top: var(--rule-width) solid var(--paper);
