@@ -11,7 +11,13 @@ import {
   requestPasswordReset,
   resetPassword,
 } from './recovery'
-import { addMember, releaseMember, removeMember, setMemberAdmin } from './admin'
+import {
+  addMember,
+  releaseMember,
+  removeMember,
+  renameGroup,
+  setMemberAdmin,
+} from './admin'
 import { setAliases } from './aliases'
 import { updateMember } from './members'
 import { cancelMatch, restoreMatch } from './cancel'
@@ -100,10 +106,13 @@ export default {
 
     const byCode = GROUP_BY_CODE.exec(pathname)
     if (byCode) {
-      if (request.method !== 'GET') {
-        return errorResponse('Método no permitido', 405)
+      if (request.method === 'GET') {
+        return getGroupByInviteCode(byCode[1], request, env)
       }
-      return getGroupByInviteCode(byCode[1], request, env)
+      if (request.method === 'PATCH') {
+        return renameGroup(byCode[1], request, env)
+      }
+      return errorResponse('Método no permitido', 405)
     }
 
     const matchesOfGroup = MATCHES_OF_GROUP.exec(pathname)

@@ -14,6 +14,7 @@ import {
   ChevronRightIcon,
   CloudOffIcon,
   PeopleIcon,
+  PencilIcon,
   SearchIcon,
   UserPlusIcon,
   ShareIcon,
@@ -58,6 +59,7 @@ import {
 import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
 import { AddMemberDialog } from './AddMemberDialog'
+import { RenameGroupDialog } from './RenameGroupDialog'
 import { ClaimMemberDialog } from './ClaimMemberDialog'
 import { isGroupAdmin } from './groupAdmin'
 import { InviteDialog } from './InviteDialog'
@@ -112,6 +114,7 @@ export function GroupScreen() {
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [adding, setAdding] = useState(false)
+  const [renaming, setRenaming] = useState(false)
   // Grupo del servidor sin nadie vinculado (creado antes de las cuentas): la
   // persona que lo creó elige cuál integrante es.
   const [claiming, setClaiming] = useState(false)
@@ -502,6 +505,16 @@ export function GroupScreen() {
                 to: `/grupo/${group.id}/participantes`,
                 icon: <PeopleIcon />,
               },
+              // Un grupo que todavía no se compartió lo renombra quien lo tiene.
+              ...(isGroupAdmin(group) || !group.inviteCode
+                ? [
+                    {
+                      label: 'Cambiar nombre del grupo',
+                      onClick: () => setRenaming(true),
+                      icon: <PencilIcon />,
+                    },
+                  ]
+                : []),
               ...(isGroupAdmin(group) && group.inviteCode
                 ? [
                     {
@@ -698,6 +711,16 @@ export function GroupScreen() {
           onAdded={() => {
             setAdding(false)
             void pullGroup(group.id).then(reload)
+          }}
+        />
+      )}
+      {renaming && (
+        <RenameGroupDialog
+          group={group}
+          onClose={() => setRenaming(false)}
+          onSaved={(updated) => {
+            setRenaming(false)
+            setGroup(updated)
           }}
         />
       )}

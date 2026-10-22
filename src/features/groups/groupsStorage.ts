@@ -105,6 +105,20 @@ export async function renameMember(
   return updated
 }
 
+// Cambia el nombre del grupo en este celular, sobre su versión más reciente.
+export async function renameGroup(
+  groupId: string,
+  name: string,
+): Promise<Group | null> {
+  const current = (await loadGroups()).find((group) => group.id === groupId)
+  if (!current) {
+    return null
+  }
+  const updated: Group = { ...current, name }
+  await saveGroup(updated)
+  return updated
+}
+
 // Guarda el código de invitación sobre la versión más reciente del grupo.
 export async function setGroupInviteCode(
   groupId: string,
