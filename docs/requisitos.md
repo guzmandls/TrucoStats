@@ -8,7 +8,7 @@ En los textos de la app se dice "Eliminar" (nunca "Quitar") y no se usan palabra
 
 El ícono de la app es "tS" en crema sobre fondo negro (diseño del desarrollador, `public/app-icon.svg`); de él salen todos los tamaños.
 
-Al abrir la app aparece una animación de inicio sobre fondo #1c1c1c: tres barras verticales (estadística); la primera se transforma en la t (baja por el palo, se abre en el trazo horizontal y sigue por el pie) y después se dibuja la S hasta completar exactamente el logo. Dura 1,5 s (1,3 s de animación y 0,2 s de desvanecido), sin rebotes ni giros. Si la app tarda más en cargar, el logo completo queda hasta que esté lista; si carga antes, no se agrega ninguna espera. Con "reducir movimiento" activado, el logo aparece completo y se va apenas la app está lista.
+Al abrir la app se ve el logo completo, centrado sobre fondo #1c1c1c, mientras carga; cuando la app está lista se desvanece (0,2 s). Sin animación ni esperas agregadas.
 
 La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla completa. La zona de la hora, la señal y la batería queda en una franja negra fija; la app empieza debajo de ella y la barra inferior llega hasta el borde de abajo, dejando lugar a la barra de inicio del teléfono. En todas las pantallas la cabecera y la barra inferior quedan fijas: solo se desplaza el contenido del medio, sin barras de desplazamiento visibles y sin que la pantalla entera rebote. Mantener apretado un botón no selecciona texto (solo se puede seleccionar dentro de los campos de texto).
 

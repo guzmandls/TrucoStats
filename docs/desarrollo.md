@@ -1505,3 +1505,8 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **Sin parpadeos:** el fondo de la página y el `background_color` del manifiesto pasaron a negro, para que la pantalla que muestra Android al abrir la app instalada sea del mismo color que la animación.
 - **Reducir movimiento:** si el celular lo pide, el logo aparece completo y se va apenas la app está lista.
 - **Cómo se revisó:** se detuvo el reloj del SVG en distintos momentos y se sacó una captura de cada uno. Así aparecieron dos detalles que se corrigieron: una línea suelta al empezar el trazo horizontal de la t y un pedazo de la S que se veía antes de tiempo.
+
+## Etapa 73 — Pantalla de inicio fija
+
+- La animación de inicio no se veía en el iPhone del desarrollador, y el logo completo centrado le gustó como estaba. Se sacó la animación y todo lo que existía solo para ella (recortes, máscara, el reloj del SVG y la variante para "reducir movimiento").
+- Quedó lo simple: en `index.html`, el logo fijo sobre negro mientras carga la app; cuando la app ya se dibujó, `finishSplash` lo desvanece (0,2 s) y lo elimina. No espera nada más.
