@@ -1334,3 +1334,10 @@ primera que falla.
   4. En la terminal del proyecto: `npx wrangler secret put BREVO_API_KEY` (pegar la clave) y `npx wrangler secret put MAIL_FROM` (pegar el correo verificado).
   Sin esos dos secretos la app funciona igual, pero no manda correos.
 - **Detalle que apareció probando:** si el enlace de confirmación se abre en otro navegador (la app de Gmail, por ejemplo), el perfil del celular no se enteraba. Ahora el perfil pide los datos de la cuenta al abrirse y al volver a la app (`refreshAccount`).
+
+## Etapa 54 — Símbolos del contador más firmes
+
+- **Qué cambió:** los cuadrados del marcador ahora tienen trazo más grueso y esquinas rectas (antes las puntas eran redondeadas y se veían como un icono). El trazo que se acaba de sumar se dibuja de un extremo al otro.
+- **Cómo se hizo:** cada trazo es un `<path>` SVG con `pathLength="1"`: así la animación (`stroke-dasharray` + `stroke-dashoffset`) sirve igual para los lados (largo 32) y para la diagonal (largo 45), sin calcular largos. Las puntas son cuadradas (`stroke-linecap: square`) para que los lados se encuentren en esquinas rectas; la diagonal usa punta plana para no sobresalir del cuadrado.
+- **Cuándo se anima:** el gancho `useJustDrawn` compara los puntos con los de la vez anterior y solo anima si subieron de a uno. Por eso no se anima al abrir una partida empezada, al deshacer, ni cuando se ve una partida en vivo que saltó varios puntos. Respeta "reducir animaciones" del sistema (`prefers-reduced-motion`).
+- **Lo que no se tocó:** los botones de sumar y deshacer, la cabecera y el marcador quedaron igual, a pedido.
