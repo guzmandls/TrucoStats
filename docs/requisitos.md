@@ -612,7 +612,7 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 
 - El contraste entre zonas oscuras (negro con letra crema) y claras es parte de la identidad: cada pantalla tiene al menos una banda o bloque negro; no se diseña todo en crema y gris.
 - Cada sección de un formulario es una tarjeta con margen a los costados, borde redondeado y una banda negra de título con letra crema. Las pantallas de estadísticas (estadísticas del grupo, ficha del integrante y perfil) van de borde a borde: las pestañas y las secciones ocupan todo el ancho; solo los totales (los bloques negros con cifras) son bloques con margen, en todas ellas.
-- La ficha del integrante y el perfil se arman igual: la foto arriba y centrada; debajo, el anillo del porcentaje de victorias junto a los bloques de victorias y jugadas; las derrotas van en la lista de abajo.
+- La ficha del integrante y el perfil se arman igual: arriba, la foto y el anillo del porcentaje de victorias lado a lado; debajo, los bloques de victorias y jugadas a todo el ancho; las derrotas van en la lista de abajo.
 - Los elementos que se tocan (grupos, participantes) tienen forma de botón: tarjeta con margen y una flecha ">" sobre fondo negro; no ocupan el ancho completo de la pantalla.
 - Las cifras principales (victorias, derrotas, jugadas, partidas, promedio) van en bloques negros con el número grande en crema y la etiqueta en mayúsculas.
 - Las pestañas ocupan todo el ancho, con la misma separación de la barra superior que las demás zonas: la activa va en crema y las demás en negro, y la activa lleva una línea negra arriba y abajo que la separa del crema que la rodea, y las líneas verticales entre las pestañas inactivas ocupan todo el alto de la barra.

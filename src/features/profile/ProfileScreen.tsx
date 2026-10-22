@@ -83,32 +83,26 @@ export function ProfileScreen() {
         }
       />
       <ScreenContent flush>
-        {photo && (
-          <div className={styles.photo}>
-            {/* Tocar la foto lleva a editar el perfil. */}
-            <button
-              type="button"
-              className={styles.photoButton}
-              aria-label="Editar perfil"
-              onClick={edit}
-            >
-              <Avatar
-                name={photo.name}
-                color={photo.color}
-                src={photo.src}
-                size={88}
-              />
-            </button>
-          </div>
-        )}
-
-        {summary && summary.total === 0 ? (
-          <EmptyNote>Todavía no jugaste ninguna partida</EmptyNote>
-        ) : null}
-
-        {summary && summary.total > 0 && (
-          <>
-            <div className={styles.hero}>
+        {/* Arriba, la foto y el porcentaje lado a lado; debajo, las cifras. */}
+        {(photo || (summary && summary.total > 0)) && (
+          <div className={styles.top}>
+            {photo && (
+              // Tocar la foto lleva a editar el perfil.
+              <button
+                type="button"
+                className={styles.photoButton}
+                aria-label="Editar perfil"
+                onClick={edit}
+              >
+                <Avatar
+                  name={photo.name}
+                  color={photo.color}
+                  src={photo.src}
+                  size={92}
+                />
+              </button>
+            )}
+            {summary && summary.total > 0 && (
               <WinRateRing
                 percent={summary.winRate ?? 0}
                 color={
@@ -118,6 +112,17 @@ export function ProfileScreen() {
                 }
                 size={92}
               />
+            )}
+          </div>
+        )}
+
+        {summary && summary.total === 0 ? (
+          <EmptyNote>Todavía no jugaste ninguna partida</EmptyNote>
+        ) : null}
+
+        {summary && summary.total > 0 && (
+          <>
+            <div className={styles.figures}>
               <Figures>
                 <Figure value={summary.wins} label="victorias" />
                 <Figure value={summary.total} label="jugadas" />

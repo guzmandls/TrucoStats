@@ -1491,3 +1491,7 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 ## Etapa 70 — "Eliminar" en vez de "Quitar"
 
 - Los textos de la app no usan "quitar" (ni palabras de duda como "quizás"): los botones y etiquetas pasaron a "Eliminar foto", "Eliminar integrante", "Eliminar de administradores", "Eliminar de Nosotros/Ellos" y "Eliminar a … de la lista".
+
+## Etapa 71 — Foto y porcentaje lado a lado
+
+- En el perfil la foto quedaba sola en una fila, con mucho espacio libre. Ahora, en el perfil y en la ficha del integrante, la foto y el anillo del porcentaje van lado a lado arriba, y debajo los bloques de victorias y jugadas a todo el ancho.
