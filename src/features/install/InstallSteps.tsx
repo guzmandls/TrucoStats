@@ -26,8 +26,8 @@ export function InstallSteps({ platform }: { platform: Platform }) {
               en la barra de Safari.
             </li>
             <li>
-              Elige <strong>Agregar a pantalla de inicio</strong> (si no
-              aparece, desliza la lista hacia abajo).
+              Elige <strong>Agregar a Inicio</strong> (si no aparece, toca{' '}
+              <strong>Ver más</strong>).
             </li>
             <li>
               Deja activado <strong>Abrir como app web</strong> y toca{' '}
