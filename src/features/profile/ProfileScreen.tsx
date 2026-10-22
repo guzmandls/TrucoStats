@@ -109,7 +109,7 @@ export function ProfileScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent>
+      <ScreenContent flush>
         {first && (
           <div className={styles.photo}>
             <EditableAvatar

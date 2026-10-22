@@ -121,7 +121,7 @@ export function MemberScreen() {
           </HeaderIconButton>
         }
       />
-      <ScreenContent>
+      <ScreenContent flush>
         <MemberStatsFicha
           member={member}
           color={colors[member.id]}

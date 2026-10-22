@@ -545,7 +545,7 @@
 }
 
 /* Los totales siguen siendo bloques sueltos, con margen, entre las secciones. */
-.contentFlush .figures {
+.contentFlush > .figures {
   flex: 0 0 auto;
   margin: var(--space-4);
 }

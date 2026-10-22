@@ -60,15 +60,17 @@ export function MemberStatsFicha({
   const rateColor = rate === null ? 'var(--line-strong)' : winRateColor(rate)
   const total = stats.played
 
+  // Mismo armado que el perfil: la foto arriba y, debajo, el porcentaje con
+  // las victorias y las jugadas (las derrotas van en el detalle).
   return (
     <div className={styles.ficha}>
-      <div className={styles.fichaTop}>
+      <div className={styles.photo}>
         {onEditPhoto ? (
           <EditableAvatar
             name={member.name}
             color={color}
             src={member.avatar}
-            size={72}
+            size={88}
             onEdit={onEditPhoto}
           />
         ) : (
@@ -76,16 +78,17 @@ export function MemberStatsFicha({
             name={member.name}
             color={color}
             src={member.avatar}
-            size={72}
+            size={88}
           />
         )}
-        <WinRateRing percent={rate ?? 0} color={rateColor} size={72} />
       </div>
-      <Figures>
-        <Figure value={stats.wins} label="victorias" />
-        <Figure value={stats.losses} label="derrotas" />
-        <Figure value={total} label="jugadas" />
-      </Figures>
+      <div className={styles.hero}>
+        <WinRateRing percent={rate ?? 0} color={rateColor} size={92} />
+        <Figures>
+          <Figure value={stats.wins} label="victorias" />
+          <Figure value={total} label="jugadas" />
+        </Figures>
+      </div>
     </div>
   )
 }
@@ -100,6 +103,7 @@ export function MemberStatsRows({
   )
   return (
     <>
+      <StatRow label="Derrotas" value={stats.losses} />
       <StatRow
         label="Duración promedio"
         value={duration(stats.averageDurationSeconds)}

@@ -1,11 +1,15 @@
+/* La pantalla va de borde a borde (como las estadísticas): la foto y las cifras
+   llevan su propio margen. */
 .hero {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  padding: var(--space-4);
 }
 
 /* Tu foto, arriba y centrada; al tocarla se edita. */
 .photo {
   display: flex;
   justify-content: center;
+  padding: var(--space-4) var(--space-4) 0;
 }
