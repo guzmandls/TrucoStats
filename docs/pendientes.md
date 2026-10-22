@@ -85,8 +85,6 @@ La **versión 1** quedó completa el 22/10/2026 (ver el resumen al principio de
   si hace falta, crear otra con `npx wrangler secret put BREVO_API_KEY`. Se puede
   programar una tarea mensual (cron de Cloudflare) que la mantenga activa.
 - **Rotar esa clave** cuando se pueda: se pegó en un chat durante el desarrollo.
-- **Cuenta de prueba en producción:** `prueba_velocidad`, con el grupo "Prueba de
-  velocidad", se creó para medir tiempos. Nadie más la ve; se puede borrar.
 - **El correo del registro no se confirma** (el que se agrega desde el perfil sí).
 - **Probar en teléfonos reales** cada cambio de pantalla completa: Chrome simula
   las zonas de la hora y de la barra de inicio, pero no los errores propios del
