@@ -96,10 +96,11 @@ export function PeopleIcon({ size = 22 }: IconProps) {
       aria-hidden="true"
       focusable="false"
     >
-      <circle cx="9" cy="8" r="3" />
-      <path d="M3.5 19.5c0-3 2.5-5.5 5.5-5.5s5.5 2.5 5.5 5.5" />
-      <circle cx="17" cy="9.5" r="2.4" />
-      <path d="M13.5 19.5c0-2.7 1.7-4.9 4-5.4" />
+      {/* Una persona adelante y otra asomando detrás, a la derecha. */}
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
+      <path d="M15.5 4.9a3.2 3.2 0 0 1 0 6.2" />
+      <path d="M17.5 14.3c2.1.6 3.5 2.6 3.5 5.7" />
     </svg>
   )
 }
@@ -385,8 +386,8 @@ export function PencilIcon({ size = 22 }: IconProps) {
   )
 }
 
-// Escudo con una tilde adentro: marca a los administradores de un grupo. Va de
-// contorno (no relleno) para que se distinga la tilde.
+// Escudo que marca a los administradores de un grupo: contorno y, adentro, un
+// escudo lleno más chico.
 export function ShieldIcon({ size = 22 }: IconProps) {
   return (
     <svg
@@ -401,8 +402,15 @@ export function ShieldIcon({ size = 22 }: IconProps) {
       aria-hidden="true"
       focusable="false"
     >
+      {/* Contorno, un espacio del color de fondo y un escudo lleno más chico
+          adentro: se reconoce como escudo y no parece un "verificado". */}
       <path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z" />
-      <path d="m8.8 12.2 2.4 2.4 4.2-4.6" />
+      <path
+        d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"
+        fill="currentColor"
+        stroke="none"
+        transform="translate(12 12) scale(0.52) translate(-12 -12)"
+      />
     </svg>
   )
 }
