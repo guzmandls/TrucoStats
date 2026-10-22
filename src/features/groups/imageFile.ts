@@ -1,5 +1,10 @@
 const MAX_SIDE = 256
 
+// Se muestra si el navegador no puede leer el archivo (un formato que no conoce,
+// un archivo dañado).
+export const UNREADABLE_IMAGE =
+  'No se pudo usar esa imagen. Prueba con otra foto.'
+
 export async function fileToAvatarDataUrl(file: File): Promise<string> {
   const bitmap = await loadBitmap(file)
   const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))

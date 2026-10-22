@@ -17,7 +17,7 @@ import {
 } from '../../components/ui'
 import { avatarColors } from '../groups/avatar'
 import { EditableAvatar } from '../groups/EditableAvatar'
-import { fileToAvatarDataUrl } from '../groups/imageFile'
+import { fileToAvatarDataUrl, UNREADABLE_IMAGE } from '../groups/imageFile'
 import { shareAvatar } from '../groups/avatarSync'
 import { loadGroups, updateMemberAvatar } from '../groups/groupsStorage'
 import { PhotoDialog } from '../groups/PhotoDialog'
@@ -27,6 +27,7 @@ import { activeMatches } from '../matches/status'
 import { formatDuration, personalSummary } from '../matches/stats'
 import type { Match } from '../matches/types'
 import { winRateColor } from '../matches/winRateColor'
+import { myMatches } from './myMatches'
 import styles from './ProfileScreen.module.css'
 
 function percent(value: number | null): string {
@@ -60,7 +61,9 @@ export function ProfileScreen() {
     }
   }, [])
 
-  const summary = matches ? personalSummary(activeMatches(matches)) : null
+  const summary = matches
+    ? personalSummary(myMatches(activeMatches(matches), groups))
+    : null
 
   // Tu foto es la de tu integrante en cada grupo donde ya sabemos quién eres:
   // cambiarla desde el perfil la cambia en todos.
@@ -183,8 +186,12 @@ export function ProfileScreen() {
           hasPhoto={!!currentAvatar}
           busy={busy}
           onFile={(file) => {
-            void fileToAvatarDataUrl(file).then((dataUrl) =>
-              applyPhoto(dataUrl),
+            void fileToAvatarDataUrl(file).then(
+              (dataUrl) => applyPhoto(dataUrl),
+              () => {
+                setEditingPhoto(false)
+                setPhotoMessage(UNREADABLE_IMAGE)
+              },
             )
           }}
           onRemove={() => void applyPhoto(undefined)}

@@ -1298,3 +1298,12 @@ primera que falla.
 - **Por qué no se vio antes:** en desarrollo (`npm run dev`) el service worker no se registra, y el Chrome de las pruebas automáticas no guarda bien en la caché. Solo pasaba en el sitio publicado.
 - **Arreglo:** el service worker ya no toca `/api`; la caché pasa a `trucostats-v2`, así la vieja (con datos viejos) se borra al activarse y las pestañas abiertas se recargan una vez. Además, el servidor responde con `Cache-Control: no-store` y la app pide con `cache: 'no-store'`.
 - **Concepto:** una caché es útil para lo que no cambia (los archivos de la app, que llevan un hash en el nombre); para datos que cambian y dependen de quién pide, la caché tiene que estar desactivada.
+
+## Etapa 51 — Recorrido con dos "celulares" simulados
+
+- **Cómo se probó:** dos Chrome sin ventana (A y B, cada uno con su propio almacenamiento) contra el servidor local, manejados por scripts: crear cuenta y grupo, unirse por enlace, partidas en los dos sentidos, partida en vivo con pausa, foto, apodos, timer (con espera real de 75 s fuera del contador), cancelar y restaurar (con y sin conexión), funciones de administrador, liberar integrante y perfil.
+- **Errores encontrados y corregidos:**
+  - **Perfil personal:** contaba todas las partidas del celular como si la persona fuera siempre "Nosotros". Ahora (`myMatches`) cuenta solo las partidas en las que jugó su integrante (también con un apodo), desde su equipo.
+  - **Foto ilegible:** si el navegador no podía leer la imagen, el error quedaba sin capturar y no pasaba nada. Ahora avisa "No se pudo usar esa imagen. Prueba con otra foto."
+  - **Texto:** "No se pudieron enviar tu partida" → "No se pudo enviar tu partida".
+- **Lo que funciona como está pensado:** cancelar una partida ya enviada necesita conexión (el servidor valida permisos); sin conexión solo se cancela una que todavía no se envió.

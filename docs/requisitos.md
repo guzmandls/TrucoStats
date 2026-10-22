@@ -425,7 +425,7 @@ Los usuarios tendrán un perfil con sus estadísticas personales: sus partidas r
 
 El perfil personal será visible para los integrantes de los grupos en los que participa.
 
-Estado actual: mientras no exista el vínculo usuario ↔ integrante, el perfil suma todas las partidas guardadas en el dispositivo.
+Cada partida de grupo se cuenta desde el equipo del integrante de la persona (también si la anotaron con un apodo): gana si ganó su equipo. Las partidas de grupo en las que no jugó no cuentan.
 
 ### 6.6. Criterios de cálculo y privacidad
 

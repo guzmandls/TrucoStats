@@ -89,9 +89,27 @@ describe('ProfileScreen', () => {
         modality: '1v1',
         winner: 'ellos',
         durationSeconds: null,
+        teams: {
+          nos: [{ id: 'm1', name: 'Juan' }],
+          ellos: [{ id: 'm2', name: 'Pedro' }],
+        },
       }),
     )
-    await saveGroup(group)
+    // Una partida del grupo en la que Juan no jugó: no cuenta para su perfil.
+    await saveMatch(
+      buildMatch({
+        id: 'm3',
+        type: 'group',
+        groupId: 'g1',
+        modality: '1v1',
+        winner: 'nos',
+        teams: {
+          nos: [{ id: 'm2', name: 'Pedro' }],
+          ellos: [{ id: 'm3', name: 'Luis' }],
+        },
+      }),
+    )
+    await saveGroup({ ...group, myMemberId: 'm1' })
 
     renderProfile()
     await screen.findByRole('heading', { name: 'Resumen' })
