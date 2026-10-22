@@ -69,6 +69,21 @@ export async function changePassword(
   await postJson('/api/contrasena', { current, password })
 }
 
+// Cambia el usuario con el que se inicia sesión y lo actualiza en este celular.
+export async function changeUsername(username: string): Promise<string> {
+  const { user } = await postJson<{ user: Account }>('/api/usuario', {
+    username,
+  })
+  const session = getSession()
+  if (session && session.user.id === user.id) {
+    saveSession({
+      ...session,
+      user: { ...session.user, username: user.username },
+    })
+  }
+  return user.username ?? username
+}
+
 // Elimina la cuenta (pide la contraseña). Después, como al cerrar sesión, se
 // quitan de este celular los grupos y las partidas de grupo de la cuenta.
 export async function deleteAccount(password: string): Promise<void> {

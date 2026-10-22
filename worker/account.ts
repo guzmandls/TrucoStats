@@ -7,11 +7,13 @@ import {
   hashPassword,
   MAX_PASSWORD_LENGTH,
   MIN_PASSWORD_LENGTH,
+  normalizeUsername,
   randomHex,
   readBody,
   sameText,
   sha256,
   type User,
+  USERNAME_RULES,
 } from './users'
 
 // Comprueba la contraseña de una cuenta registrada.
@@ -120,4 +122,38 @@ export async function deleteAccount(
   // Las sesiones y los enlaces de correo se borran en cascada.
   await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run()
   return json({ ok: true })
+}
+
+// Cambia el usuario con el que se inicia sesión. No pide la contraseña (como el
+// correo): el usuario solo no da acceso a nada. Puede cambiar solo las
+// mayúsculas del propio ("guzman" → "Guzman").
+export async function changeUsername(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const user = await registeredUser(request, env)
+  if (user instanceof Response) {
+    return user
+  }
+  const body = await readBody(request)
+  const username = normalizeUsername(body?.username)
+  if (!username) {
+    return errorResponse(USERNAME_RULES, 400)
+  }
+  if (username === user.username) {
+    return errorResponse('Ese ya es tu usuario', 409)
+  }
+  if (
+    await env.DB.prepare(
+      'SELECT id FROM users WHERE username = ? COLLATE NOCASE AND id <> ?',
+    )
+      .bind(username, user.id)
+      .first()
+  ) {
+    return errorResponse('Ese usuario ya existe', 409)
+  }
+  await env.DB.prepare('UPDATE users SET username = ? WHERE id = ?')
+    .bind(username, user.id)
+    .run()
+  return json({ user: { ...user, username } })
 }

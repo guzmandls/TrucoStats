@@ -93,18 +93,17 @@ export async function requestPasswordReset(
 ): Promise<Response> {
   const body = await readBody(request)
   const identifier =
-    typeof body?.identifier === 'string'
-      ? body.identifier.trim().toLowerCase()
-      : ''
+    typeof body?.identifier === 'string' ? body.identifier.trim() : ''
   if (identifier === '' || identifier.length > 100) {
     return errorResponse('Escribe tu usuario o tu correo', 400)
   }
-  const column = identifier.includes('@') ? 'email' : 'username'
+  const byEmail = identifier.includes('@')
   const user = await env.DB.prepare(
     `SELECT id, username, email FROM users
-     WHERE ${column} = ? AND email IS NOT NULL AND password_hash IS NOT NULL`,
+     WHERE ${byEmail ? 'email = ?' : 'username = ? COLLATE NOCASE'}
+       AND email IS NOT NULL AND password_hash IS NOT NULL`,
   )
-    .bind(identifier)
+    .bind(byEmail ? identifier.toLowerCase() : identifier)
     .first<{ id: string; username: string; email: string }>()
 
   if (user && (await recentCount(user.id, 'reset', env)) < MAX_PER_HOUR) {

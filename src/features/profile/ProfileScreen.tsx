@@ -30,6 +30,7 @@ import { winRateColor } from '../matches/winRateColor'
 import { DeleteAccount } from './DeleteAccount'
 import { EmailSection } from './EmailSection'
 import { PasswordSection } from './PasswordSection'
+import { UsernameSection } from './UsernameSection'
 import { myMatches } from './myMatches'
 import styles from './ProfileScreen.module.css'
 
@@ -178,6 +179,7 @@ export function ProfileScreen() {
             </Section>
           </>
         )}
+        <UsernameSection />
         <EmailSection />
         <PasswordSection />
         <DeleteAccount />

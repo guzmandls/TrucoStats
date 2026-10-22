@@ -156,3 +156,51 @@ describe('POST /api/eliminar-cuenta', () => {
     ).toBe(404)
   })
 })
+
+describe('POST /api/usuario (cambiar el usuario)', () => {
+  it('cambia el usuario y se entra con el nuevo, sin importar mayúsculas', async () => {
+    const token = await registerTestUser(env, 'juan')
+
+    const response = await post('/api/usuario', { username: 'Guzman' }, token)
+
+    expect(response.status).toBe(200)
+    expect(
+      ((await response.json()) as { user: { username: string } }).user.username,
+    ).toBe('Guzman')
+    const byNew = await post('/api/sesion', {
+      identifier: 'guzman',
+      password: 'contraseña-segura',
+    })
+    expect(byNew.status).toBe(200)
+    expect(await login('contraseña-segura')).toBeNull() // 'juan' ya no existe
+  })
+
+  it('no deja usar el usuario de otra persona, aunque cambien las mayúsculas', async () => {
+    await registerTestUser(env, 'pedro')
+    const token = await registerTestUser(env, 'juan')
+
+    const response = await post('/api/usuario', { username: 'PEDRO' }, token)
+
+    expect(response.status).toBe(409)
+  })
+
+  it('permite cambiar solo las mayúsculas del propio', async () => {
+    const token = await registerTestUser(env, 'juan')
+
+    expect(
+      (await post('/api/usuario', { username: 'Juan' }, token)).status,
+    ).toBe(200)
+    expect(
+      (await post('/api/usuario', { username: 'Juan' }, token)).status,
+    ).toBe(409)
+  })
+
+  it('rechaza un usuario inválido y sin cuenta registrada responde 401', async () => {
+    const token = await registerTestUser(env, 'juan')
+
+    expect(
+      (await post('/api/usuario', { username: 'con espacio' }, token)).status,
+    ).toBe(400)
+    expect((await post('/api/usuario', { username: 'otro' })).status).toBe(401)
+  })
+})
