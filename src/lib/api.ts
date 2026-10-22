@@ -29,6 +29,8 @@ export async function apiRequest<T>(
       ...(token ? { authorization: `Bearer ${token}` } : {}),
       ...init.headers,
     },
+    // Siempre la respuesta actual del servidor, nunca una guardada.
+    cache: 'no-store',
     signal: AbortSignal.timeout(TIMEOUT_MS),
   })
   if (

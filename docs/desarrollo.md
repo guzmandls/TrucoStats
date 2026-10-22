@@ -1288,3 +1288,13 @@ primera que falla.
 - **Los tres puntitos de un nombre sin vínculo:** salían porque el celular recordaba "yo soy este integrante" de otra sesión. Con sesión iniciada manda el servidor (fuente de verdad), así que ese dato viejo se descarta.
 - **Probar de verdad:** esta vez se reprodujo el flujo con un servidor local y un Chrome real (enlace sin sesión, registro, unirse, cerrar sesión, volver al enlace, iniciar sesión, invitado que inicia sesión). Los tests de unidad no lo habían detectado.
 - **Versión visible:** se muestra la fecha de compilación al pie de la pantalla principal (Vite la inyecta con `define`), para distinguir "no se arregló" de "el celular tiene la app vieja".
+
+## Etapa 50 — La causa real: el service worker guardaba las respuestas de la API
+
+- **El error de fondo:** el service worker (`public/sw.js`) respondía "primero desde la caché" a todo pedido GET del sitio, incluidos los de `/api`. La primera respuesta de cada dirección (el grupo, sus partidas, las partidas en vivo) quedaba guardada y se devolvía para siempre. Por eso:
+  - el enlace decía "ya eres Beto" aunque se hubiera cerrado sesión (respuesta guardada de antes), y entraba directo al grupo;
+  - las partidas y las fotos de un celular no aparecían en el otro;
+  - las partidas en vivo no se actualizaban.
+- **Por qué no se vio antes:** en desarrollo (`npm run dev`) el service worker no se registra, y el Chrome de las pruebas automáticas no guarda bien en la caché. Solo pasaba en el sitio publicado.
+- **Arreglo:** el service worker ya no toca `/api`; la caché pasa a `trucostats-v2`, así la vieja (con datos viejos) se borra al activarse y las pestañas abiertas se recargan una vez. Además, el servidor responde con `Cache-Control: no-store` y la app pide con `cache: 'no-store'`.
+- **Concepto:** una caché es útil para lo que no cambia (los archivos de la app, que llevan un hash en el nombre); para datos que cambian y dependen de quién pide, la caché tiene que estar desactivada.
