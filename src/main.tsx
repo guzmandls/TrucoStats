@@ -3,6 +3,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import { migrateLegacyGame } from './features/counter/gameStorage'
+import { listenForInstall } from './features/install/install'
+
+// Antes de dibujar la app: el aviso de Android para instalar llega apenas carga.
+listenForInstall()
 
 migrateLegacyGame()
   .catch(() => undefined)

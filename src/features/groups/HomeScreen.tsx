@@ -12,6 +12,7 @@ import {
   ScreenFooter,
 } from '../../components/ui'
 import {
+  DownloadIcon,
   ExitIcon,
   GroupPlusIcon,
   LoginIcon,
@@ -19,6 +20,9 @@ import {
   UserPlusIcon,
 } from '../../components/Icons'
 import { logoutAccount } from '../auth/authApi'
+import { InstallCard } from '../install/InstallCard'
+import { useInstall } from '../install/install'
+import { useInstallAction } from '../install/useInstallAction'
 import { useSession, useSessionExpired } from '../../lib/session'
 import {
   QUICK_SLOT,
@@ -45,6 +49,18 @@ export function HomeScreen() {
   const loggedIn = session?.user.username != null
   const sessionExpired = useSessionExpired()
   const [confirmLogout, setConfirmLogout] = useState(false)
+  const { installed } = useInstall()
+  const installAction = useInstallAction()
+  // Mientras no esté instalada, el menú ofrece instalarla.
+  const installItem = installed
+    ? []
+    : [
+        {
+          label: 'Instalar app',
+          onClick: installAction.install,
+          icon: <DownloadIcon />,
+        },
+      ]
 
   const unsent = matches.filter(
     (match) => match.groupId !== null && isPending(match),
@@ -129,6 +145,7 @@ export function HomeScreen() {
                       to: '/crear-grupo',
                       icon: <GroupPlusIcon />,
                     },
+                    ...installItem,
                     {
                       label: 'Cerrar sesión',
                       onClick: () =>
@@ -160,6 +177,7 @@ export function HomeScreen() {
                             icon: <PersonIcon />,
                           },
                         ]),
+                    ...installItem,
                   ]
             }
           />
@@ -194,6 +212,7 @@ export function HomeScreen() {
             </ButtonLink>
           </div>
         )}
+        <InstallCard onInstall={installAction.install} />
         {groups.length === 0 ? (
           <EmptyNote>Aún no hay grupos</EmptyNote>
         ) : (
@@ -225,6 +244,7 @@ export function HomeScreen() {
           </ButtonLink>
         )}
       </ScreenFooter>
+      {installAction.dialog}
     </Screen>
   )
 }

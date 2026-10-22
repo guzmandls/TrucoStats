@@ -1438,3 +1438,11 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **Contador:** se quitó la línea central deslizable (y su doble toque). La zona de dibujo se desplaza con el dedo como cualquier lista. Con esto se descartó también el dibujo con gestos.
 - **Ícono:** nueva versión del "tS"; caché del service worker v4 para que los celulares lo actualicen.
 - **Probado** en Chrome simulando un iPhone instalado: la barra inferior queda en el mismo lugar antes y después de desplazar, la página nunca se mueve, el historial carga más partidas al bajar y las pestañas de estadísticas quedan fijas arriba.
+
+## Etapa 62 — Instalar la app más fácil
+
+- **Qué hace:** una tarjeta "Instala la app" en el inicio (con X para cerrarla), la opción "Instalar app" en el menú y la página `/instalar` para compartir por WhatsApp. Instalada, no aparece nada de esto.
+- **Android:** Chrome avisa que la app se puede instalar con el evento `beforeinstallprompt`. La app lo guarda al arrancar (llega una sola vez, apenas carga la página) y lo usa cuando la persona toca Instalar: se abre la instalación del sistema, de un toque. Si no está disponible o falla, se muestran los pasos del menú de Chrome.
+- **iPhone:** Apple no deja que una página se instale sola, así que solo se pueden mostrar los pasos (Compartir → Agregar a pantalla de inicio). Se aclara que desde el navegador interno de WhatsApp no se puede: hay que abrir el enlace en Safari.
+- **¿Ya está instalada?** Se sabe con `display-mode: standalone` (y `navigator.standalone` en iPhone).
+- **Un error que apareció probando:** si la instalación del sistema fallaba, el error quedaba sin atender y no pasaba nada al tocar. Ahora, si falla, se muestran los pasos.
