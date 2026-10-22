@@ -1481,3 +1481,9 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **Mayúsculas:** antes el usuario se pasaba a minúsculas al guardarlo, para que "Juan" y "juan" no fueran dos cuentas distintas. Ahora se guarda como se escribió y se *compara* sin distinguir mayúsculas. Así se logra lo mismo sin prohibirlas, y se puede entrar escribiéndolo de cualquier forma.
 - **Cómo:** en SQLite, `COLLATE NOCASE` hace que una comparación no distinga mayúsculas. La migración 0011 rehace el índice único del usuario con `COLLATE NOCASE`, para que la base misma impida "Guzman" y "guzman" a la vez, y las consultas de registro, inicio de sesión y recuperación usan `username = ? COLLATE NOCASE`. Los usuarios existentes ya estaban en minúsculas, así que no había repetidos.
 - **Servidor:** `POST /api/usuario` (`worker/account.ts`). Se puede cambiar solo las mayúsculas del propio ("guzman" → "Guzman").
+
+## Etapa 69 — Pantalla "Editar perfil"
+
+- **Qué cambió:** el perfil quedó solo con la foto y las estadísticas. Todo lo que se edita (foto, usuario, correo, contraseña y eliminar la cuenta) pasó a una pantalla aparte, "Editar perfil" (`/perfil/editar`). Se llega con el lápiz de la barra de arriba o tocando la foto. La foto del perfil ya no tiene la insignia del lápiz.
+- **La foto:** en "Editar perfil" se ve grande, con el botón "Cambiar foto". Tocarla la abre en pantalla completa (`PhotoViewer`: fondo negro, la imagen entera con `object-fit: contain`, y se cierra tocando, con la X o con Escape).
+- **Reutilizar en vez de copiar:** la lógica de "tu foto" (cuál es, de qué color es la silueta y cómo cambiarla en todos tus grupos) estaba dentro del perfil. Se movió a `profile/myPhoto.ts` para que la usen las dos pantallas.

@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { BackIcon } from '../../components/Icons'
+import { BackIcon, PencilIcon } from '../../components/Icons'
 import {
-  Button,
-  Dialog,
+  Avatar,
   EmptyNote,
   Figure,
   Figures,
@@ -15,23 +14,16 @@ import {
   StatRow,
   WinRateRing,
 } from '../../components/ui'
-import { avatarColors } from '../groups/avatar'
-import { EditableAvatar } from '../groups/EditableAvatar'
-import { fileToAvatarDataUrl, UNREADABLE_IMAGE } from '../groups/imageFile'
-import { shareAvatar } from '../groups/avatarSync'
-import { loadGroups, updateMemberAvatar } from '../groups/groupsStorage'
-import { PhotoDialog } from '../groups/PhotoDialog'
+import { isRegistered, useSession } from '../../lib/session'
+import { loadGroups } from '../groups/groupsStorage'
 import type { Group } from '../groups/types'
 import { loadMatches } from '../matches/matchesStorage'
 import { activeMatches } from '../matches/status'
 import { formatDuration, personalSummary } from '../matches/stats'
 import type { Match } from '../matches/types'
 import { winRateColor } from '../matches/winRateColor'
-import { DeleteAccount } from './DeleteAccount'
-import { EmailSection } from './EmailSection'
-import { PasswordSection } from './PasswordSection'
-import { UsernameSection } from './UsernameSection'
 import { myMatches } from './myMatches'
+import { myPhoto } from './myPhoto'
 import styles from './ProfileScreen.module.css'
 
 function percent(value: number | null): string {
@@ -46,9 +38,7 @@ export function ProfileScreen() {
   const navigate = useNavigate()
   const [matches, setMatches] = useState<Match[] | null>(null)
   const [groups, setGroups] = useState<Group[]>([])
-  const [editingPhoto, setEditingPhoto] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const [photoMessage, setPhotoMessage] = useState<string | null>(null)
+  const session = useSession()
   const groupCount = groups.length
 
   useEffect(() => {
@@ -69,38 +59,11 @@ export function ProfileScreen() {
     ? personalSummary(myMatches(activeMatches(matches), groups))
     : null
 
-  // Tu foto es la de tu integrante en cada grupo donde ya sabemos quién eres:
-  // cambiarla desde el perfil la cambia en todos.
-  const mine = groups.flatMap((group) => {
-    const member = group.members.find((item) => item.id === group.myMemberId)
-    return member ? [{ group, member }] : []
-  })
-  const first = mine[0]
-  const currentAvatar = mine.find((item) => item.member.avatar)?.member.avatar
-
-  async function applyPhoto(dataUrl: string | undefined) {
-    setBusy(true)
-    try {
-      const updated: Group[] = []
-      for (const { group, member } of mine) {
-        const next = await updateMemberAvatar(group, member.id, dataUrl)
-        updated.push(next)
-        // Si no llega al servidor, queda solo en este celular y se avisa.
-        const problem = await shareAvatar(next, member.id, dataUrl ?? null)
-        if (problem) {
-          setPhotoMessage(problem)
-        }
-      }
-      setGroups((previous) =>
-        previous.map(
-          (group) => updated.find((item) => item.id === group.id) ?? group,
-        ),
-      )
-      setEditingPhoto(false)
-    } finally {
-      setBusy(false)
-    }
-  }
+  const photo = myPhoto(groups)
+  // Hay algo para editar si se sabe quién eres en algún grupo (la foto) o si
+  // tienes una cuenta registrada (usuario, correo y contraseña).
+  const canEdit = photo !== null || isRegistered(session)
+  const edit = () => navigate('/perfil/editar')
 
   return (
     <Screen>
@@ -111,21 +74,31 @@ export function ProfileScreen() {
             <BackIcon />
           </HeaderIconButton>
         }
+        trailing={
+          canEdit ? (
+            <HeaderIconButton label="Editar perfil" onClick={edit}>
+              <PencilIcon />
+            </HeaderIconButton>
+          ) : undefined
+        }
       />
       <ScreenContent flush>
-        {first && (
+        {photo && (
           <div className={styles.photo}>
-            <EditableAvatar
-              name={first.member.name}
-              color={
-                avatarColors(first.group.members.map((item) => item.id))[
-                  first.member.id
-                ]
-              }
-              src={currentAvatar}
-              size={88}
-              onEdit={() => setEditingPhoto(true)}
-            />
+            {/* Tocar la foto lleva a editar el perfil. */}
+            <button
+              type="button"
+              className={styles.photoButton}
+              aria-label="Editar perfil"
+              onClick={edit}
+            >
+              <Avatar
+                name={photo.name}
+                color={photo.color}
+                src={photo.src}
+                size={88}
+              />
+            </button>
           </div>
         )}
 
@@ -179,33 +152,7 @@ export function ProfileScreen() {
             </Section>
           </>
         )}
-        <UsernameSection />
-        <EmailSection />
-        <PasswordSection />
-        <DeleteAccount />
       </ScreenContent>
-      {photoMessage && (
-        <Dialog title={photoMessage} onClose={() => setPhotoMessage(null)}>
-          <Button onClick={() => setPhotoMessage(null)}>Entendido</Button>
-        </Dialog>
-      )}
-      {editingPhoto && (
-        <PhotoDialog
-          hasPhoto={!!currentAvatar}
-          busy={busy}
-          onFile={(file) => {
-            void fileToAvatarDataUrl(file).then(
-              (dataUrl) => applyPhoto(dataUrl),
-              () => {
-                setEditingPhoto(false)
-                setPhotoMessage(UNREADABLE_IMAGE)
-              },
-            )
-          }}
-          onRemove={() => void applyPhoto(undefined)}
-          onClose={() => setEditingPhoto(false)}
-        />
-      )}
     </Screen>
   )
 }
