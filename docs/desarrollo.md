@@ -1353,3 +1353,14 @@ primera que falla.
 - **Qué cambió:** el nombre se escribe con t minúscula en todos lados: título de la pantalla de inicio, pestaña del navegador, nombre de la app instalada (`manifest.webmanifest` y `apple-mobile-web-app-title`), remitente y asunto de los correos, texto de la invitación y documentación.
 - **Lo que no se cambió:** el nombre del repositorio en GitHub, la carpeta del proyecto, la dirección `trucostats.guzmandls.workers.dev` y el comentario de la primera migración (las migraciones ya aplicadas no se tocan). Los nombres internos (`trucostats-db`, claves del navegador como `trucostats.session`) ya estaban en minúscula y no se ven.
 - **Ojo en el iPhone:** si la app ya está agregada a la pantalla de inicio, el nombre de debajo del ícono no se actualiza solo; hay que quitarla y volver a agregarla.
+
+## Etapa 57 — Repaso de diseño
+
+Se sacaron capturas de todas las pantallas y se listaron las diferencias entre ellas; el desarrollador eligió qué cambiar.
+
+- **Ficha del integrante y perfil:** muestran lo mismo, así que ahora se arman igual (foto arriba; anillo de % con victorias y jugadas; derrotas en la lista). Las dos van de borde a borde, como las estadísticas del grupo. Los bloques negros de cifras mantienen su margen en todas las pantallas.
+- **Detalle de CSS:** la regla que da margen a esos bloques en las pantallas de borde a borde pasó de `.contentFlush .figures` a `.contentFlush > .figures`. El `>` significa "solo hijos directos": así no se aplica a los bloques que están dentro de otra caja (la fila del anillo), que ya tiene su propio margen.
+- **Récords y equipos:** los títulos usan la misma letra negra que "Más larga", y lo de abajo lleva la barra negra vertical de las partidas (un componente chico, `RecordBody`, para no repetirla en cada tipo de récord).
+- **Nombres más livianos** en las tarjetas de grupo del inicio y en Participantes (grosor 700 en vez de 800, mismo tamaño).
+- **Control − / +** centrado también en Crear grupo.
+- **Quedaron igual, a pedido:** los campos de texto con su propio borde, el formato de fecha de los récords y el ranking individual.

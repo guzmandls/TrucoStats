@@ -43,7 +43,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--text-xl);
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: var(--tracking-tight);
 }
 

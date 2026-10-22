@@ -611,7 +611,8 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 ### 12.11. Bandas, bloques y tarjetas
 
 - El contraste entre zonas oscuras (negro con letra crema) y claras es parte de la identidad: cada pantalla tiene al menos una banda o bloque negro; no se diseña todo en crema y gris.
-- Cada sección de una pantalla (formularios, perfil, ficha) es una tarjeta con margen a los costados, borde redondeado y una banda negra de título con letra crema. En las estadísticas del grupo las pestañas y las secciones ocupan todo el ancho (bandas negras de borde a borde); solo los totales son bloques con margen.
+- Cada sección de un formulario es una tarjeta con margen a los costados, borde redondeado y una banda negra de título con letra crema. Las pantallas de estadísticas (estadísticas del grupo, ficha del integrante y perfil) van de borde a borde: las pestañas y las secciones ocupan todo el ancho; solo los totales (los bloques negros con cifras) son bloques con margen, en todas ellas.
+- La ficha del integrante y el perfil se arman igual: la foto arriba y centrada; debajo, el anillo del porcentaje de victorias junto a los bloques de victorias y jugadas; las derrotas van en la lista de abajo.
 - Los elementos que se tocan (grupos, participantes) tienen forma de botón: tarjeta con margen y una flecha ">" sobre fondo negro; no ocupan el ancho completo de la pantalla.
 - Las cifras principales (victorias, derrotas, jugadas, partidas, promedio) van en bloques negros con el número grande en crema y la etiqueta en mayúsculas.
 - Las pestañas ocupan todo el ancho, con la misma separación de la barra superior que las demás zonas: la activa va en crema y las demás en negro, y la activa lleva una línea negra arriba y abajo que la separa del crema que la rodea, y las líneas verticales entre las pestañas inactivas ocupan todo el alto de la barra.
@@ -619,6 +620,8 @@ Todo elemento que se toca mide al menos 44px de alto y de ancho (`--tap-min`).
 - La posición en un ranking se muestra en un cuadro negro con el número en crema.
 - Los grosores de línea siguen una jerarquía de tres niveles y no se usan otros: **3 px** para las divisiones estructurales entre zonas negras grandes (entre la barra superior, las pestañas y las bandas de título, y los separadores verticales de la barra superior y de las pestañas); **2 px** para contornos (tarjetas, recuadros, botones, controles); **1 px** para las divisiones finas dentro de una zona (filas de listas, separación entre equipos y entre puntajes, celdas y separadores de la grilla de enfrentamientos, donde las divisiones entre columnas y entre filas miden lo mismo y llegan de borde a borde).
 - En los récords de partidas (estadísticas) cada récord muestra su título y su dato (duración o diferencia) en la misma línea y con la misma letra; debajo va la misma tarjeta de partida del historial y, debajo de ella, solo la fecha.
+- Todos los títulos de récords (partidas, integrantes y equipos) usan la misma letra negra en mayúsculas, y lo que va debajo de cada título lleva al costado la misma barra negra vertical que las partidas.
+- El control de cantidad (− y +) va centrado en su sección.
 
 ---
 

@@ -8,8 +8,10 @@
   padding: var(--space-4);
 }
 
+/* Centrado, igual que el objetivo al iniciar una partida. */
 .quantityBody {
   display: flex;
+  justify-content: center;
   padding: var(--space-4);
 }
 

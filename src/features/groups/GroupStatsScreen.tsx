@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { BackIcon } from '../../components/Icons'
 import {
@@ -120,23 +120,25 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
     return (
       <div className={styles.recordItem}>
         <span className={styles.recordLabel}>{label}</span>
-        {stat ? (
-          <Link
-            to={`/grupo/${group.id}/participantes/${stat.id}`}
-            className={styles.recordMember}
-          >
-            <Avatar
-              name={stat.name}
-              color={colors[stat.id]}
-              src={member?.avatar}
-              size={32}
-            />
-            <span className={styles.recordName}>{stat.name}</span>
-            <span className={styles.recordValue}>{metric(stat)}</span>
-          </Link>
-        ) : (
-          <span className={styles.recordEmpty}>—</span>
-        )}
+        <RecordBody>
+          {stat ? (
+            <Link
+              to={`/grupo/${group.id}/participantes/${stat.id}`}
+              className={styles.recordMember}
+            >
+              <Avatar
+                name={stat.name}
+                color={colors[stat.id]}
+                src={member?.avatar}
+                size={32}
+              />
+              <span className={styles.recordName}>{stat.name}</span>
+              <span className={styles.recordValue}>{metric(stat)}</span>
+            </Link>
+          ) : (
+            <span className={styles.recordEmpty}>—</span>
+          )}
+        </RecordBody>
       </div>
     )
   }
@@ -158,17 +160,19 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
   const streakRow = (label: string, streak: StreakRecord | null) => (
     <div className={styles.recordItem}>
       <span className={styles.recordLabel}>{label}</span>
-      {streak ? (
-        <span className={styles.recordMember}>
-          {stackFor(streak.members.map((member) => member.id))}
-          <span className={styles.recordName}>
-            {joinNames(streak.members.map((member) => member.name))}
+      <RecordBody>
+        {streak ? (
+          <span className={styles.recordMember}>
+            {stackFor(streak.members.map((member) => member.id))}
+            <span className={styles.recordName}>
+              {joinNames(streak.members.map((member) => member.name))}
+            </span>
+            <span className={styles.recordValue}>{streak.count}</span>
           </span>
-          <span className={styles.recordValue}>{streak.count}</span>
-        </span>
-      ) : (
-        <span className={styles.recordEmpty}>—</span>
-      )}
+        ) : (
+          <span className={styles.recordEmpty}>—</span>
+        )}
+      </RecordBody>
     </div>
   )
 
@@ -180,11 +184,13 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
     return (
       <div className={styles.recordItem}>
         <span className={styles.recordLabel}>{label}</span>
-        <span className={styles.recordMember}>
-          {stackFor(team.ids)}
-          <span className={styles.recordName}>{names}</span>
-          <span className={styles.recordValue}>{team.winRate}%</span>
-        </span>
+        <RecordBody>
+          <span className={styles.recordMember}>
+            {stackFor(team.ids)}
+            <span className={styles.recordName}>{names}</span>
+            <span className={styles.recordValue}>{team.winRate}%</span>
+          </span>
+        </RecordBody>
       </div>
     )
   }
@@ -315,23 +321,25 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
           {summary.topRivalry && (
             <div className={styles.recordItem}>
               <span className={styles.recordLabel}>Rivalidad más repetida</span>
-              <span className={styles.recordMember}>
-                {stackFor(
-                  summary.topRivalry.members.map((member) => member.id),
-                )}
-                <span className={styles.recordName}>
-                  {summary.topRivalry.members[0].name}{' '}
-                  <span className={styles.matchVs}>vs</span>{' '}
-                  {summary.topRivalry.members[1].name}
+              <RecordBody>
+                <span className={styles.recordMember}>
+                  {stackFor(
+                    summary.topRivalry.members.map((member) => member.id),
+                  )}
+                  <span className={styles.recordName}>
+                    {summary.topRivalry.members[0].name}{' '}
+                    <span className={styles.matchVs}>vs</span>{' '}
+                    {summary.topRivalry.members[1].name}
+                  </span>
+                  <span className={styles.recordValue}>
+                    {summary.topRivalry.played}
+                  </span>
                 </span>
-                <span className={styles.recordValue}>
-                  {summary.topRivalry.played}
+                <span className={styles.recordMeta}>
+                  Victorias: {summary.topRivalry.wins[0]} –{' '}
+                  {summary.topRivalry.wins[1]}
                 </span>
-              </span>
-              <span className={styles.recordMeta}>
-                Victorias: {summary.topRivalry.wins[0]} –{' '}
-                {summary.topRivalry.wins[1]}
-              </span>
+              </RecordBody>
             </div>
           )}
         </div>
@@ -351,6 +359,17 @@ function GroupStats({ group, matches }: { group: Group; matches: Match[] }) {
         </Section>
       )}
     </>
+  )
+}
+
+// Lo que va debajo del título de un récord, con la barra negra al costado (la
+// misma que llevan las partidas).
+function RecordBody({ children }: { children: ReactNode }) {
+  return (
+    <div className={styles.recordBody}>
+      <span className={styles.recordFlag} aria-hidden="true" />
+      <div className={styles.recordContent}>{children}</div>
+    </div>
   )
 }
 
