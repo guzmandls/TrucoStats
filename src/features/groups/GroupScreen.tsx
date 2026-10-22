@@ -14,7 +14,6 @@ import {
   ChevronRightIcon,
   CloudOffIcon,
   PeopleIcon,
-  PencilIcon,
   SearchIcon,
   UserPlusIcon,
   ShareIcon,
@@ -463,6 +462,14 @@ export function GroupScreen() {
     <Screen>
       <PageHeader
         title={group.name}
+        // Tocar el nombre lo cambia: los administradores, o quien tiene un
+        // grupo que todavía no se compartió.
+        {...(isGroupAdmin(group) || !group.inviteCode
+          ? {
+              onTitleClick: () => setRenaming(true),
+              titleActionLabel: 'Cambiar nombre del grupo',
+            }
+          : {})}
         center={
           <span className={styles.headerInfo}>
             {pendingCount > 0 && (
@@ -505,16 +512,6 @@ export function GroupScreen() {
                 to: `/grupo/${group.id}/participantes`,
                 icon: <PeopleIcon />,
               },
-              // Un grupo que todavía no se compartió lo renombra quien lo tiene.
-              ...(isGroupAdmin(group) || !group.inviteCode
-                ? [
-                    {
-                      label: 'Cambiar nombre del grupo',
-                      onClick: () => setRenaming(true),
-                      icon: <PencilIcon />,
-                    },
-                  ]
-                : []),
               ...(isGroupAdmin(group) && group.inviteCode
                 ? [
                     {

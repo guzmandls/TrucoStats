@@ -889,3 +889,50 @@ describe('GroupScreen', () => {
     expect(loadMembership()).not.toContain('g1')
   })
 })
+
+describe('GroupScreen: cambiar el nombre tocándolo', () => {
+  beforeEach(async () => {
+    for (const existing of await loadGroups()) {
+      await deleteGroup(existing.id)
+    }
+    clearMembership()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('sin red')
+      }),
+    )
+  })
+
+  it('un administrador toca el nombre y se abre el cartel; ya no está en el menú', async () => {
+    await saveGroup({ ...group, inviteCode: 'c'.repeat(32), myMemberId: 'm1' })
+    renderGroup()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Cambiar nombre del grupo' }),
+    )
+    expect(
+      screen.getByRole('dialog', { name: 'Cambiar nombre del grupo' }),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Nombre del grupo')).toHaveValue(
+      'Los del truco',
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
+    expect(await screen.findByText('Estadísticas')).toBeInTheDocument()
+    expect(screen.queryByText('Cambiar nombre del grupo')).toBeNull()
+  })
+
+  it('quien no es administrador ve el nombre, pero no lo puede tocar', async () => {
+    await saveGroup({ ...group, inviteCode: 'c'.repeat(32), myMemberId: 'm2' })
+    renderGroup()
+
+    expect(
+      await screen.findByRole('heading', { name: 'Los del truco' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Cambiar nombre del grupo' }),
+    ).toBeNull()
+  })
+})
