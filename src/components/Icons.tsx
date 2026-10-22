@@ -409,7 +409,7 @@ export function ShieldIcon({ size = 22 }: IconProps) {
         d="M12 3 4.5 6v5.5c0 4.6 3.1 8.2 7.5 9.5 4.4-1.3 7.5-4.9 7.5-9.5V6L12 3Z"
         fill="currentColor"
         stroke="none"
-        transform="translate(12 12) scale(0.52) translate(-12 -12)"
+        transform="translate(12 12) scale(0.7) translate(-12 -12)"
       />
     </svg>
   )
