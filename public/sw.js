@@ -1,6 +1,8 @@
 // Cambiar el nombre borra la caché anterior al activarse. v1 guardaba también
-// respuestas de /api (y las devolvía viejas para siempre): v2 la descarta.
-const CACHE = 'trucostats-v2'
+// respuestas de /api (y las devolvía viejas para siempre): v2 la descarta. v3:
+// íconos nuevos (los archivos sin huella en el nombre, como los íconos, quedan
+// guardados hasta que cambia este nombre).
+const CACHE = 'trucostats-v3'
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest']
 
 self.addEventListener('install', (event) => {

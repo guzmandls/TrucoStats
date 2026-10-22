@@ -82,6 +82,7 @@ describe('service worker', () => {
     const { listeners, deleted, navigated } = loadServiceWorker([
       'trucostats-v1',
       'trucostats-v2',
+      'trucostats-v3',
     ])
     let done: Promise<unknown> = Promise.resolve()
     listeners.activate({
@@ -90,12 +91,12 @@ describe('service worker', () => {
       },
     })
     await done
-    expect(deleted).toEqual(['trucostats-v1'])
+    expect(deleted).toEqual(['trucostats-v1', 'trucostats-v2'])
     expect(navigated).toEqual(['https://trucostats.test/grupo/g1'])
   })
 
   it('si no había caché vieja no recarga nada', async () => {
-    const { listeners, navigated } = loadServiceWorker(['trucostats-v2'])
+    const { listeners, navigated } = loadServiceWorker(['trucostats-v3'])
     let done: Promise<unknown> = Promise.resolve()
     listeners.activate({
       waitUntil: (promise: Promise<unknown>) => {

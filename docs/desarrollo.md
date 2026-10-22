@@ -1374,3 +1374,10 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **Por qué importaba además de la velocidad:** antes cada actualización leía todas las partidas del grupo. El plan gratuito de D1 permite 5 millones de filas leídas por día; con un historial grande y varios celulares con el grupo abierto se podía llegar al límite. Ahora una actualización sin cambios lee unas 4 filas.
 - **Actualización cada 5 s** (antes 10), porque ahora cuesta casi nada.
 - **Probado:** tests del servidor (la versión sube con cada tipo de cambio, 304, otra cuenta no reutiliza la versión, quien no es integrante recibe 403) y del cliente; y en Chrome: sin cambios llegan 304 cada 5 s y una partida enviada desde otro celular aparece en ≤5 s.
+
+## Etapa 59 — Ícono propio de la app
+
+- **Qué cambió:** el ícono es ahora el "tS" que diseñó el desarrollador (`public/app-icon.svg`). Antes era el cuadrado con diagonal del contador.
+- **Cómo se generan los tamaños:** `npm run icons` corre `@vite-pwa/assets-generator` con la configuración de `pwa-assets.config.ts` y crea, desde el SVG, el favicon, los PNG de 64/192/512, el de Apple (180) y el "maskable". Si el ícono cambia, se reemplaza el SVG y se vuelve a correr.
+- **Maskable:** Android recorta los íconos en círculo u otras formas y solo garantiza el 80% del centro. Por eso esa versión achica el dibujo (35% de margen) y completa con el mismo negro; las demás van sin margen porque el diseño ya es un cuadrado negro.
+- **Caché del service worker (v3):** los íconos no tienen una huella en el nombre (como `index-abc123.js`), así que el service worker los guardaba para siempre. Cambiar el nombre de la caché hace que cada celular descarte la vieja una vez y baje los íconos nuevos.
