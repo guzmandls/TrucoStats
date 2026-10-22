@@ -7,9 +7,23 @@
   padding: var(--space-4);
 }
 
-/* Tu foto, arriba y centrada; al tocarla se edita. */
+/* Tu foto, arriba y centrada; al tocarla se abre "Editar perfil". */
 .photo {
   display: flex;
   justify-content: center;
   padding: var(--space-4) var(--space-4) 0;
+}
+
+.photoButton {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.photoButton:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: 3px;
 }

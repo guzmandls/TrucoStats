@@ -1,11 +1,5 @@
 import 'fake-indexeddb/auto'
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
@@ -44,6 +38,7 @@ function renderProfile() {
       <Routes>
         <Route path="/perfil" element={<ProfileScreen />} />
         <Route path="/" element={<div>inicio</div>} />
+        <Route path="/perfil/editar" element={<div>editar perfil</div>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -145,7 +140,7 @@ describe('foto del perfil', () => {
     }
   })
 
-  it('sin grupos donde se sepa quién eres no hay foto para editar', async () => {
+  it('sin grupos donde se sepa quién eres ni cuenta, no hay nada para editar', async () => {
     await saveGroup({
       ...group,
       inviteCode: undefined,
@@ -155,38 +150,20 @@ describe('foto del perfil', () => {
     renderProfile()
 
     await screen.findByText('Todavía no jugaste ninguna partida')
-    expect(screen.queryByRole('button', { name: 'Editar foto' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Editar perfil' })).toBeNull()
   })
 
-  it('al tocar tu foto se edita y se quita en todos tus grupos', async () => {
-    await saveGroup({
-      ...group,
-      myMemberId: 'm1',
-      members: [
-        { id: 'm1', name: 'Juan', avatar: 'data:image/jpeg;base64,AAA' },
-      ],
-    })
-    await saveGroup({
-      ...group,
-      id: 'g2',
-      name: 'Otros',
-      myMemberId: 'm1',
-      members: [
-        { id: 'm1', name: 'Juan', avatar: 'data:image/jpeg;base64,AAA' },
-      ],
-    })
+  it('el lápiz y la foto llevan a Editar perfil', async () => {
+    await saveGroup({ ...group, myMemberId: 'm1' })
     renderProfile()
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Editar foto' }))
-    const dialog = await screen.findByRole('dialog')
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Quitar foto' }))
-
-    await waitFor(async () => {
-      const groups = await loadGroups()
-      expect(groups.map((item) => item.members[0].avatar)).toEqual([
-        undefined,
-        undefined,
-      ])
+    const buttons = await screen.findAllByRole('button', {
+      name: 'Editar perfil',
     })
+    // El lápiz de la barra y la foto.
+    expect(buttons).toHaveLength(2)
+    expect(screen.queryByRole('button', { name: 'Editar foto' })).toBeNull()
+    fireEvent.click(buttons[1])
+    expect(await screen.findByText('editar perfil')).toBeInTheDocument()
   })
 })
