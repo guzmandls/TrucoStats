@@ -1341,3 +1341,9 @@ primera que falla.
 - **Cómo se hizo:** cada trazo es un `<path>` SVG con `pathLength="1"`: así la animación (`stroke-dasharray` + `stroke-dashoffset`) sirve igual para los lados (largo 32) y para la diagonal (largo 45), sin calcular largos. Las puntas son cuadradas (`stroke-linecap: square`) para que los lados se encuentren en esquinas rectas; la diagonal usa punta plana para no sobresalir del cuadrado.
 - **Cuándo se anima:** el gancho `useJustDrawn` compara los puntos con los de la vez anterior y solo anima si subieron de a uno. Por eso no se anima al abrir una partida empezada, al deshacer, ni cuando se ve una partida en vivo que saltó varios puntos. Respeta "reducir animaciones" del sistema (`prefers-reduced-motion`).
 - **Lo que no se tocó:** los botones de sumar y deshacer, la cabecera y el marcador quedaron igual, a pedido.
+
+## Etapa 55 — Estadísticas individuales ordenadas por puntos
+
+- **Qué cambió:** la pestaña "Individuales" ordenaba por porcentaje de victorias; ahora ordena por puntos, igual que el podio. Así alguien que ganó 1 de 1 (100%) ya no queda arriba de quien ganó 6 de 9.
+- **Cómo:** el criterio de orden quedó en una sola función (`byRanking`, en `groupStats.ts`) que usan el podio y la lista. Tener el orden en un solo lugar evita que las dos pantallas se contradigan si algún día cambia.
+- **Prueba:** un caso donde el porcentaje y los puntos dan órdenes distintos; falla con el código anterior y pasa con el nuevo.
