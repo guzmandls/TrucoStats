@@ -262,3 +262,28 @@ export async function setMemberAdmin(
     .run()
   return json({ ok: true })
 }
+
+// Cambia el nombre del grupo. Solo los administradores; los demás lo ven en la
+// próxima actualización.
+export async function renameGroup(
+  inviteCode: string,
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const context = await requireAdmin(inviteCode, request, env)
+  if (context instanceof Response) {
+    return context
+  }
+  const fields = await readBody(request)
+  if (!isNonEmptyString(fields.name, MAX_NAME_LENGTH)) {
+    return errorResponse(
+      `El nombre es obligatorio (hasta ${MAX_NAME_LENGTH} caracteres)`,
+      400,
+    )
+  }
+  const name = fields.name.trim()
+  await env.DB.prepare('UPDATE groups SET name = ? WHERE id = ?')
+    .bind(name, context.groupId)
+    .run()
+  return json({ name })
+}

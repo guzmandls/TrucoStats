@@ -265,3 +265,48 @@ describe('PUT /integrantes/:id/administrador', () => {
     ).toBe(400)
   })
 })
+
+describe('PATCH /api/grupos/:código (cambiar el nombre)', () => {
+  it('un administrador cambia el nombre y los demás lo ven', async () => {
+    const response = await send(
+      'PATCH',
+      `/api/grupos/${code}`,
+      { name: '  Los del jueves ' },
+      adminToken,
+    )
+
+    expect(response.status).toBe(200)
+    expect(await response.json()).toEqual({ name: 'Los del jueves' })
+    const seen = await send('GET', `/api/grupos/${code}`, undefined, pedroToken)
+    expect(
+      ((await seen.json()) as { group: { name: string } }).group.name,
+    ).toBe('Los del jueves')
+  })
+
+  it('un integrante que no es administrador no puede', async () => {
+    const response = await send(
+      'PATCH',
+      `/api/grupos/${code}`,
+      { name: 'Otro' },
+      pedroToken,
+    )
+
+    expect(response.status).toBe(403)
+    expect(
+      ((await readGroup()) as unknown as { group: { name: string } }).group
+        .name,
+    ).toBe('Los pibes')
+  })
+
+  it('rechaza un nombre vacío o demasiado largo', async () => {
+    for (const name of ['   ', 'x'.repeat(21)]) {
+      const response = await send(
+        'PATCH',
+        `/api/grupos/${code}`,
+        { name },
+        adminToken,
+      )
+      expect(response.status).toBe(400)
+    }
+  })
+})

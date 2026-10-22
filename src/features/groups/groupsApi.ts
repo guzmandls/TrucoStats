@@ -172,6 +172,18 @@ export async function renameRemoteMember(
   })
 }
 
+// Cambia el nombre del grupo (solo administradores).
+export async function renameRemoteGroup(
+  inviteCode: string,
+  name: string,
+): Promise<string> {
+  const response = await patchJson<{ name: string }>(
+    `/api/grupos/${inviteCode}`,
+    { name },
+  )
+  return response.name
+}
+
 // Cambia los apodos de un integrante (reemplaza la lista completa).
 export async function setRemoteAliases(
   inviteCode: string,

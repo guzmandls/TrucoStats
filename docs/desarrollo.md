@@ -1455,3 +1455,9 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 
 - La tarjeta del inicio usa el mismo texto que `/instalar`: "Agrega trucoStats a tu pantalla de inicio y úsala como cualquier app."
 - En los pasos del iPhone, la opción se llama **"Agregar a Inicio"** (así aparece en el menú Compartir de Safari en iOS 26) y puede estar escondida detrás de **"Ver más"**. Antes decía "Agregar a pantalla de inicio", el nombre de versiones anteriores de iOS; se corrigió con una captura del teléfono del desarrollador.
+
+## Etapa 65 — Cambiar el nombre del grupo
+
+- **Qué hace:** "Cambiar nombre del grupo" en el menú del grupo, solo para administradores. Abre un cartel con el nombre actual; al guardar se cambia en el servidor y en el celular, y los demás lo ven en la próxima actualización (5 s).
+- **Servidor:** `PATCH /api/grupos/:código` con `{ name }`, que comprueba que sea administrador (`requireAdmin`, igual que agregar integrantes). La versión del grupo sube sola gracias al disparador de la migración 0010, que ya contemplaba los cambios de nombre; por eso los demás celulares reciben el cambio sin tocar nada más.
+- **Grupo sin compartir:** si todavía no está en el servidor, se renombra solo en el celular, sin conexión.
