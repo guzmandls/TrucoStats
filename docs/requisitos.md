@@ -8,6 +8,13 @@ El ícono de la app es "tS" en crema sobre fondo negro (diseño del desarrollado
 
 La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla completa. La zona de la hora, la señal y la batería queda en una franja negra fija; la app empieza debajo de ella y la barra inferior llega hasta el borde de abajo, dejando lugar a la barra de inicio del teléfono. En todas las pantallas la cabecera y la barra inferior quedan fijas: solo se desplaza el contenido del medio, sin barras de desplazamiento visibles y sin que la pantalla entera rebote. Mantener apretado un botón no selecciona texto (solo se puede seleccionar dentro de los campos de texto).
 
+**Instalar la app**
+
+- Abierta en el navegador (sin instalar), el inicio muestra una tarjeta "Instala la app" con un botón Instalar y una X para cerrarla; cerrada, no vuelve a aparecer. El menú del inicio tiene además la opción "Instalar app". Instalada, no se muestra ninguna de las dos.
+- En Android, si el navegador lo permite, Instalar abre la instalación del sistema. Si no (o en iPhone, donde Apple no lo permite), muestra los pasos numerados: en iPhone, Compartir → "Agregar a pantalla de inicio" → dejar activado "Abrir como app web"; en Android, menú ⋮ → "Instalar app". Siempre se aclara que, si el enlace se abrió desde WhatsApp u otra app, hay que abrirlo primero en Safari o Chrome.
+- La página `/instalar` es el enlace para compartir: muestra lo que corresponde al teléfono de quien la abre.
+- Quien entra por un enlace de invitación a un grupo ve la tarjeta al llegar al inicio.
+
 Inicialmente estará destinada a un grupo de aproximadamente 15 amigos, pero se diseñará para que otros grupos puedan utilizarla en el futuro.
 
 El objetivo es ofrecer un contador sencillo, rápido y similar al conteo tradicional en papel, incorporando historial y estadísticas.

@@ -14,6 +14,7 @@ import { ParticipantsScreen } from './features/groups/ParticipantsScreen'
 import { ProfileScreen } from './features/profile/ProfileScreen'
 import { StartGroupGameScreen } from './features/groups/StartGroupGameScreen'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { InstallScreen } from './features/install/InstallScreen'
 
 function App() {
   return (
@@ -47,6 +48,7 @@ function App() {
           element={<MemberScreen />}
         />
         <Route path="/perfil" element={<ProfileScreen />} />
+        <Route path="/instalar" element={<InstallScreen />} />
         <Route path="*" element={<HomeScreen />} />
       </Routes>
     </BrowserRouter>

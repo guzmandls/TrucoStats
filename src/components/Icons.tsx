@@ -194,6 +194,28 @@ export function ShareIcon({ size = 22 }: IconProps) {
   )
 }
 
+// Instalar la app: flecha hacia abajo sobre una bandeja.
+export function DownloadIcon({ size = 22 }: IconProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.8}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d="M12 3v12" />
+      <path d="M7.5 10.5 12 15l4.5-4.5" />
+      <path d="M5 17v2a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2" />
+    </svg>
+  )
+}
+
 // Trofeo del ranking: dorado el 1º, plateado el 2º y bronce el 3º.
 export function TrophyIcon({
   place,
