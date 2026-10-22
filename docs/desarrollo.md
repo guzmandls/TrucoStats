@@ -1,5 +1,43 @@
 # trucoStats — Desarrollo
 
+## Versión 1 completa (22/10/2026) — resumen
+
+Este documento es el diario de aprendizaje: cada etapa cuenta qué se hizo y por qué. Este resumen da el panorama de cómo quedó la primera versión.
+
+**Qué hace la app**
+
+- Contador de truco con el sistema de cuadrados (botones N y E, deshacer, cronómetro con pausa).
+- Partidas rápidas (solo en el celular) y partidas de grupo (compartidas).
+- Grupos con integrantes, administradores, invitados, apodos, fotos e invitación por enlace.
+- Historial con búsqueda, cancelación y restauración de partidas, y el historial de cambios de cada una.
+- Estadísticas del grupo (podio, récords, ranking por puntos, enfrentamientos) y perfil personal.
+- Partidas en vivo: los demás integrantes miran el marcador mientras se juega.
+- Cuentas con usuario y contraseña, recuperación por correo y sesión en varios celulares.
+- Se instala como app desde el navegador (iPhone y Android) y funciona sin conexión.
+
+**Cómo está armada**
+
+- **Frontend** (`src/`): React + TypeScript con Vite. Cada funcionalidad tiene su carpeta en `src/features/` (contador, grupos, partidas, cuentas, perfil); los componentes compartidos están en `src/components/ui.tsx`, y el sistema de diseño (colores, espacios, letras, grosores de línea) en `src/index.css`.
+- **Datos en el celular:** IndexedDB guarda grupos, partidas y la partida en curso, por eso se puede contar sin conexión. La sesión va en localStorage.
+- **Servidor** (`worker/`): un Cloudflare Worker con la API (`/api/...`) y la base de datos D1 (SQLite). El Worker corre junto a la base, en el este de EE.UU. (Etapa 58).
+- **Sincronización:** las partidas se guardan primero en el celular y después se envían. Mientras el grupo está abierto, cada 5 s se trae lo nuevo; si nada cambió, el servidor responde 304 sin leer ni mandar nada (Etapa 58).
+- **Offline e instalación:** service worker (`public/sw.js`) y manifiesto. Nunca guarda respuestas de la API (Etapa 50).
+- **Correos:** Brevo, con la clave como secreto del Worker (Etapa 53).
+
+**Cómo se trabaja**
+
+- Una rama por funcionalidad → pull request → merge → borrar la rama.
+- Antes de cada merge: `npm run test:run`, `npm run lint` y `prettier --check .`. Hay unas 740 pruebas, del frontend y del servidor.
+- Para publicar: primero las migraciones nuevas (`npx wrangler d1 migrations apply trucostats-db --remote`), después `npm run deploy` y por último comprobar `/api/salud`.
+- Para cambiar el ícono: reemplazar `public/app-icon.svg`, correr `npm run icons` y cambiar el nombre de la caché en `public/sw.js`.
+- Lo que quedó pendiente y las ideas a futuro (tiendas, anuncios, liga global, torneos) están en `docs/pendientes.md`.
+
+**Lecciones que dejó**
+
+- No dar algo por arreglado sin reproducir el caso real: el error más largo (grupos y sesiones que no se actualizaban entre celulares) era el service worker, que guardaba respuestas de la API (Etapa 50).
+- Medir antes de optimizar: la lentitud no era el código sino la distancia entre el servidor y la base (Etapa 58).
+- Probar como lo usa la gente: instalada a pantalla completa, la app se comportaba distinto que en Safari (Etapas 60 y 61).
+
 ## Etapa 0 — Preparación del proyecto
 
 Hecho:
