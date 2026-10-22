@@ -73,7 +73,7 @@ export async function hashPassword(
 
 // Compara sin cortar en el primer carácter distinto, para no filtrar datos
 // por el tiempo de respuesta.
-function sameText(a: string, b: string): boolean {
+export function sameText(a: string, b: string): boolean {
   if (a.length !== b.length) {
     return false
   }
@@ -127,7 +127,7 @@ export async function openSession(userId: string, env: Env): Promise<string> {
   return token
 }
 
-function bearerToken(request: Request): string | null {
+export function bearerToken(request: Request): string | null {
   const header = request.headers.get('authorization') ?? ''
   const match = /^Bearer ([0-9a-f]{64})$/.exec(header)
   return match ? match[1] : null

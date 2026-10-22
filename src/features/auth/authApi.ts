@@ -60,6 +60,15 @@ export async function resetPassword(
   await restoreAccountGroups()
 }
 
+// Cambia la contraseña con la sesión iniciada (pide la actual). Este celular
+// sigue con la sesión; en los demás se cierra.
+export async function changePassword(
+  current: string,
+  password: string,
+): Promise<void> {
+  await postJson('/api/contrasena', { current, password })
+}
+
 // Pide guardar un correo nuevo: se manda un enlace de confirmación a esa dirección.
 export async function requestEmailChange(email: string): Promise<void> {
   await postJson('/api/correo', { email })

@@ -1,3 +1,4 @@
+import { changePassword } from './account'
 import {
   createGroup,
   getGroupByInviteCode,
@@ -78,6 +79,7 @@ export default {
       '/api/restablecer': resetPassword,
       '/api/correo': requestEmailChange,
       '/api/correo/confirmar': confirmEmail,
+      '/api/contrasena': changePassword,
     }
     if (pathname in emailRoutes) {
       return request.method === 'POST'
