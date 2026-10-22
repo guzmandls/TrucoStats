@@ -1,4 +1,4 @@
-import { changePassword } from './account'
+import { changePassword, deleteAccount } from './account'
 import {
   createGroup,
   getGroupByInviteCode,
@@ -80,6 +80,7 @@ export default {
       '/api/correo': requestEmailChange,
       '/api/correo/confirmar': confirmEmail,
       '/api/contrasena': changePassword,
+      '/api/eliminar-cuenta': deleteAccount,
     }
     if (pathname in emailRoutes) {
       return request.method === 'POST'

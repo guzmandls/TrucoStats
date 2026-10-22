@@ -1,8 +1,15 @@
 import 'fake-indexeddb/auto'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { clearSession, getSession, saveSession } from '../../lib/session'
+import { DeleteAccount } from '../profile/DeleteAccount'
 import { EmailSection } from '../profile/EmailSection'
 import { PasswordSection } from '../profile/PasswordSection'
 import { AuthScreen } from './AuthScreen'
@@ -371,5 +378,54 @@ describe('PasswordSection (perfil)', () => {
       'La contraseña actual no es correcta',
     )
     expect(getSession()).not.toBeNull()
+  })
+})
+
+describe('DeleteAccount (perfil)', () => {
+  function renderInProfile() {
+    return renderAt('/perfil', <DeleteAccount />, '/perfil')
+  }
+
+  it('pide la contraseña, borra la cuenta y vuelve al inicio sin sesión', async () => {
+    saveSession(account)
+    const calls = stubServer(() => json({ ok: true }))
+    renderInProfile()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar cuenta' }))
+    expect(
+      await screen.findByRole('dialog', { name: '¿Eliminar tu cuenta?' }),
+    ).toBeInTheDocument()
+    fill('Contraseña', 'mi-contraseña')
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: 'Eliminar cuenta',
+      }),
+    )
+
+    expect(await screen.findByTestId('location')).toHaveTextContent('/')
+    expect(calls).toEqual([
+      { url: '/api/eliminar-cuenta', body: { password: 'mi-contraseña' } },
+    ])
+    expect(getSession()).toBeNull()
+  })
+
+  it('con la contraseña equivocada lo dice y no cierra la sesión', async () => {
+    saveSession(account)
+    stubServer(() => json({ error: 'La contraseña no es correcta' }, 403))
+    renderInProfile()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar cuenta' }))
+    const dialog = await screen.findByRole('dialog')
+    fill('Contraseña', 'equivocada')
+    fireEvent.click(
+      within(dialog).getByRole('button', {
+        name: 'Eliminar cuenta',
+      }),
+    )
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'La contraseña no es correcta',
+    )
+    expect(getSession()?.user.username).toBe('juan')
   })
 })

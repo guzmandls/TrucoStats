@@ -1,5 +1,6 @@
 import type { Env } from './groups'
 import { errorResponse, json } from './http'
+import { leaveAs } from './leave'
 import {
   authenticate,
   bearerToken,
@@ -88,5 +89,35 @@ export async function changePassword(
       "DELETE FROM email_tokens WHERE user_id = ? AND purpose = 'reset'",
     ).bind(user.id),
   ])
+  return json({ ok: true })
+}
+
+// Elimina la cuenta: pide la contraseña. Sale de todos sus grupos como con
+// "Salir del grupo" (su integrante queda libre y sus partidas siguen contando
+// para los demás; si era el único integrante, el grupo se elimina) y después se
+// borra la cuenta, con sus sesiones y enlaces de correo.
+export async function deleteAccount(
+  request: Request,
+  env: Env,
+): Promise<Response> {
+  const user = await registeredUser(request, env)
+  if (user instanceof Response) {
+    return user
+  }
+  const body = await readBody(request)
+  if (!(await checkPassword(user.id, body?.password, env))) {
+    return errorResponse('La contraseña no es correcta', 403)
+  }
+
+  const { results } = await env.DB.prepare(
+    'SELECT id, group_id FROM members WHERE user_id = ?',
+  )
+    .bind(user.id)
+    .all<{ id: string; group_id: string }>()
+  for (const member of results) {
+    await leaveAs(member.group_id, member.id, env)
+  }
+  // Las sesiones y los enlaces de correo se borran en cascada.
+  await env.DB.prepare('DELETE FROM users WHERE id = ?').bind(user.id).run()
   return json({ ok: true })
 }
