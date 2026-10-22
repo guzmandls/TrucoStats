@@ -1510,3 +1510,8 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 
 - La animación de inicio no se veía en el iPhone del desarrollador, y el logo completo centrado le gustó como estaba. Se sacó la animación y todo lo que existía solo para ella (recortes, máscara, el reloj del SVG y la variante para "reducir movimiento").
 - Quedó lo simple: en `index.html`, el logo fijo sobre negro mientras carga la app; cuando la app ya se dibujó, `finishSplash` lo desvanece (0,2 s) y lo elimina. No espera nada más.
+
+## Etapa 74 — Íconos de Participantes y del escudo
+
+- **Participantes:** la segunda persona tenía solo medio hombro dibujado y se veía rara. Ahora es una figura asomando detrás de la primera, con la cabeza y el hombro completos.
+- **Escudo de administrador:** la tilde lo hacía parecer un símbolo de "verificado". Ahora es un contorno con un escudo lleno más chico adentro, separados por el color de fondo. El de adentro es el mismo dibujo, achicado con `transform` (`scale`) alrededor del centro: así las proporciones coinciden siempre.
