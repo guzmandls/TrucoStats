@@ -78,7 +78,7 @@ import styles from './GroupScreen.module.css'
 
 const POINTS_DELTA_KEY = 'trucostats:pointsDelta'
 // Cada cuánto se sincroniza el grupo mientras está abierto.
-const SYNC_INTERVAL_MS = 10_000
+const SYNC_INTERVAL_MS = 5_000
 
 function readPointsDelta(): string | null {
   try {

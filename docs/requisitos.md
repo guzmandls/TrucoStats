@@ -454,7 +454,7 @@ trucoStats tendrá un funcionamiento offline-first.
 - Permitirá finalizar partidas y guardar sus resultados localmente.
 - Permitirá consultar el historial y las estadísticas disponibles en el dispositivo.
 - Los datos pendientes se sincronizarán cuando vuelva a existir conexión.
-- La sincronización se intentará al recuperar la conexión y al volver a abrir la aplicación. Mientras la pantalla de un grupo está abierta, además, se sincroniza cada 10 segundos y al volver a la app desde otra, para ver las partidas que registraron los demás.
+- La sincronización se intentará al recuperar la conexión y al volver a abrir la aplicación. Mientras la pantalla de un grupo está abierta, además, se sincroniza cada 5 segundos y al volver a la app desde otra, para ver las partidas que registraron los demás. Si nada cambió, el servidor responde "sin cambios" sin volver a mandar el grupo ni las partidas.
 - Se mostrará claramente si existen partidas pendientes de sincronización. Si no se pueden enviar, la pantalla del grupo dice por qué (sin sesión, cuenta sin vincular a un integrante, servidor sin respuesta o sin conexión) y ofrece "Reintentar"; un fallo nunca pasa en silencio.
 - Los cambios del grupo (nombres, fotos, integrantes, apodos) se traen aunque las partidas no se puedan traer.
 - Si la foto propia no llega al servidor (sin conexión o sin vínculo), la app lo avisa, la conserva en el celular y reintenta enviarla en cada sincronización sin que lo que dice el servidor la pise.

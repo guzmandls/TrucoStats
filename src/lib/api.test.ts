@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { ApiError, apiRequest, postJson } from './api'
+import { ApiError, apiRequest, getVersioned, postJson } from './api'
 import { clearSession, saveSession } from './session'
 
 function mockFetch(response: Response | Error) {
@@ -147,5 +147,58 @@ describe('sesión vencida', () => {
     saveSession(session)
 
     expect(localStorage.getItem('trucostats.sessionExpired')).toBeNull()
+  })
+})
+
+describe('getVersioned', () => {
+  const session = (token: string) => ({
+    token,
+    user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+  })
+
+  // Un servidor que responde 304 si le mandan la versión actual.
+  function versionedServer(versions: { tag: string; body: unknown }[]) {
+    let current = 0
+    const sent: (string | null)[] = []
+    const fetchMock = vi.fn(async (_path: string, init: RequestInit = {}) => {
+      const tag = new Headers(init.headers).get('if-none-match')
+      sent.push(tag)
+      const { tag: now, body } = versions[current]
+      return tag === now
+        ? new Response(null, { status: 304, headers: { etag: now } })
+        : new Response(JSON.stringify(body), { headers: { etag: now } })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return { sent, change: () => (current += 1) }
+  }
+
+  afterEach(() => clearSession())
+
+  it('manda la versión que tiene y, si no cambió, usa la respuesta guardada', async () => {
+    saveSession(session('a'.repeat(64)))
+    const server = versionedServer([
+      { tag: 'W/"1"', body: { matches: [1] } },
+      { tag: 'W/"2"', body: { matches: [1, 2] } },
+    ])
+    const path = `/api/grupos/${'c'.repeat(32)}/partidas`
+
+    expect(await getVersioned(path)).toEqual({ matches: [1] })
+    expect(await getVersioned(path)).toEqual({ matches: [1] })
+    server.change()
+    expect(await getVersioned(path)).toEqual({ matches: [1, 2] })
+
+    expect(server.sent).toEqual([null, 'W/"1"', 'W/"1"'])
+  })
+
+  it('con otra sesión no usa lo guardado de la anterior', async () => {
+    saveSession(session('a'.repeat(64)))
+    const server = versionedServer([{ tag: 'W/"1"', body: { ok: 1 } }])
+    const path = `/api/grupos/${'d'.repeat(32)}`
+    await getVersioned(path)
+
+    saveSession(session('b'.repeat(64)))
+    await getVersioned(path)
+
+    expect(server.sent).toEqual([null, null])
   })
 })

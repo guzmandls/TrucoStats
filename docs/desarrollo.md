@@ -1364,3 +1364,13 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **Nombres más livianos** en las tarjetas de grupo del inicio y en Participantes (grosor 700 en vez de 800, mismo tamaño).
 - **Control − / +** centrado también en Crear grupo.
 - **Quedaron igual, a pedido:** los campos de texto con su propio borde, el formato de fecha de los récords y el ranking individual.
+
+## Etapa 58 — Servidor más rápido y actualizaciones más livianas
+
+- **Por qué tardaba:** la base de datos (D1) está en el este de EE.UU. y el Worker corría cerca del celular, en Sudamérica. Cada pedido hace varias consultas seguidas y cada una cruzaba el continente. Medido en producción: leer el grupo tardaba ~0,7 s y enviar una partida ~0,85 s, aunque el servidor sin base responde en 0,05 s.
+- **Ubicación del Worker (`placement` en `wrangler.jsonc`):** se le pide a Cloudflare que corra el Worker junto a la base (`aws:us-east-1`). Queda un solo viaje largo (celular → Worker) y las consultas son casi instantáneas. Resultado: leer el grupo ~0,27 s y enviar una partida ~0,3 s (unas 3 veces más rápido). Lo único que empeora es `/api/salud`, que no usa la base.
+- **Versión del grupo (migración 0010):** el grupo tiene un número `revision` que sube con cualquier cambio de lo que la app descarga. Lo suben **disparadores** (*triggers*): reglas de SQLite que se ejecutan solas después de cada INSERT, UPDATE o DELETE en integrantes, apodos, partidas y jugadores. Se eligieron disparadores en vez de subir la versión a mano en el código porque así ningún cambio se puede olvidar.
+- **ETag y 304:** las respuestas del grupo y de sus partidas llevan una etiqueta de versión (`ETag`) hecha con esa versión y la cuenta que pregunta. La app la guarda en memoria y la manda en el siguiente pedido (`If-None-Match`); si no cambió, el servidor contesta **304 "sin cambios"** sin cuerpo y sin leer las partidas. Es el mecanismo estándar de HTTP para esto.
+- **Por qué importaba además de la velocidad:** antes cada actualización leía todas las partidas del grupo. El plan gratuito de D1 permite 5 millones de filas leídas por día; con un historial grande y varios celulares con el grupo abierto se podía llegar al límite. Ahora una actualización sin cambios lee unas 4 filas.
+- **Actualización cada 5 s** (antes 10), porque ahora cuesta casi nada.
+- **Probado:** tests del servidor (la versión sube con cada tipo de cambio, 304, otra cuenta no reutiliza la versión, quien no es integrante recibe 403) y del cliente; y en Chrome: sin cambios llegan 304 cada 5 s y una partida enviada desde otro celular aparece en ≤5 s.

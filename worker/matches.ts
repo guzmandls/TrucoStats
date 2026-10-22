@@ -1,6 +1,6 @@
 import type { Env } from './groups'
 import { requireMember } from './access'
-import { errorResponse, json } from './http'
+import { errorResponse, json, unchanged, versionTag } from './http'
 
 type Team = 'nos' | 'ellos'
 type Modality = '1v1' | '2v2' | '3v3'
@@ -381,13 +381,25 @@ export async function listMatches(
   request: Request,
   env: Env,
 ): Promise<Response> {
-  const groupId = await findGroupIdByCode(inviteCode, env)
-  if (!groupId) {
+  const group = await env.DB.prepare(
+    'SELECT id, revision FROM groups WHERE invite_code = ?',
+  )
+    .bind(inviteCode)
+    .first<{ id: string; revision: number }>()
+  if (!group) {
     return errorResponse('Grupo no encontrado', 404)
   }
+  const groupId = group.id
   const access = await requireMember(groupId, request, env)
   if (access instanceof Response) {
     return access
+  }
+  // Si nada cambió desde la última vez que este celular preguntó, no se leen las
+  // partidas (con un historial grande es lo que más lecturas gasta).
+  const tag = versionTag(group.revision, access.userId)
+  const same = unchanged(request, tag)
+  if (same) {
+    return same
   }
 
   const { results: rows } = await env.DB.prepare(
@@ -407,5 +419,5 @@ export async function listMatches(
       players.filter((player) => player.match_id === row.id),
     ),
   )
-  return json({ matches })
+  return json({ matches }, 200, { etag: tag })
 }

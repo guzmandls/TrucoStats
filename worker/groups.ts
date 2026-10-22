@@ -1,5 +1,5 @@
 import { membershipOf } from './access'
-import { errorResponse, json } from './http'
+import { errorResponse, json, unchanged, versionTag } from './http'
 import { authenticate } from './users'
 
 export interface Env {
@@ -249,12 +249,21 @@ export async function getGroupByInviteCode(
   env: Env,
 ): Promise<Response> {
   const group = await env.DB.prepare(
-    'SELECT id, name, admin_member_id, created_at, invite_code FROM groups WHERE invite_code = ?',
+    'SELECT id, name, admin_member_id, created_at, invite_code, revision FROM groups WHERE invite_code = ?',
   )
     .bind(inviteCode)
-    .first<GroupRow>()
+    .first<GroupRow & { revision: number }>()
   if (!group) {
     return errorResponse('Grupo no encontrado', 404)
+  }
+
+  // Con sesión iniciada, la respuesta dice qué integrante es quien pregunta.
+  const user = await authenticate(request, env)
+  // Si nada cambió desde la última vez que este celular preguntó, no se lee más.
+  const tag = versionTag(group.revision, user?.id ?? null)
+  const same = unchanged(request, tag)
+  if (same) {
+    return same
   }
 
   const { results } = await env.DB.prepare(
@@ -276,11 +285,11 @@ export async function getGroupByInviteCode(
     ])
   }
 
-  // Con sesión iniciada, la respuesta dice qué integrante es quien pregunta.
-  const user = await authenticate(request, env)
   const membership = user ? await membershipOf(user.id, group.id, env) : null
   return json(
     groupResponse(group, results, membership?.memberId ?? null, aliases),
+    200,
+    { etag: tag },
   )
 }
 
