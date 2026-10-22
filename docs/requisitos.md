@@ -4,6 +4,8 @@
 
 El nombre de la app se escribe siempre **trucoStats**, con la t minúscula (en la app, el ícono instalado, los correos y los textos para compartir).
 
+El ícono de la app es "tS" en crema sobre fondo negro (diseño del desarrollador, `public/app-icon.svg`); de él salen todos los tamaños.
+
 Inicialmente estará destinada a un grupo de aproximadamente 15 amigos, pero se diseñará para que otros grupos puedan utilizarla en el futuro.
 
 El objetivo es ofrecer un contador sencillo, rápido y similar al conteo tradicional en papel, incorporando historial y estadísticas.
