@@ -1,6 +1,5 @@
 import { type RefObject } from 'react'
 import { ScoreMarks } from './ScoreMarks'
-import { ScrollDivider } from './ScrollDivider'
 import { type CounterController } from './useCounter'
 import styles from './Counter.module.css'
 
@@ -28,7 +27,7 @@ export function Counter({ counter, drawingRef }: CounterProps) {
           <ScoreMarks points={nos} spacerIndex={spacerIndex} />
         </div>
 
-        <ScrollDivider drawingRef={drawingRef} />
+        <div className={styles.divider} aria-hidden="true" />
 
         <div className={styles.column}>
           <ScoreMarks points={ellos} spacerIndex={spacerIndex} />

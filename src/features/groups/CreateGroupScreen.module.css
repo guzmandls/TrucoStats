@@ -1,5 +1,8 @@
+/* El formulario envuelve el contenido y la barra inferior: ocupa el alto que
+   queda para que el contenido se desplace y la barra quede fija. */
 .form {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
 }

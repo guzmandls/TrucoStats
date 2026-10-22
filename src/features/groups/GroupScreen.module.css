@@ -146,9 +146,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: calc(
-    var(--footer-height) + env(safe-area-inset-bottom) + var(--space-3)
-  );
+  bottom: calc(var(--footer-height) + var(--space-3));
   display: flex;
   justify-content: center;
   pointer-events: none;

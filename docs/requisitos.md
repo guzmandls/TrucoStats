@@ -6,7 +6,7 @@ El nombre de la app se escribe siempre **trucoStats**, con la t minúscula (en l
 
 El ícono de la app es "tS" en crema sobre fondo negro (diseño del desarrollador, `public/app-icon.svg`); de él salen todos los tamaños.
 
-La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla completa. La zona de la hora, la señal y la batería queda en una franja negra fija; la app empieza debajo de ella y la barra inferior llega hasta el borde de abajo, dejando lugar a la barra de inicio del teléfono.
+La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla completa. La zona de la hora, la señal y la batería queda en una franja negra fija; la app empieza debajo de ella y la barra inferior llega hasta el borde de abajo, dejando lugar a la barra de inicio del teléfono. En todas las pantallas la cabecera y la barra inferior quedan fijas: solo se desplaza el contenido del medio, sin barras de desplazamiento visibles y sin que la pantalla entera rebote. Mantener apretado un botón no selecciona texto (solo se puede seleccionar dentro de los campos de texto).
 
 Inicialmente estará destinada a un grupo de aproximadamente 15 amigos, pero se diseñará para que otros grupos puedan utilizarla en el futuro.
 
@@ -138,7 +138,7 @@ Existen dos tipos de partida:
 - Los puntos se representarán mediante los símbolos tradicionales del truco: cuadrados formados por cuatro lados y una diagonal.
 - Cada segmento representará un punto.
 - Cada cuadrado completo con su diagonal representará cinco puntos.
-- El anotador podrá sumar puntos mediante botones o dibujando segmentos.
+- El anotador sumará puntos mediante botones.
 - Los cuadrados tienen las esquinas rectas (sin redondear) y un trazo firme (6 px). Al sumar un punto, el trazo nuevo se dibuja de un extremo al otro en menos de una quinta de segundo; no se anima al abrir una partida que ya tenía puntos, al deshacer ni si el dispositivo pide reducir las animaciones.
 - El orden predeterminado de los segmentos será: lado izquierdo, lado superior, lado derecho, lado inferior y diagonal (del vértice inferior izquierdo al superior derecho).
 - Podrá corregir errores utilizando botones Deshacer.
@@ -146,19 +146,7 @@ Existen dos tipos de partida:
 
 ### 4.3. Sistema de interacción
 
-El contador tendrá un único sistema de conteo que admitirá dos formas de sumar puntos.
-
-**Dibujo asistido**
-
-- El usuario podrá dibujar segmentos directamente con el dedo.
-- Podrá dibujar varios segmentos mediante un único gesto continuo, sin levantar el dedo.
-- Se reconocerán los cambios de dirección dentro de un mismo gesto.
-- Los trazos se ajustarán automáticamente a líneas rectas y uniformes.
-- Se respetarán exactamente los segmentos y posiciones dibujados, sin reemplazarlos por otros equivalentes en puntuación.
-- Los segmentos podrán completarse en cualquier orden.
-- No se contabilizará dos veces un segmento existente.
-- Los símbolos se organizarán en columnas alineadas.
-- El reconocimiento de gestos funcionará sin conexión a Internet.
+Los puntos se suman con botones. El dibujo de segmentos con el dedo (gestos) se descartó: no se implementará.
 
 **Botones de incremento**
 
@@ -204,12 +192,8 @@ El contador tendrá un único sistema de conteo que admitirá dos formas de suma
 
 **Desplazamiento del contador**
 
-- La línea divisoria central también funcionará como barra de desplazamiento vertical.
-- Arrastrar verticalmente sobre la línea desplazará simultáneamente las columnas de Nosotros y Ellos.
-- La zona táctil de la línea será ligeramente más ancha que su representación visual, evitando ocupar innecesariamente las zonas de dibujo.
-- Como referencia inicial, se considerará un ancho táctil total de 12 a 16 píxeles, ajustable durante las pruebas.
-- Un toque simple sobre la línea no realizará ninguna acción.
-- Un doble toque sobre la línea llevará a los tantos más recientes.
+- La zona de dibujo se desplaza deslizando el dedo sobre ella; las columnas de Nosotros y Ellos se mueven juntas. La línea central es solo una división (no se arrastra).
+- No se muestra barra de desplazamiento.
 - El contador avanzará automáticamente para mostrar los últimos segmentos a medida que se sumen puntos.
 
 ### 4.5. Finalización de partidas
@@ -454,7 +438,7 @@ trucoStats tendrá un funcionamiento offline-first.
 
 - La aplicación podrá abrirse sin Internet después de haberse instalado y preparado correctamente.
 - Permitirá iniciar partidas utilizando integrantes del grupo previamente almacenados en el dispositivo.
-- Permitirá contar puntos mediante botones y gestos.
+- Permitirá contar puntos mediante botones.
 - Permitirá finalizar partidas y guardar sus resultados localmente.
 - Permitirá consultar el historial y las estadísticas disponibles en el dispositivo.
 - Los datos pendientes se sincronizarán cuando vuelva a existir conexión.
@@ -502,7 +486,6 @@ El desarrollo ya está en marcha (contador, partida de grupo, historial local, e
 - Administración de integrantes que abandonan un grupo.
 - Puntaje de victoria por defecto de la partida rápida.
 - Diseño visual definitivo de las pantallas.
-- Comportamiento del reconocimiento de gestos ante trazos ambiguos o incorrectos.
 - Reglas de sincronización y resolución de conflictos entre dispositivos.
 - Aplicación del plazo de anulación de 15 minutos cuando la partida se finaliza sin conexión.
 - Comportamiento ante pérdida de datos locales o cambio de dispositivo.
@@ -525,7 +508,6 @@ Entra:
 
 Queda para después:
 
-- Dibujo asistido con gestos (los botones alcanzan en el MVP).
 - Cancelación y restauración de partidas por el administrador (necesita cuentas).
 - Perfil personal visible para otros integrantes.
 - Copias de seguridad y recuperación de cuentas.
