@@ -72,7 +72,7 @@ describe('InviteDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Compartir' }))
 
     expect(share).toHaveBeenCalledWith({
-      title: 'Únete a Los pibes en TrucoStats',
+      title: 'Únete a Los pibes en trucoStats',
       url: link,
     })
   })

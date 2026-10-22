@@ -108,7 +108,7 @@ export function HomeScreen() {
   return (
     <Screen>
       <PageHeader
-        title="TrucoStats"
+        title="trucoStats"
         trailing={
           <HeaderMenu
             label="Menú"

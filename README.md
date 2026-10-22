@@ -1,4 +1,4 @@
-# TrucoStats
+# trucoStats
 
 PWA para contar puntos de truco uruguayo, guardar partidas y consultar estadísticas.
 

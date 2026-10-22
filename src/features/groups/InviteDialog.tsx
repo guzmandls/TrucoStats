@@ -16,7 +16,7 @@ export function InviteDialog({ group, onClose }: InviteDialogProps) {
   const handleShare = async () => {
     try {
       await navigator.share({
-        title: `Únete a ${group.name} en TrucoStats`,
+        title: `Únete a ${group.name} en trucoStats`,
         url: link,
       })
     } catch {

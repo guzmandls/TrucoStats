@@ -34,7 +34,7 @@ export async function sendMail(env: Env, mail: Mail): Promise<boolean> {
         accept: 'application/json',
       },
       body: JSON.stringify({
-        sender: { name: 'TrucoStats', email: env.MAIL_FROM },
+        sender: { name: 'trucoStats', email: env.MAIL_FROM },
         to: [{ email: mail.to }],
         subject: mail.subject,
         textContent: mail.text,
@@ -70,7 +70,7 @@ function linkMail(
     subject,
     text: `${intro}\n\n${link}\n\n${outro}`,
     html: `<div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:24px;background:#f7f4ea;color:#1c1c1c">
-<h2 style="margin:0 0 16px">TrucoStats</h2>
+<h2 style="margin:0 0 16px">trucoStats</h2>
 <p>${escapeHtml(intro)}</p>
 <p style="margin:24px 0"><a href="${escapeHtml(link)}" style="background:#1c1c1c;color:#f7f4ea;padding:14px 22px;text-decoration:none;border-radius:10px;font-weight:bold">${escapeHtml(button)}</a></p>
 <p style="font-size:13px;word-break:break-all">${escapeHtml(link)}</p>
@@ -82,7 +82,7 @@ function linkMail(
 export function resetMail(to: string, username: string, link: string): Mail {
   return linkMail(
     to,
-    'Recupera tu contraseña de TrucoStats',
+    'Recupera tu contraseña de trucoStats',
     `Pediste recuperar la contraseña de la cuenta “${username}”. Abre el enlace para elegir una nueva. Vale 1 hora y solo se puede usar una vez.`,
     'Elegir una contraseña nueva',
     link,
@@ -93,8 +93,8 @@ export function resetMail(to: string, username: string, link: string): Mail {
 export function confirmMail(to: string, link: string): Mail {
   return linkMail(
     to,
-    'Confirma tu correo en TrucoStats',
-    'Confirma que este correo es tuyo para usarlo en tu cuenta de TrucoStats. Servirá para recuperar tu contraseña. El enlace vale 24 horas.',
+    'Confirma tu correo en trucoStats',
+    'Confirma que este correo es tuyo para usarlo en tu cuenta de trucoStats. Servirá para recuperar tu contraseña. El enlace vale 24 horas.',
     'Confirmar mi correo',
     link,
     'Si no lo pediste tú, ignora este correo: no se guarda nada.',

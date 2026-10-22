@@ -1,4 +1,4 @@
-# TrucoStats — Pendientes y deuda técnica
+# trucoStats — Pendientes y deuda técnica
 
 Registro de cosas identificadas durante el desarrollo que quedan para más adelante.
 No son requisitos nuevos: son notas para no olvidarlas.
