@@ -1474,3 +1474,10 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **Servidor:** `POST /api/eliminar-cuenta` (`worker/account.ts`). Sale de cada grupo con la misma lógica que "Salir del grupo", que se separó en una función (`leaveAs` en `worker/leave.ts`) para no repetirla. Después borra la cuenta; las sesiones y los enlaces de correo se borran solos (`ON DELETE CASCADE`).
 - **Por qué no se borran sus partidas:** son también de los demás jugadores. Su integrante queda en el grupo, libre, y las estadísticas de todos siguen igual.
 - **Para las tiendas:** Apple exige que una app que permite crear cuentas también permita eliminarlas desde la app.
+
+## Etapa 68 — Cambiar el usuario, y usuarios con mayúsculas
+
+- **Qué hace:** en el perfil, la sección "Usuario" permite cambiar el usuario con el que se inicia sesión. No pide la contraseña (como el correo): el usuario solo no da acceso a nada.
+- **Mayúsculas:** antes el usuario se pasaba a minúsculas al guardarlo, para que "Juan" y "juan" no fueran dos cuentas distintas. Ahora se guarda como se escribió y se *compara* sin distinguir mayúsculas. Así se logra lo mismo sin prohibirlas, y se puede entrar escribiéndolo de cualquier forma.
+- **Cómo:** en SQLite, `COLLATE NOCASE` hace que una comparación no distinga mayúsculas. La migración 0011 rehace el índice único del usuario con `COLLATE NOCASE`, para que la base misma impida "Guzman" y "guzman" a la vez, y las consultas de registro, inicio de sesión y recuperación usan `username = ? COLLATE NOCASE`. Los usuarios existentes ya estaban en minúsculas, así que no había repetidos.
+- **Servidor:** `POST /api/usuario` (`worker/account.ts`). Se puede cambiar solo las mayúsculas del propio ("guzman" → "Guzman").

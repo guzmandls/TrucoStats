@@ -12,6 +12,7 @@ import { clearSession, getSession, saveSession } from '../../lib/session'
 import { DeleteAccount } from '../profile/DeleteAccount'
 import { EmailSection } from '../profile/EmailSection'
 import { PasswordSection } from '../profile/PasswordSection'
+import { UsernameSection } from '../profile/UsernameSection'
 import { AuthScreen } from './AuthScreen'
 import { ConfirmEmailScreen } from './ConfirmEmailScreen'
 import { ForgotPasswordScreen } from './ForgotPasswordScreen'
@@ -425,6 +426,42 @@ describe('DeleteAccount (perfil)', () => {
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'La contraseña no es correcta',
+    )
+    expect(getSession()?.user.username).toBe('juan')
+  })
+})
+
+describe('UsernameSection (perfil)', () => {
+  it('muestra el usuario, lo cambia y lo actualiza en este celular', async () => {
+    saveSession(account)
+    const calls = stubServer(() =>
+      json({ user: { ...account.user, username: 'Juancito' } }),
+    )
+    render(<UsernameSection />)
+
+    expect(screen.getByText('juan')).toBeInTheDocument()
+    fill('Usuario nuevo', ' Juancito ')
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar usuario' }))
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'ahora inicias sesión con Juancito',
+    )
+    expect(calls).toEqual([
+      { url: '/api/usuario', body: { username: 'Juancito' } },
+    ])
+    expect(getSession()?.user.username).toBe('Juancito')
+  })
+
+  it('si el usuario ya existe, lo dice y no cambia nada', async () => {
+    saveSession(account)
+    stubServer(() => json({ error: 'Ese usuario ya existe' }, 409))
+    render(<UsernameSection />)
+
+    fill('Usuario nuevo', 'pedro')
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar usuario' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Ese usuario ya existe',
     )
     expect(getSession()?.user.username).toBe('juan')
   })

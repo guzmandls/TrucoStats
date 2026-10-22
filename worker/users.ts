@@ -9,7 +9,7 @@ const HASH_ITERATIONS = 100_000
 const SESSION_DAYS = 90
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 // Letras, números, punto, guion y guion bajo; entre 3 y 20 caracteres.
-const USERNAME_FORMAT = /^[a-z0-9_.-]{1,20}$/
+const USERNAME_FORMAT = /^[A-Za-z0-9_.-]{1,20}$/
 
 // Una cuenta invitada tiene username y email null (ver createGuest). El correo
 // de una cuenta registrada es opcional.
@@ -97,13 +97,18 @@ export async function readBody(
   }
 }
 
-function normalizeUsername(value: unknown): string | null {
+// El usuario se guarda como se escribió (puede tener mayúsculas), pero se compara
+// sin distinguirlas: "Guzman" y "guzman" son el mismo (ver la migración 0011).
+export function normalizeUsername(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null
   }
-  const username = value.trim().toLowerCase()
+  const username = value.trim()
   return USERNAME_FORMAT.test(username) ? username : null
 }
+
+export const USERNAME_RULES =
+  'El usuario debe tener de 1 a 20 caracteres: letras, números, punto, guion o guion bajo'
 
 export function normalizeEmail(value: unknown): string | null {
   if (typeof value !== 'string') {
@@ -177,10 +182,7 @@ export async function register(request: Request, env: Env): Promise<Response> {
   }
   const username = normalizeUsername(body.username)
   if (!username) {
-    return errorResponse(
-      'El usuario debe tener de 1 a 20 caracteres: letras, números, punto, guion o guion bajo',
-      400,
-    )
+    return errorResponse(USERNAME_RULES, 400)
   }
   const { password } = body
   if (
@@ -204,7 +206,9 @@ export async function register(request: Request, env: Env): Promise<Response> {
   }
 
   if (
-    await env.DB.prepare('SELECT id FROM users WHERE username = ?')
+    await env.DB.prepare(
+      'SELECT id FROM users WHERE username = ? COLLATE NOCASE',
+    )
       .bind(username)
       .first()
   ) {
@@ -263,9 +267,7 @@ export async function login(request: Request, env: Env): Promise<Response> {
     return errorResponse('El cuerpo no es un JSON válido', 400)
   }
   const identifier =
-    typeof body.identifier === 'string'
-      ? body.identifier.trim().toLowerCase()
-      : ''
+    typeof body.identifier === 'string' ? body.identifier.trim() : ''
   const password = body.password
   // El mismo mensaje para "no existe" y "contraseña mala": no revela qué
   // usuarios o correos tienen cuenta.
@@ -273,11 +275,15 @@ export async function login(request: Request, env: Env): Promise<Response> {
   if (identifier === '' || typeof password !== 'string') {
     return rejected
   }
-  const column = identifier.includes('@') ? 'email' : 'username'
+  // Los correos se guardan en minúsculas; el usuario se compara sin distinguir
+  // mayúsculas.
+  const byEmail = identifier.includes('@')
   const row = await env.DB.prepare(
-    `SELECT id, username, email, name, password_hash, password_salt FROM users WHERE ${column} = ?`,
+    `SELECT id, username, email, name, password_hash, password_salt FROM users WHERE ${
+      byEmail ? 'email = ?' : 'username = ? COLLATE NOCASE'
+    }`,
   )
-    .bind(identifier)
+    .bind(byEmail ? identifier.toLowerCase() : identifier)
     .first<UserRow>()
   if (!row || !row.password_hash || !row.password_salt) {
     return rejected

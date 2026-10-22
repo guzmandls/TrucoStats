@@ -49,10 +49,12 @@ describe('POST /api/registro', () => {
       user: { id: string; username: string; email: string; name: string }
     }
     expect(body.token).toMatch(/^[0-9a-f]{64}$/)
+    // El usuario se guarda como se escribió (con mayúsculas); el correo, en
+    // minúsculas.
     expect(body.user).toMatchObject({
-      username: 'juan_23',
+      username: 'Juan_23',
       email: 'juan@correo.com',
-      name: 'juan_23',
+      name: 'Juan_23',
     })
   })
 
@@ -197,7 +199,7 @@ describe('GET /api/yo', () => {
 
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({
-      user: { username: 'juan_23', email: 'juan@correo.com' },
+      user: { username: 'Juan_23', email: 'juan@correo.com' },
     })
   })
 
