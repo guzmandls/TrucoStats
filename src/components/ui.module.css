@@ -317,6 +317,28 @@
   letter-spacing: var(--tracking-wide);
 }
 
+/* Título que se puede tocar: se ve igual que el título común. */
+.headerTitleButton {
+  display: block;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.headerTitleButton:focus-visible {
+  outline: var(--border-width) solid var(--paper);
+  outline-offset: 2px;
+}
+
 .headerCenter {
   flex: 0 1 auto;
   min-width: 0;

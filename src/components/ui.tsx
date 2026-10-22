@@ -14,6 +14,10 @@ function cx(...values: Array<string | false | undefined>): string {
 
 interface PageHeaderProps {
   title?: string
+  // Si se pasa, el título se puede tocar (por ejemplo, para cambiar el nombre
+  // del grupo); `titleActionLabel` dice qué hace, para los lectores de pantalla.
+  onTitleClick?: () => void
+  titleActionLabel?: string
   center?: ReactNode
   leading?: ReactNode
   trailing?: ReactNode
@@ -21,6 +25,8 @@ interface PageHeaderProps {
 
 export function PageHeader({
   title,
+  onTitleClick,
+  titleActionLabel,
   center,
   leading,
   trailing,
@@ -30,7 +36,18 @@ export function PageHeader({
       {leading && <div className={styles.headerLeading}>{leading}</div>}
       {title && (
         <h1 className={styles.headerTitle} title={title}>
-          {title}
+          {onTitleClick ? (
+            <button
+              type="button"
+              className={styles.headerTitleButton}
+              aria-label={titleActionLabel}
+              onClick={onTitleClick}
+            >
+              {title}
+            </button>
+          ) : (
+            title
+          )}
         </h1>
       )}
       {center && <div className={styles.headerCenter}>{center}</div>}
