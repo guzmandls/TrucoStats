@@ -1,0 +1,12 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: 1.45;
+}

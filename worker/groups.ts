@@ -4,6 +4,14 @@ import { authenticate } from './users'
 
 export interface Env {
   DB: D1Database
+  // Dirección pública de la app: los enlaces de los correos apuntan acá. Es fija
+  // (no sale del pedido) para que nadie pueda mandar un enlace a otro sitio.
+  APP_URL?: string
+  // Correos (ver mail.ts): clave de la API de Brevo y remitente verificado.
+  BREVO_API_KEY?: string
+  MAIL_FROM?: string
+  // '1' solo en desarrollo: los correos se escriben en el registro.
+  MAIL_LOG?: string
 }
 
 interface MemberInput {

@@ -1,6 +1,12 @@
-import { deleteRequest, postJson } from '../../lib/api'
+import { apiRequest, deleteRequest, postJson } from '../../lib/api'
 import { clearAccountData, restoreAccountGroups } from '../groups/accountData'
-import { clearSession, saveSession, type Session } from '../../lib/session'
+import {
+  clearSession,
+  getSession,
+  saveSession,
+  type Account,
+  type Session,
+} from '../../lib/session'
 
 // Crea la cuenta y deja la sesión iniciada. Si la persona tenía una cuenta
 // invitada, el servidor la convierte en esta (el pedido ya lleva su token).
@@ -36,4 +42,56 @@ export async function logoutAccount(): Promise<void> {
   }
   clearSession()
   await clearAccountData()
+}
+
+// Pide un correo con el enlace para elegir una contraseña nueva. La respuesta es
+// siempre la misma, exista o no la cuenta: no se sabe si el correo salió.
+export async function requestPasswordReset(identifier: string): Promise<void> {
+  await postJson('/api/recuperar', { identifier })
+}
+
+// Elige la contraseña nueva con el enlace del correo: deja la sesión iniciada y
+// trae de nuevo los grupos de la cuenta.
+export async function resetPassword(
+  token: string,
+  password: string,
+): Promise<void> {
+  saveSession(await postJson<Session>('/api/restablecer', { token, password }))
+  await restoreAccountGroups()
+}
+
+// Pide guardar un correo nuevo: se manda un enlace de confirmación a esa dirección.
+export async function requestEmailChange(email: string): Promise<void> {
+  await postJson('/api/correo', { email })
+}
+
+// Confirma el correo con el enlace recibido. Si es la cuenta de este celular, su
+// correo se actualiza también acá. Devuelve el correo confirmado.
+export async function confirmEmail(token: string): Promise<string> {
+  const result = await postJson<{ email: string; userId: string }>(
+    '/api/correo/confirmar',
+    { token },
+  )
+  const session = getSession()
+  if (session && session.user.id === result.userId) {
+    saveSession({ ...session, user: { ...session.user, email: result.email } })
+  }
+  return result.email
+}
+
+// Trae del servidor los datos actuales de la cuenta (por ejemplo, si el correo
+// se confirmó desde otro navegador). Sin conexión o sin sesión no hace nada.
+export async function refreshAccount(): Promise<void> {
+  const session = getSession()
+  if (!session) {
+    return
+  }
+  try {
+    const response = await apiRequest<{ user?: Account }>('/api/yo')
+    if (response.user && response.user.id === session.user.id) {
+      saveSession({ ...session, user: response.user })
+    }
+  } catch {
+    // Se vuelve a intentar la próxima vez.
+  }
 }

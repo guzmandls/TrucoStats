@@ -1,8 +1,8 @@
 import type { Env } from './groups'
 import { errorResponse, json } from './http'
 
-const MIN_PASSWORD_LENGTH = 8
-const MAX_PASSWORD_LENGTH = 100
+export const MIN_PASSWORD_LENGTH = 8
+export const MAX_PASSWORD_LENGTH = 100
 const MAX_EMAIL_LENGTH = 100
 // Cloudflare Workers admite como máximo 100.000 vueltas en PBKDF2.
 const HASH_ITERATIONS = 100_000
@@ -35,11 +35,11 @@ function toHex(bytes: ArrayBuffer | Uint8Array): string {
     .join('')
 }
 
-function randomHex(byteCount: number): string {
+export function randomHex(byteCount: number): string {
   return toHex(crypto.getRandomValues(new Uint8Array(byteCount)))
 }
 
-async function sha256(text: string): Promise<string> {
+export async function sha256(text: string): Promise<string> {
   return toHex(
     await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)),
   )
@@ -47,7 +47,10 @@ async function sha256(text: string): Promise<string> {
 
 // PBKDF2 es lento a propósito: dificulta probar millones de contraseñas si
 // alguien se llevara la base de datos.
-async function hashPassword(password: string, salt: string): Promise<string> {
+export async function hashPassword(
+  password: string,
+  salt: string,
+): Promise<string> {
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(password),
@@ -81,7 +84,7 @@ function sameText(a: string, b: string): boolean {
   return difference === 0
 }
 
-async function readBody(
+export async function readBody(
   request: Request,
 ): Promise<Record<string, unknown> | null> {
   try {
@@ -102,7 +105,7 @@ function normalizeUsername(value: unknown): string | null {
   return USERNAME_FORMAT.test(username) ? username : null
 }
 
-function normalizeEmail(value: unknown): string | null {
+export function normalizeEmail(value: unknown): string | null {
   if (typeof value !== 'string') {
     return null
   }

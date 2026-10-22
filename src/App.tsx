@@ -1,4 +1,7 @@
 import { AuthScreen } from './features/auth/AuthScreen'
+import { ConfirmEmailScreen } from './features/auth/ConfirmEmailScreen'
+import { ForgotPasswordScreen } from './features/auth/ForgotPasswordScreen'
+import { ResetPasswordScreen } from './features/auth/ResetPasswordScreen'
 import { HomeScreen } from './features/groups/HomeScreen'
 import { CounterScreen } from './features/counter/CounterScreen'
 import { CreateGroupScreen } from './features/groups/CreateGroupScreen'
@@ -22,6 +25,12 @@ function App() {
         <Route path="/crear-grupo" element={<CreateGroupScreen />} />
         <Route path="/registrarse" element={<AuthScreen mode="register" />} />
         <Route path="/iniciar-sesion" element={<AuthScreen mode="login" />} />
+        <Route path="/recuperar" element={<ForgotPasswordScreen />} />
+        <Route path="/restablecer/:token" element={<ResetPasswordScreen />} />
+        <Route
+          path="/confirmar-correo/:token"
+          element={<ConfirmEmailScreen />}
+        />
         <Route path="/unirse/:code" element={<JoinGroupScreen />} />
         <Route path="/grupo/:id" element={<GroupScreen />} />
         <Route

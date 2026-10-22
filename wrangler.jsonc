@@ -5,6 +5,12 @@
   "compatibility_date": "2026-10-17",
   // Código del backend (Worker).
   "main": "worker/index.ts",
+  // Dirección pública de la app: los enlaces de los correos apuntan acá. Las
+  // claves del correo (BREVO_API_KEY y MAIL_FROM) no van en este archivo: se
+  // cargan con `npx wrangler secret put`.
+  "vars": {
+    "APP_URL": "https://trucostats.guzmandls.workers.dev",
+  },
   // Base de datos D1. El Worker la usa como env.DB.
   "d1_databases": [
     {
