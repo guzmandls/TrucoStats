@@ -27,8 +27,10 @@ trucoStats es una PWA para contar puntos de truco uruguayo, guardar partidas y c
 - Ante dudas sobre los requisitos, preguntar antes de implementar.
 
 ## Documentación
-- `docs/desarrollo.md` es el diario de aprendizaje del proyecto: etapas hechas y conceptos nuevos con su porqué (qué es, para qué se usa, por qué se eligió).
-- Actualizar `docs/desarrollo.md` al terminar cada tarea, sin pedir autorización.
+- `docs/desarrollo.md` es el diario de aprendizaje del proyecto, ordenado por tema: conceptos nuevos con su porqué (qué es, para qué se usa, por qué se eligió), tecnologías (base de datos, SQL, Cloudflare, etc.) y decisiones importantes.
+- Se escribe en primera persona del desarrollador ("usé", "preferí"), sin mencionar a la IA ni a nadie que dé o reciba indicaciones. Los conceptos se listan sin dirigirse a nadie.
+- Solo va lo importante: conceptos y técnicas nuevas, cambios de arquitectura, decisiones y lecciones. No se registran pasos irrelevantes (ajustes de diseño o de textos, cosas que se probaron y se descartaron, pruebas hechas en cada tarea).
+- Actualizarlo al terminar una tarea solo si aporta algo de eso, sin pedir autorización, agregándolo en la sección del tema que corresponda.
 - Mantenerlo conciso, sencillo y legible: ideas cortas, sin jerga innecesaria.
 - Los requisitos (`docs/requisitos.md`) cambian seguido. Lo que el desarrollador pide tiene más jerarquía que lo escrito en los requisitos.
 - Si un pedido del desarrollador difiere de los requisitos, actualizar `docs/requisitos.md` para reflejarlo, sin pedir permiso, y avisar qué se cambió.
