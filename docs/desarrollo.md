@@ -1495,3 +1495,13 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 ## Etapa 71 — Foto y porcentaje lado a lado
 
 - En el perfil la foto quedaba sola en una fila, con mucho espacio libre. Ahora, en el perfil y en la ficha del integrante, la foto y el anillo del porcentaje van lado a lado arriba, y debajo los bloques de victorias y jugadas a todo el ancho.
+
+## Etapa 72 — Animación de inicio
+
+- **Qué hace:** al abrir la app, sobre negro, aparecen tres barras (estadística); la primera se convierte en la t y después se dibuja la S hasta formar el logo. 1,3 s de animación más 0,2 s de desvanecido.
+- **Dónde está y por qué:** escrita directamente en `index.html`, no en React. Así se ve desde el primer instante, antes de que cargue el código de la app: no hay pantalla blanca ni negra vacía. Cuando la app ya se dibujó (`finishSplash` en `src/splash.ts`, llamado desde `App`), la pantalla de inicio espera solo lo que le falta a la animación, se desvanece y se elimina.
+- **Animación vectorial (SMIL):** el propio SVG trae sus animaciones (`<animate>`, `<set>`), sin librerías, GIF ni video. Las formas del logo no cambian: se animan **recortes** que las van mostrando. Un `clipPath` con tres rectángulos destapa la t (palo, trazo horizontal y pie), y una `mask` con un trazo grueso que recorre el centro de la S (`stroke-dashoffset`, como en los cuadrados del contador) la va dibujando. Al terminar, recorte y máscara se quitan (`<set ... to="none">`), así que el último cuadro es exactamente el logo.
+- **Cuándo se va:** el SVG tiene su propio reloj (`getCurrentTime()`). Si la app tardó más que la animación, se va enseguida; si fue más rápida, espera solo lo que falta. Medido con la versión de producción: aparece a los 66 ms y se va a los 1,8 s.
+- **Sin parpadeos:** el fondo de la página y el `background_color` del manifiesto pasaron a negro, para que la pantalla que muestra Android al abrir la app instalada sea del mismo color que la animación.
+- **Reducir movimiento:** si el celular lo pide, el logo aparece completo y se va apenas la app está lista.
+- **Cómo se revisó:** se detuvo el reloj del SVG en distintos momentos y se sacó una captura de cada uno. Así aparecieron dos detalles que se corrigieron: una línea suelta al empezar el trazo horizontal de la t y un pedazo de la S que se veía antes de tiempo.
