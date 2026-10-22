@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Env } from './groups'
-import { LIVE_TTL_MS } from './live'
+import { ENDED_VISIBLE_MS, LIVE_TTL_MS } from './live'
 import { registerTestUser, request } from './testAuth'
 import { createTestDb } from './testDb'
 
@@ -62,6 +62,10 @@ interface LiveBody {
     state: typeof state
     startedAt: string
     updatedAt: string
+    ageSeconds: number
+    status: 'live' | 'finished' | 'canceled'
+    endedAt: string | null
+    reason: string | null
   }[]
 }
 
@@ -153,6 +157,84 @@ describe('partidas en vivo', () => {
       .run()
 
     expect((await lives()).map((live) => live.id)).toEqual(['b2'])
+  })
+
+  it('sigue en vivo aunque pasen horas, mientras no se cumpla el plazo de abandono', async () => {
+    await publish('a1', { state })
+    const hours = new Date(Date.now() - 11 * 60 * 60 * 1000).toISOString()
+    await env.DB.prepare('UPDATE live_matches SET updated_at = ? WHERE id = ?')
+      .bind(hours, 'a1')
+      .run()
+
+    const [live] = await lives()
+
+    expect(live.id).toBe('a1')
+    expect(live.status).toBe('live')
+    expect(live.ageSeconds).toBeGreaterThan(10 * 60 * 60)
+  })
+
+  it('informa hace cuánto se actualizó, según el reloj del servidor', async () => {
+    await publish('a1', { state })
+    const old = new Date(Date.now() - 90_000).toISOString()
+    await env.DB.prepare('UPDATE live_matches SET updated_at = ? WHERE id = ?')
+      .bind(old, 'a1')
+      .run()
+
+    const [live] = await lives()
+
+    expect(live.ageSeconds).toBeGreaterThanOrEqual(90)
+    expect(live.ageSeconds).toBeLessThan(100)
+  })
+
+  it('una partida terminada se sigue mostrando con ese estado', async () => {
+    await publish('a1', { state })
+    const final = { ...state, scores: { nos: 30, ellos: 21 }, winner: 'nos' }
+
+    await publish('a1', { state: final, status: 'finished' })
+
+    const [live] = await lives()
+    expect(live.status).toBe('finished')
+    expect(live.state.scores).toEqual({ nos: 30, ellos: 21 })
+    expect(live.endedAt).not.toBeNull()
+  })
+
+  it('una partida cancelada se muestra con el motivo', async () => {
+    await publish('a1', { state })
+
+    await publish('a1', { state, status: 'canceled', reason: 'Se cargó mal' })
+
+    const [live] = await lives()
+    expect(live.status).toBe('canceled')
+    expect(live.reason).toBe('Se cargó mal')
+  })
+
+  it('una actualización atrasada no resucita una partida terminada', async () => {
+    await publish('a1', { state })
+    await publish('a1', { state, status: 'canceled' })
+
+    const late = await publish('a1', {
+      state: { ...state, scores: { nos: 99, ellos: 0 } },
+    })
+
+    expect(late.status).toBe(200)
+    const [live] = await lives()
+    expect(live.status).toBe('canceled')
+    expect(live.state.scores).toEqual({ nos: 12, ellos: 8 })
+  })
+
+  it('las terminadas desaparecen pasado un rato', async () => {
+    await publish('a1', { state, status: 'finished' })
+    await publish('b2', { state })
+    const old = new Date(Date.now() - ENDED_VISIBLE_MS - 1000).toISOString()
+    await env.DB.prepare('UPDATE live_matches SET ended_at = ? WHERE id = ?')
+      .bind(old, 'a1')
+      .run()
+
+    expect((await lives()).map((live) => live.id)).toEqual(['b2'])
+  })
+
+  it('rechaza un estado final desconocido', async () => {
+    expect((await publish('a1', { state, status: 'rota' })).status).toBe(400)
   })
 
   it('solo la ven y publican los integrantes del grupo', async () => {

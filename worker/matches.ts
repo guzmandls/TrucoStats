@@ -130,7 +130,12 @@ export function parseMatch(body: unknown, groupId: string): MatchData | string {
   }
   const winner: Team = body.winner
   const loser: Team = winner === 'nos' ? 'ellos' : 'nos'
-  if (scores[winner] <= scores[loser]) {
+  // Una partida cancelada mientras se contaba puede estar empatada: no cuenta
+  // para nada, pero queda en el historial con el marcador que tenía.
+  const abandoned = body.canceled === true
+  if (
+    abandoned ? scores[winner] < scores[loser] : scores[winner] <= scores[loser]
+  ) {
     return 'El ganador debe tener más puntos que el perdedor'
   }
 

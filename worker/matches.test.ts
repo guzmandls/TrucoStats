@@ -158,6 +158,24 @@ describe('POST /api/grupos/:código/partidas', () => {
     expect(response.status).toBe(400)
   })
 
+  it('acepta una partida cancelada mientras se contaba aunque esté empatada', async () => {
+    const response = await post(
+      `/api/grupos/${code}/partidas`,
+      buildMatch({ scores: { nos: 12, ellos: 12 }, canceled: true }),
+    )
+
+    expect(response.status).toBe(201)
+  })
+
+  it('una partida cancelada tampoco puede tener un ganador con menos puntos', async () => {
+    const response = await post(
+      `/api/grupos/${code}/partidas`,
+      buildMatch({ winner: 'ellos', canceled: true }),
+    )
+
+    expect(response.status).toBe(400)
+  })
+
   it('rechaza jugadores que no son integrantes del grupo', async () => {
     const response = await post(
       `/api/grupos/${code}/partidas`,
