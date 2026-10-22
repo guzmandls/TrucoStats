@@ -45,162 +45,33 @@
     </style>
   </head>
   <body>
+    <!-- Pantalla de inicio: el logo de public/app-icon.svg (sin el fondo),
+         centrado, mientras carga la app. -->
     <div id="splash" aria-hidden="true">
-      <!-- El logo de public/app-icon.svg, sin el fondo. Empieza como tres
-           barras (estadística); la primera crece hasta ser la t y después se
-           dibuja la S. Se anima con SMIL (animación vectorial del propio SVG):
-           las formas no cambian, solo los recortes que las van mostrando. -->
-      <svg
-        id="splash-logo"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 1024 1024"
-      >
-        <defs>
-          <!-- Recorte de la t: al principio deja ver solo el extremo de arriba
-               (la primera barra); después baja por el palo, se abre en el
-               trazo horizontal y sigue por el pie hacia la derecha. -->
-          <clipPath id="splash-t-clip" clipPathUnits="userSpaceOnUse">
-            <rect x="220" y="1086" width="255" height="164">
-              <animate
-                attributeName="y"
-                from="1086"
-                to="0"
-                begin="0.15s"
-                dur="0.4s"
-                fill="freeze"
-                calcMode="spline"
-                keyTimes="0;1"
-                keySplines="0.65 0 0.35 1"
-              />
-              <animate
-                attributeName="height"
-                from="164"
-                to="1250"
-                begin="0.15s"
-                dur="0.4s"
-                fill="freeze"
-                calcMode="spline"
-                keyTimes="0;1"
-                keySplines="0.65 0 0.35 1"
-              />
-            </rect>
-            <!-- Empieza cuando el palo ya pasó por esa altura, con el ancho del
-                 palo; antes no muestra nada (ancho 0). -->
-            <rect x="220" y="825" width="0" height="231">
-              <animate
-                attributeName="x"
-                from="220"
-                to="30"
-                begin="0.32s"
-                dur="0.4s"
-                fill="freeze"
-                calcMode="spline"
-                keyTimes="0;1"
-                keySplines="0.65 0 0.35 1"
-              />
-              <animate
-                attributeName="width"
-                from="255"
-                to="1310"
-                begin="0.32s"
-                dur="0.4s"
-                fill="freeze"
-                calcMode="spline"
-                keyTimes="0;1"
-                keySplines="0.65 0 0.35 1"
-              />
-            </rect>
-            <rect x="220" y="0" width="0" height="340">
-              <animate
-                attributeName="width"
-                from="0"
-                to="1400"
-                begin="0.5s"
-                dur="0.35s"
-                fill="freeze"
-                calcMode="spline"
-                keyTimes="0;1"
-                keySplines="0.65 0 0.35 1"
-              />
-            </rect>
-          </clipPath>
-          <!-- Máscara de la S: un trazo ancho que recorre el centro de la letra
-               de punta a punta, como si se escribiera. Empieza y termina justo
-               en los cortes de las puntas, con extremos rectos, para no
-               destapar partes vecinas antes de tiempo. -->
-          <mask
-            id="splash-s-mask"
-            maskUnits="userSpaceOnUse"
-            x="-200"
-            y="-300"
-            width="1700"
-            height="2100"
-          >
-            <path
-              d="M1086 1030 C1090 1250 900 1388 666 1388 C420 1388 253 1260 253 1068 C253 880 420 800 680 755 C940 705 1113 620 1113 430 C1113 230 920 102 676 102 C420 102 218 250 218 492"
-              fill="none"
-              stroke="#fff"
-              stroke-width="400"
-              stroke-linecap="butt"
-              stroke-linejoin="round"
-              pathLength="1"
-              stroke-dasharray="1 1"
-              stroke-dashoffset="1"
-            >
-              <animate
-                attributeName="stroke-dashoffset"
-                from="1"
-                to="0"
-                begin="0.75s"
-                dur="0.55s"
-                fill="freeze"
-                calcMode="spline"
-                keyTimes="0;1"
-                keySplines="0.65 0 0.35 1"
-              />
-            </path>
-          </mask>
-        </defs>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
         <g
           fill="#f7f4ea"
           transform="translate(50.2,906.2) scale(0.3920,-0.5292)"
         >
           <path
             d="M1340 1056H475V1250H220V1056H30V825H220V280C220 88 325 0 552 0H1620V231H595C505 231 475 256 475 330V825H1340Z"
-            clip-path="url(#splash-t-clip)"
-          >
-            <set
-              attributeName="clip-path"
-              to="none"
-              begin="0.85s"
-              fill="freeze"
-            />
-          </path>
+          />
           <rect x="530" y="1086" width="255" height="296" />
           <rect x="840" y="1086" width="255" height="428" />
-          <g transform="translate(1060,0)" mask="url(#splash-s-mask)">
-            <set attributeName="mask" to="none" begin="1.3s" fill="freeze" />
-            <path
-              d="M675 -24C1042 -24 1266 153 1266 440C1266 664 1125 795 807 862L664 893C481 933 407 984 407 1076C407 1185 514 1261 666 1261C826 1261 931 1174 942 1033H1230C1221 1333 1008 1514 665 1514C326 1514 99 1332 99 1061C99 848 242 711 537 647L694 613C883 572 961 516 961 420C961 304 848 229 677 229C486 229 371 325 367 489H70C70 165 293 -24 675 -24Z"
-              stroke="#1c1c1c"
-              stroke-width="110"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M675 -24C1042 -24 1266 153 1266 440C1266 664 1125 795 807 862L664 893C481 933 407 984 407 1076C407 1185 514 1261 666 1261C826 1261 931 1174 942 1033H1230C1221 1333 1008 1514 665 1514C326 1514 99 1332 99 1061C99 848 242 711 537 647L694 613C883 572 961 516 961 420C961 304 848 229 677 229C486 229 371 325 367 489H70C70 165 293 -24 675 -24Z"
-            />
-          </g>
+          <path
+            transform="translate(1060,0)"
+            d="M675 -24C1042 -24 1266 153 1266 440C1266 664 1125 795 807 862L664 893C481 933 407 984 407 1076C407 1185 514 1261 666 1261C826 1261 931 1174 942 1033H1230C1221 1333 1008 1514 665 1514C326 1514 99 1332 99 1061C99 848 242 711 537 647L694 613C883 572 961 516 961 420C961 304 848 229 677 229C486 229 371 325 367 489H70C70 165 293 -24 675 -24Z"
+            stroke="#1c1c1c"
+            stroke-width="110"
+            stroke-linejoin="round"
+          />
+          <path
+            transform="translate(1060,0)"
+            d="M675 -24C1042 -24 1266 153 1266 440C1266 664 1125 795 807 862L664 893C481 933 407 984 407 1076C407 1185 514 1261 666 1261C826 1261 931 1174 942 1033H1230C1221 1333 1008 1514 665 1514C326 1514 99 1332 99 1061C99 848 242 711 537 647L694 613C883 572 961 516 961 420C961 304 848 229 677 229C486 229 371 325 367 489H70C70 165 293 -24 675 -24Z"
+          />
         </g>
       </svg>
     </div>
-    <script>
-      // Con "reducir movimiento" activado, el logo aparece ya completo.
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        const logo = document.getElementById('splash-logo')
-        logo.pauseAnimations()
-        logo.setCurrentTime(2)
-      }
-    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
