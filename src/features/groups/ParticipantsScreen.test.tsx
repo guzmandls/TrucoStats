@@ -362,7 +362,7 @@ describe('MemberScreen', () => {
     ).toBeInTheDocument()
     // Sin foto no hay nada que quitar.
     expect(
-      within(dialog).queryByRole('button', { name: 'Quitar foto' }),
+      within(dialog).queryByRole('button', { name: 'Eliminar foto' }),
     ).toBeNull()
     // Ya no existe el botón "Elige foto" ocupando lugar en la pantalla.
     expect(screen.queryByText('Elige foto')).toBeNull()
@@ -385,7 +385,9 @@ describe('MemberScreen', () => {
     expect(
       within(dialog).getByRole('button', { name: 'Cambiar foto' }),
     ).toBeInTheDocument()
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Quitar foto' }))
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Eliminar foto' }),
+    )
     await waitFor(async () => {
       const [stored] = await loadGroups()
       expect(stored.members[0].avatar).toBeUndefined()

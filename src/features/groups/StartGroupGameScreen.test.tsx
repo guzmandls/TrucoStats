@@ -268,7 +268,7 @@ describe('StartGroupGameScreen', () => {
       addTo('Beto', 'Nosotros')
 
       fireEvent.click(
-        screen.getByRole('button', { name: 'Quitar a Beto de la lista' }),
+        screen.getByRole('button', { name: 'Eliminar a Beto de la lista' }),
       )
 
       expect(screen.queryByText('Beto')).not.toBeInTheDocument()
@@ -279,12 +279,12 @@ describe('StartGroupGameScreen', () => {
     await renderLoaded()
     addTo('Juan', 'Nosotros')
     expect(
-      within(row('Juan')).getByRole('button', { name: 'Quitar de Nosotros' }),
+      within(row('Juan')).getByRole('button', { name: 'Eliminar de Nosotros' }),
     ).toBeInTheDocument()
 
     addTo('Juan', 'Ellos')
     expect(
-      within(row('Juan')).getByRole('button', { name: 'Quitar de Ellos' }),
+      within(row('Juan')).getByRole('button', { name: 'Eliminar de Ellos' }),
     ).toBeInTheDocument()
     expect(
       within(row('Juan')).getByRole('button', { name: 'Agregar a Nosotros' }),

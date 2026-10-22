@@ -137,7 +137,7 @@ export function CreateGroupScreen() {
               <Stepper
                 value={count}
                 min={1}
-                decreaseLabel="Quitar integrante"
+                decreaseLabel="Eliminar integrante"
                 increaseLabel="Agregar integrante"
                 onDecrease={() => handleCountChange(count - 1)}
                 onIncrease={() => handleCountChange(count + 1)}

@@ -137,7 +137,7 @@ export function ParticipantsScreen() {
       ...(isAdminMember
         ? [
             {
-              label: 'Quitar como administrador',
+              label: 'Eliminar de administradores',
               onClick: () =>
                 void run(() =>
                   setRemoteMemberAdmin(inviteCode, member.id, false),
