@@ -1,6 +1,7 @@
 import {
   apiRequest,
   deleteRequest,
+  getVersioned,
   patchJson,
   postJson,
   putJson,
@@ -45,7 +46,9 @@ export interface RemoteGroup {
 export async function fetchGroupByCode(
   inviteCode: string,
 ): Promise<RemoteGroup> {
-  const response = await apiRequest<GroupResponse>(`/api/grupos/${inviteCode}`)
+  const response = await getVersioned<GroupResponse>(
+    `/api/grupos/${inviteCode}`,
+  )
   return {
     group: { ...response.group, inviteCode: response.inviteCode },
     claimedMemberIds: response.claimedMemberIds ?? [],
@@ -212,7 +215,7 @@ interface MatchesResponse {
 
 // Trae todas las partidas del grupo que hay en el servidor.
 export async function fetchRemoteMatches(inviteCode: string): Promise<Match[]> {
-  const response = await apiRequest<MatchesResponse>(
+  const response = await getVersioned<MatchesResponse>(
     `/api/grupos/${inviteCode}/partidas`,
   )
   return response.matches

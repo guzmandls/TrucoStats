@@ -11,6 +11,13 @@
   "vars": {
     "APP_URL": "https://trucostats.guzmandls.workers.dev",
   },
+  // El Worker corre junto a la base de datos (que está en el este de EE.UU.):
+  // cada pedido hace varias consultas seguidas y así cada una es casi
+  // instantánea; queda un solo viaje largo, el del celular al Worker.
+  "placement": {
+    "mode": "targeted",
+    "region": "aws:us-east-1",
+  },
   // Base de datos D1. El Worker la usa como env.DB.
   "d1_databases": [
     {
