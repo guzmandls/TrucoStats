@@ -18,6 +18,7 @@ import {
 import { joinNames, scoreDifferenceLabel } from '../matches/format'
 import { gridColumns } from '../matches/gridColumns'
 import {
+  byRanking,
   groupSummary,
   headToHead,
   memberStats,
@@ -389,7 +390,7 @@ function IndividualStats({
   )
   const stats = group.members
     .map((member) => memberStats(member, matches, points.get(member.id) ?? 0))
-    .sort((a, b) => (b.winRate ?? -1) - (a.winRate ?? -1))
+    .sort(byRanking)
 
   return (
     <Section>

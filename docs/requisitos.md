@@ -355,7 +355,7 @@ Para cada integrante del grupo, sus números dentro de ese grupo.
 
 El porcentaje de victorias se representa con un anillo circular lleno según el porcentaje, con un color interpolado de forma continua (rojo en los valores bajos, ámbar en los medios y verde en los altos) y el número visible en el centro.
 
-En la pestaña individual se comparan los integrantes mediante un ranking ordenado por porcentaje de victorias, que muestra también los puntos de cada uno; al tocar el nombre de un integrante se accede a su ficha individual con el detalle de estos datos.
+En la pestaña individual se comparan los integrantes mediante un ranking ordenado por puntos (con los mismos desempates que el podio), que muestra también el porcentaje de victorias de cada uno; al tocar el nombre de un integrante se accede a su ficha individual con el detalle de estos datos.
 
 ### 6.3. Enfrentamientos
 

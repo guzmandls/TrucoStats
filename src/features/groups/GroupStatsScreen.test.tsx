@@ -136,6 +136,38 @@ describe('GroupStatsScreen', () => {
     expect(screen.getAllByText(/^\d+ Pts$/)).toHaveLength(4)
   })
 
+  it('ordena las estadísticas individuales por puntos, no por porcentaje', async () => {
+    const duel = (a: number, b: number, winner: 'nos' | 'ellos') =>
+      buildMatch({
+        modality: '1v1',
+        winner,
+        teams: {
+          nos: [group.members[a]],
+          ellos: [group.members[b]],
+        },
+        scores:
+          winner === 'nos' ? { nos: 30, ellos: 20 } : { nos: 20, ellos: 30 },
+      })
+    // Juan: 2 de 3 (67%). Luis: 1 de 1 (100%), pero con menos puntos.
+    await saveMatch(duel(0, 1, 'nos'))
+    await saveMatch(duel(0, 1, 'nos'))
+    await saveMatch(duel(0, 1, 'ellos'))
+    await saveMatch(duel(2, 3, 'nos'))
+    renderStats()
+
+    fireEvent.click(await screen.findByRole('tab', { name: 'Individuales' }))
+    const rows = screen.getAllByRole('link')
+    const points = rows.map((row) =>
+      Number(/(\d+) Pts/.exec(row.textContent ?? '')?.[1]),
+    )
+    expect(rows[0]).toHaveTextContent('Juan')
+    expect(rows[0]).toHaveTextContent('67%')
+    const luis = rows.find((row) => row.textContent?.includes('Luis'))
+    expect(luis).toHaveTextContent('100%')
+    expect(rows.indexOf(luis!)).toBeGreaterThan(0)
+    expect(points).toEqual([...points].sort((a, b) => b - a))
+  })
+
   it('cambia a la pestaña de enfrentamientos', async () => {
     await saveMatch(buildMatch())
     renderStats()

@@ -471,6 +471,17 @@ export interface PodiumEntry {
   place: number
 }
 
+// Orden del ranking (podio y estadísticas individuales): primero los puntos; si
+// empatan, el porcentaje de victorias, las victorias y las partidas jugadas.
+export function byRanking(a: MemberStats, b: MemberStats): number {
+  return (
+    b.points - a.points ||
+    (b.winRate ?? -1) - (a.winRate ?? -1) ||
+    b.wins - a.wins ||
+    b.played - a.played
+  )
+}
+
 export function podium(
   group: Group,
   matches: Match[],
@@ -483,13 +494,7 @@ export function podium(
   const ranked = group.members
     .map((member) => memberStats(member, matches, points.get(member.id) ?? 0))
     .filter((stat) => stat.played > 0)
-    .sort(
-      (a, b) =>
-        b.points - a.points ||
-        (b.winRate ?? -1) - (a.winRate ?? -1) ||
-        b.wins - a.wins ||
-        b.played - a.played,
-    )
+    .sort(byRanking)
   return ranked.slice(0, size).map((stat) => ({
     stat,
     place:
