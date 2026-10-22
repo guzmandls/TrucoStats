@@ -3,32 +3,16 @@
 Registro de cosas identificadas durante el desarrollo que quedan para más adelante.
 No son requisitos nuevos: son notas para no olvidarlas.
 
-## Cuentas de usuario y vínculo usuario ↔ integrante
-
-- Hoy no existe el sistema de cuentas (ver requisitos §3.1). Mientras tanto, cada
-  dispositivo tiene un **perfil local único**.
-- Consecuencia: en `leaveGroup` (`src/features/groups/groupsStorage.ts`) se
-  **asume que este dispositivo es el administrador** de todos los grupos de su
-  Home. Al salir, si quedan integrantes se transfiere la administración a otro
-  integrante (el primero distinto del admin actual).
-- Cuando existan las cuentas, reemplazar esa suposición por el vínculo real
-  usuario ↔ integrante y permitir que el usuario elija a qué integrante
-  corresponde al ingresar a un grupo (requisitos §3.2).
-- La lista de pertenencia local está en `src/features/groups/membership.ts`
-  (localStorage). Cuando existan cuentas, migrar esta lista a un modelo por
-  usuario.
-
+La **versión 1** quedó completa el 22/10/2026 (ver el resumen al principio de
+`desarrollo.md`). Al final de este documento están las ideas para el futuro.
 
 ## Sincronización
 
 - Si un grupo se registró en el servidor pero la app no llegó a guardar el código
   de invitación (por ejemplo, se cerró justo en ese momento), al invitar el
   servidor responde que el grupo ya existe (409) y no hay forma de recuperar el
-  código. Cuando existan las cuentas, el administrador podrá pedirlo de nuevo.
+  código. Revisar si hace falta una forma de recuperarlo.
 
-- Un integrante que entra por el enlace no es el administrador, pero `leaveGroup`
-  sigue suponiendo que este celular es el administrador. Al salir, transfiere la
-  administración en la copia local aunque no corresponda. Revisar con las cuentas.
 - Los otros celulares reciben nombres, fotos y partidas al abrir el grupo con
   conexión (5d). Si un cambio de foto se hace sin conexión, queda solo en ese
   celular y se pierde en la próxima sincronización (el servidor manda). Lo mismo
@@ -59,10 +43,6 @@ No son requisitos nuevos: son notas para no olvidarlas.
   arranca al entrar al contador (la primera ronda se juega desde 0-0) y se
   guarda en `Match.durationSeconds`. Al pausar se bloquean sumar, restar y
   deshacer hasta reanudar.
-- **Perfil personal cuenta todas las partidas del dispositivo**: como todavía no
-  hay vínculo usuario ↔ integrante, `personalSummary` suma todas las `matches`,
-  incluidas las de grupo donde el usuario podría no haber jugado. Cuando existan
-  las cuentas, filtrar por las partidas del usuario.
 - **Partida de grupo en curso que apunta a un grupo eliminado**: el slot
   `group:<id>` puede quedar huérfano (no se muestra en ningún lado). Revisar si
   conviene limpiarlo al salir del grupo.
@@ -98,3 +78,34 @@ No son requisitos nuevos: son notas para no olvidarlas.
 - Los errores al subir una foto o cambiar un nombre sin permiso se ignoran en
   silencio.
 
+## Mantenimiento
+
+- **Clave de Brevo (correos):** no vence, pero Brevo la desactiva si pasan 90 días
+  sin usarse. Si los correos de recuperación dejan de llegar, revisar en Brevo y,
+  si hace falta, crear otra con `npx wrangler secret put BREVO_API_KEY`. Se puede
+  programar una tarea mensual (cron de Cloudflare) que la mantenga activa.
+- **Rotar esa clave** cuando se pueda: se pegó en un chat durante el desarrollo.
+- **Cuenta de prueba en producción:** `prueba_velocidad`, con el grupo "Prueba de
+  velocidad", se creó para medir tiempos. Nadie más la ve; se puede borrar.
+- **El correo del registro no se confirma** (el que se agrega desde el perfil sí).
+- **Probar en teléfonos reales** cada cambio de pantalla completa: Chrome simula
+  las zonas de la hora y de la barra de inicio, pero no los errores propios del
+  iPhone.
+
+## Futuro (si la app anda bien y tiene buena respuesta)
+
+- **Publicar en App Store y Google Play.** Hoy se instala desde el navegador
+  ("Agregar a pantalla de inicio"). Para las tiendas hay que empaquetarla (por
+  ejemplo con Capacitor o, en Android, como TWA). Apple cobra una cuenta de
+  desarrollador anual y revisa cada versión; Google cobra una única vez.
+- **Anuncios** para financiarla (en las tiendas, con una red como AdMob), sin
+  que molesten mientras se cuenta una partida.
+- **Liga global con sistema de Elo:** un ranking de toda la app, además del de
+  cada grupo. El sistema de puntos actual (meseta, rival, margen) puede ser la
+  base.
+- **El problema de las trampas:** en una liga global cualquiera podría cargar
+  partidas falsas. Ideas: que cuenten solo las partidas confirmadas por los
+  jugadores de los dos equipos, o por un tercero.
+- **Torneos de truco** con árbitros o personas habilitadas que confirmen que las
+  partidas son legítimas, para que cuenten en la liga.
+- La conclusión del desarrollador: la app tiene mucho futuro en Uruguay.
