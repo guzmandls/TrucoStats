@@ -70,6 +70,7 @@ type GameAction =
   | { type: 'undo'; team: Team }
   | { type: 'setTarget'; target: number }
   | { type: 'confirm' }
+  | { type: 'cancelGame' }
   | { type: 'decline' }
   | { type: 'pauseTimer'; now: number }
   | { type: 'resumeTimer'; now: number }
@@ -150,6 +151,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       if (!winnerOf(state.counter, state.target)) {
         return state
       }
+      return createGameState(state.target, state.context)
+    case 'cancelGame':
       return createGameState(state.target, state.context)
     case 'decline': {
       const winner = winnerOf(state.counter, state.target)
@@ -444,6 +447,46 @@ export function useCounter(
     dispatch({ type: 'confirm' })
   }, [points, state.context, state.counter, state.target, state.timer])
 
+  // Cancela la partida que se está contando y empieza una nueva en blanco. En una
+  // partida de grupo con puntos queda en el historial como cancelada (con el
+  // marcador que tenía: no cuenta para puntos ni estadísticas); la rápida
+  // simplemente se descarta. Devuelve una promesa que se cumple cuando ya quedó
+  // guardada, para poder volver al grupo y verla.
+  const cancelGame = useCallback(
+    async (reason: string) => {
+      const { context } = state
+      const nos = points('nos')
+      const ellos = points('ellos')
+      if (context.type === 'group' && context.groupId && nos + ellos > 0) {
+        const group = (await loadGroups()).find(
+          (item) => item.id === context.groupId,
+        )
+        const match: Match = {
+          id: createId(),
+          type: 'group',
+          groupId: context.groupId,
+          modality: context.modality,
+          playedAt: new Date().toISOString(),
+          durationSeconds: elapsedSeconds(state.timer, Date.now()),
+          target: state.target,
+          // Una partida cancelada no tiene ganador real: figura el que iba ganando.
+          winner: ellos > nos ? 'ellos' : 'nos',
+          teams: context.teams,
+          scores: { nos, ellos },
+          canceled: {
+            at: new Date().toISOString(),
+            by: group?.myMemberId ?? null,
+            reason: reason.trim() === '' ? null : reason.trim(),
+          },
+        }
+        await saveMatch(match)
+        void syncPendingMatches()
+      }
+      dispatch({ type: 'cancelGame' })
+    },
+    [points, state],
+  )
+
   const decline = useCallback(() => {
     dispatch({ type: 'decline' })
   }, [])
@@ -487,6 +530,7 @@ export function useCounter(
     undoTeam,
     setTarget,
     confirm,
+    cancelGame,
     decline,
     paused,
     togglePause,

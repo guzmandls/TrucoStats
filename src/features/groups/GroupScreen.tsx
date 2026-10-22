@@ -106,7 +106,9 @@ export function GroupScreen() {
   // la que cuenta esta misma persona no se muestra.
   const { lives } = useLiveMatch(group, 6000)
   const ownLiveId = game ? contextOf(game).liveId : undefined
-  const othersLive = lives.filter((item) => item.id !== ownLiveId)
+  const othersLive = lives.filter(
+    (item) => item.id !== ownLiveId && item.status === 'live',
+  )
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [adding, setAdding] = useState(false)

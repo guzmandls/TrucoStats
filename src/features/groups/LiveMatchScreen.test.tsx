@@ -21,7 +21,10 @@ const group: Group = {
   ],
 }
 
-function liveMatch(overrides: Partial<LiveMatch['state']> = {}): LiveMatch {
+function liveMatch(
+  overrides: Partial<LiveMatch['state']> = {},
+  extra: Partial<LiveMatch> = {},
+): LiveMatch {
   return {
     id: 'v1',
     state: {
@@ -38,6 +41,11 @@ function liveMatch(overrides: Partial<LiveMatch['state']> = {}): LiveMatch {
     },
     startedAt: '2026-10-01T20:00:00.000Z',
     updatedAt: '2026-10-01T20:01:35.000Z',
+    ageSeconds: 0,
+    status: 'live',
+    endedAt: null,
+    reason: null,
+    ...extra,
   }
 }
 
@@ -116,5 +124,79 @@ describe('LiveMatchScreen', () => {
     expect(await screen.findByText('La partida terminó.')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('link', { name: 'Volver al grupo' }))
     expect(await screen.findByText('pantalla del grupo')).toBeInTheDocument()
+  })
+
+  it('si el contador se cerró hace más de un minuto, figura pausada y el tiempo se detiene', async () => {
+    stubLive(liveMatch({}, { ageSeconds: 600 }))
+    renderLive()
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Partida pausada',
+    )
+    // 95 s jugados + el minuto de gracia, no los 10 minutos que pasaron.
+    expect(screen.getByTestId('live-timer')).toHaveTextContent('2:35')
+  })
+
+  it('si el contador se cerró hace unos segundos sigue en vivo', async () => {
+    stubLive(liveMatch({}, { ageSeconds: 20 }))
+    renderLive()
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Mirando en vivo',
+    )
+  })
+
+  it('cuando la partida terminó muestra el cartel con quién ganó y el marcador', async () => {
+    stubLive(
+      liveMatch(
+        { winner: 'nos', scores: { nos: 30, ellos: 21 } },
+        { status: 'finished', endedAt: '2026-10-01T20:30:00.000Z' },
+      ),
+    )
+    renderLive()
+
+    expect(await screen.findByText('La partida terminó')).toBeInTheDocument()
+    expect(screen.getByText('Ganó Juan, 30 a 21.')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Terminó · Ganó Juan')
+    fireEvent.click(screen.getByRole('button', { name: 'Ver en el historial' }))
+    expect(await screen.findByText('pantalla del grupo')).toBeInTheDocument()
+  })
+
+  it('cuando la partida se canceló muestra el cartel con el motivo', async () => {
+    stubLive(
+      liveMatch(
+        {},
+        {
+          status: 'canceled',
+          endedAt: '2026-10-01T20:30:00.000Z',
+          reason: 'Se cargó mal',
+        },
+      ),
+    )
+    renderLive()
+
+    expect(
+      await screen.findByText('La partida fue cancelada'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Motivo: Se cargó mal')).toBeInTheDocument()
+    expect(screen.getByRole('status')).toHaveTextContent('Partida cancelada')
+    fireEvent.click(screen.getByRole('button', { name: 'Volver al grupo' }))
+    expect(await screen.findByText('pantalla del grupo')).toBeInTheDocument()
+  })
+
+  it('el cartel de final se puede cerrar para seguir viendo el marcador', async () => {
+    stubLive(
+      liveMatch(
+        {},
+        { status: 'canceled', endedAt: '2026-10-01T20:30:00.000Z' },
+      ),
+    )
+    renderLive()
+    await screen.findByText('La partida fue cancelada')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
+
+    expect(screen.queryByText('La partida fue cancelada')).toBeNull()
+    expect(screen.getByTestId('live-score-nos')).toHaveTextContent('12')
   })
 })

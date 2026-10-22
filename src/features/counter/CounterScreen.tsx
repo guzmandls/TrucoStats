@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   BackIcon,
+  CloseIcon,
   GroupPlusIcon,
   PauseIcon,
   PersonIcon,
@@ -9,10 +10,13 @@ import {
   UndoIcon,
 } from '../../components/Icons'
 import {
+  Button,
   ConfirmDialog,
+  Dialog,
   HeaderIconButton,
   HeaderMenu,
   PageHeader,
+  TextInput,
 } from '../../components/ui'
 import { HoldButton } from '../../components/HoldButton'
 import { Counter } from './Counter'
@@ -48,7 +52,12 @@ export function CounterScreen() {
   )
   const counter = useCounter(nav?.target ?? DEFAULT_TARGET, initialContext)
   const drawingRef = useRef<HTMLDivElement>(null)
-  useLiveBroadcast(counter)
+  const live = useLiveBroadcast(counter)
+  const [canceling, setCanceling] = useState(false)
+  const [reason, setReason] = useState('')
+  const [busy, setBusy] = useState(false)
+  const inGroup = counter.context.type === 'group' && !!counter.context.groupId
+  const groupHome = inGroup ? `/grupo/${counter.context.groupId}` : '/'
 
   const nosPoints = counter.points('nos')
   const ellosPoints = counter.points('ellos')
@@ -85,6 +94,15 @@ export function CounterScreen() {
           <HeaderMenu
             label="Menú"
             items={[
+              ...(counter.started
+                ? [
+                    {
+                      label: 'Cancelar partida',
+                      icon: <CloseIcon />,
+                      onClick: () => setCanceling(true),
+                    },
+                  ]
+                : []),
               {
                 label: 'Crear grupo',
                 to: '/crear-grupo',
@@ -118,15 +136,48 @@ export function CounterScreen() {
         <ConfirmDialog
           title={`¿El equipo ganador es “${TEAM_LABELS[winner]}”?`}
           onConfirm={() => {
-            const destination =
-              counter.context.type === 'group' && counter.context.groupId
-                ? `/grupo/${counter.context.groupId}`
-                : '/'
+            live.end('finished')
             counter.confirm()
-            navigate(destination)
+            navigate(groupHome)
           }}
           onCancel={counter.decline}
         />
+      )}
+
+      {canceling && (
+        <Dialog
+          title="¿Cancelar la partida?"
+          onClose={() => setCanceling(false)}
+          closeButton
+        >
+          <p>
+            {inGroup
+              ? 'Quedará cancelada en el historial.'
+              : 'Se borrará el marcador.'}
+          </p>
+          {inGroup && (
+            <TextInput
+              aria-label="Motivo (opcional)"
+              placeholder="Motivo (opcional)"
+              value={reason}
+              maxLength={200}
+              onChange={(event) => setReason(event.target.value)}
+            />
+          )}
+          <Button
+            disabled={busy}
+            onClick={() => {
+              setBusy(true)
+              live.end('canceled', reason.trim())
+              void counter.cancelGame(reason).then(() => navigate(groupHome))
+            }}
+          >
+            Cancelar partida
+          </Button>
+          <Button variant="secondary" onClick={() => setCanceling(false)}>
+            Seguir jugando
+          </Button>
+        </Dialog>
       )}
 
       <BottomBar counter={counter} locked={counter.awaitingConfirmation} />

@@ -1307,3 +1307,12 @@ primera que falla.
   - **Foto ilegible:** si el navegador no podía leer la imagen, el error quedaba sin capturar y no pasaba nada. Ahora avisa "No se pudo usar esa imagen. Prueba con otra foto."
   - **Texto:** "No se pudieron enviar tu partida" → "No se pudo enviar tu partida".
 - **Lo que funciona como está pensado:** cancelar una partida ya enviada necesita conexión (el servidor valida permisos); sin conexión solo se cancela una que todavía no se envió.
+
+## Etapa 52 — La partida en vivo se mantiene y se puede cancelar
+
+- **Qué se pidió:** una partida en vivo tiene que verse siempre, aunque quien cuenta pause o cierre el contador; si termina o se cancela, quien mira debe ver el mensaje que corresponde; y quien cuenta debe poder cancelarla.
+- **Estados en el servidor:** la tabla de partidas en vivo ahora guarda un estado (`live`, `finished`, `canceled`). Antes cerrar el contador *borraba* la fila, y por eso quien miraba veía "terminó". Ahora la fila se conserva (12 horas sin novedades) y, al terminar o cancelarse, queda una hora con ese estado para mostrar el cartel. Una actualización atrasada no puede "resucitar" una partida ya cerrada.
+- **Cómo se sabe que el contador se cerró:** el contador publica el estado exacto al salir (y al ocultarse la app). Quien mira recibe además "hace cuánto se actualizó" según el reloj *del servidor* (no del celular, que puede estar desfasado) y, pasado un minuto sin novedades, muestra la partida pausada: es la misma regla del cronómetro del contador.
+- **Cancelar:** nueva opción en el menú del contador. En el grupo guarda una partida cancelada (con el marcador que tenía) usando el mismo mecanismo que ya existía para cancelar sin conexión; como una partida cancelada puede estar empatada, el servidor acepta empates solo cuando llega marcada como cancelada.
+- **Sin conexión:** si el aviso de "terminó" o "canceló" no llega, queda pendiente y se reintenta con la sincronización.
+- **Probado** con dos navegadores simulados: seguir en vivo al cerrar el contador, pausa a los 60 s, reabrir, cancelar un 3–3 con motivo y terminar una partida viendo el cartel.

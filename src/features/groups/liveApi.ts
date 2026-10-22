@@ -1,4 +1,4 @@
-import { apiRequest, deleteRequest, putJson } from '../../lib/api'
+import { apiRequest, deleteRequest } from '../../lib/api'
 import type { Team } from '../counter/counterLogic'
 import type { Participant } from '../matches/types'
 
@@ -15,12 +15,30 @@ export interface LiveState {
   winner: Team | null
 }
 
+export type LiveStatus = 'live' | 'finished' | 'canceled'
+
 export interface LiveMatch {
   // Identifica la partida (puede haber varias en vivo a la vez en un grupo).
   id: string
   state: LiveState
   startedAt: string
   updatedAt: string
+  // Hace cuántos segundos se actualizó, según el reloj del servidor. Si el
+  // contador sigue abierto se actualiza cada pocos segundos.
+  ageSeconds: number
+  // En juego, terminada o cancelada (las dos últimas se muestran un rato).
+  status: LiveStatus
+  endedAt: string | null
+  // Motivo de la cancelación, si lo escribió quien la canceló.
+  reason: string | null
+}
+
+export interface PublishOptions {
+  status?: LiveStatus
+  reason?: string
+  // Para publicar justo al cerrar la pantalla, cuando el navegador podría
+  // cortar el pedido.
+  keepalive?: boolean
 }
 
 // El contador publica (o actualiza) la partida en curso del grupo.
@@ -28,11 +46,20 @@ export async function publishLive(
   inviteCode: string,
   liveId: string,
   state: LiveState,
+  options: PublishOptions = {},
 ): Promise<void> {
-  await putJson(`/api/grupos/${inviteCode}/en-vivo/${liveId}`, { state })
+  await apiRequest(`/api/grupos/${inviteCode}/en-vivo/${liveId}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      state,
+      ...(options.status ? { status: options.status } : {}),
+      ...(options.reason ? { reason: options.reason } : {}),
+    }),
+    ...(options.keepalive ? { keepalive: true } : {}),
+  })
 }
 
-// La partida terminó o se cerró el contador.
+// La partida en vivo se borra sin dejar rastro (se salió del contador sin jugar).
 export async function stopLive(
   inviteCode: string,
   liveId: string,

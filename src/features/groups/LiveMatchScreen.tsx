@@ -2,15 +2,18 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { BackIcon, PauseIcon } from '../../components/Icons'
 import {
+  Button,
   ButtonLink,
+  Dialog,
   EmptyNote,
   HeaderIconButton,
   PageHeader,
 } from '../../components/ui'
 import { Counter } from '../counter/Counter'
-import { formatClock } from '../counter/gameTimer'
+import { AWAY_LIMIT_MS, formatClock } from '../counter/gameTimer'
 import counterStyles from '../counter/CounterScreen.module.css'
 import { participantNames } from '../matches/format'
+import type { LiveMatch } from './liveApi'
 import { useGroup } from './useGroup'
 import { useLiveMatch } from './useLiveMatch'
 import styles from './LiveMatchScreen.module.css'
@@ -20,6 +23,15 @@ const POLL_MS = 3000
 // Mirar desde otro celular la partida de grupo que se está contando: los
 // mismos puntos y el mismo dibujo que ve quien cuenta, sin poder tocar nada. Se
 // actualiza sola cada pocos segundos (necesita conexión).
+// Equipo que ganó una partida terminada (el que llegó al objetivo al terminar).
+function winnerOf(live: LiveMatch): 'nos' | 'ellos' | null {
+  if (live.state.winner) {
+    return live.state.winner
+  }
+  const { nos, ellos } = live.state.scores
+  return nos === ellos ? null : nos > ellos ? 'nos' : 'ellos'
+}
+
 export function LiveMatchScreen() {
   const { id, liveId } = useParams<{ id: string; liveId: string }>()
   const navigate = useNavigate()
@@ -29,6 +41,8 @@ export function LiveMatchScreen() {
   const live = lives.find((item) => item.id === liveId) ?? null
   const drawingRef = useRef<HTMLDivElement>(null)
   const [now, setNow] = useState(() => Date.now())
+  // Para poder cerrar el cartel de final y seguir viendo el marcador.
+  const [noticeClosed, setNoticeClosed] = useState(false)
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 1000)
@@ -79,9 +93,17 @@ export function LiveMatchScreen() {
   }
 
   const { state } = live
+  const ended = live.status !== 'live'
+  // Si el contador se cerró, el servidor deja de recibir novedades; igual que el
+  // cronómetro del contador, pasado un minuto sin novedades la partida figura
+  // pausada (y el tiempo se detiene ahí).
+  const silentSeconds =
+    live.ageSeconds + Math.max(0, Math.floor((now - receivedAt) / 1000))
+  const away = !ended && !state.paused && silentSeconds > AWAY_LIMIT_MS / 1000
+  const paused = state.paused || away
   const elapsed =
     state.elapsedSeconds +
-    (state.paused ? 0 : Math.max(0, Math.floor((now - receivedAt) / 1000)))
+    (state.paused || ended ? 0 : Math.min(silentSeconds, AWAY_LIMIT_MS / 1000))
   const teamName = (side: 'nos' | 'ellos') =>
     participantNames(state.teams[side]) ??
     (side === 'nos' ? 'Nosotros' : 'Ellos')
@@ -90,7 +112,7 @@ export function LiveMatchScreen() {
     <div className={counterStyles.screen}>
       {header(
         <span className={styles.clock}>
-          {state.paused && <PauseIcon size={20} />}
+          {paused && !ended && <PauseIcon size={20} />}
           <span data-testid="live-timer">{formatClock(elapsed)}</span>
         </span>,
       )}
@@ -120,12 +142,41 @@ export function LiveMatchScreen() {
       />
 
       <footer className={styles.status} role="status">
-        {state.winner
-          ? `Ganó ${teamName(state.winner)}`
-          : state.paused
-            ? 'Partida pausada'
-            : `Mirando en vivo · a ${state.target}`}
+        {live.status === 'canceled'
+          ? 'Partida cancelada'
+          : live.status === 'finished'
+            ? `Terminó${winnerOf(live) ? ` · Ganó ${teamName(winnerOf(live)!)}` : ''}`
+            : state.winner
+              ? `Ganó ${teamName(state.winner)}`
+              : paused
+                ? 'Partida pausada'
+                : `Mirando en vivo · a ${state.target}`}
       </footer>
+
+      {ended && !noticeClosed && (
+        <Dialog
+          title={
+            live.status === 'canceled'
+              ? 'La partida fue cancelada'
+              : 'La partida terminó'
+          }
+          onClose={() => setNoticeClosed(true)}
+          closeButton
+        >
+          <p>
+            {live.status === 'canceled'
+              ? live.reason
+                ? `Motivo: ${live.reason}`
+                : 'Quedó cancelada en el historial.'
+              : `${winnerOf(live) ? `Ganó ${teamName(winnerOf(live)!)}` : 'Terminó'}, ${nos} a ${ellos}.`}
+          </p>
+          <Button onClick={back}>
+            {live.status === 'canceled'
+              ? 'Volver al grupo'
+              : 'Ver en el historial'}
+          </Button>
+        </Dialog>
+      )}
     </div>
   )
 }

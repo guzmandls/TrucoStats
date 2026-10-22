@@ -416,9 +416,14 @@ describe('GroupScreen', () => {
     nos: string,
     ellos: string,
     scores: [number, number],
+    status = 'live',
   ) {
     return {
       id,
+      status,
+      ageSeconds: 0,
+      endedAt: null,
+      reason: null,
       state: {
         teams: {
           nos: [{ id: `${id}a`, name: nos }],
@@ -469,6 +474,24 @@ describe('GroupScreen', () => {
     expect(links[0]).toHaveTextContent('12 – 8')
     expect(links[1]).toHaveAttribute('href', `/grupo/${group.id}/en-vivo/v2`)
     expect(links[1]).toHaveTextContent('Luis vs Ana')
+  })
+
+  it('no muestra aviso de una partida que ya terminó o se canceló', async () => {
+    saveSession({
+      token: 't',
+      user: { id: 'u1', username: 'juan', email: null, name: 'Juan' },
+    })
+    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
+    stubLives([
+      liveItem('v1', 'Juan', 'Pedro', [30, 20], 'finished'),
+      liveItem('v2', 'Luis', 'Ana', [5, 3], 'canceled'),
+      liveItem('v3', 'Beto', 'Rita', [4, 2]),
+    ])
+    renderGroup()
+
+    const links = await screen.findAllByRole('link', { name: /En vivo/ })
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveTextContent('Beto vs Rita')
   })
 
   it('no muestra el aviso si no hay partidas en vivo', async () => {

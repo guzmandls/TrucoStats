@@ -91,6 +91,8 @@ export async function sendMatch(
     winner: match.winner,
     teams: match.teams,
     scores: match.scores,
+    // Avisa que se canceló mientras se contaba (puede estar empatada).
+    ...(match.canceled ? { canceled: true } : {}),
   })
 }
 
