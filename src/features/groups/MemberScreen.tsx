@@ -12,7 +12,7 @@ import {
 } from '../../components/ui'
 import { memberStats } from '../matches/groupStats'
 import { avatarColors } from './avatar'
-import { fileToAvatarDataUrl } from './imageFile'
+import { fileToAvatarDataUrl, UNREADABLE_IMAGE } from './imageFile'
 import { updateMemberAvatar } from './groupsStorage'
 import { MemberStatsFicha, MemberStatsRows } from './MemberStats'
 import { shareAvatar } from './avatarSync'
@@ -79,7 +79,13 @@ export function MemberScreen() {
     }
     setBusy(true)
     try {
-      const dataUrl = await fileToAvatarDataUrl(file)
+      let dataUrl: string
+      try {
+        dataUrl = await fileToAvatarDataUrl(file)
+      } catch {
+        setPhotoMessage(UNREADABLE_IMAGE)
+        return
+      }
       const updated = await updateMemberAvatar(group, member!.id, dataUrl)
       setGroup(updated)
       await shareAvatar(updated, member!.id, dataUrl).then(setPhotoMessage)

@@ -527,9 +527,10 @@ export function GroupScreen() {
         {syncProblem && pendingCount > 0 && !link && (
           <div className={styles.linkAlert}>
             <Notice>
-              No se pudieron enviar{' '}
-              {pendingCount === 1 ? 'tu partida' : 'tus partidas'}:{' '}
-              {syncProblem}
+              {pendingCount === 1
+                ? 'No se pudo enviar tu partida'
+                : 'No se pudieron enviar tus partidas'}
+              : {syncProblem}
             </Notice>
             <Button
               variant="secondary"
