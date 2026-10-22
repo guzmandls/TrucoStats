@@ -5,7 +5,7 @@ import App from './App'
 describe('App', () => {
   it('muestra la pantalla principal', () => {
     render(<App />)
-    expect(screen.getByText('TrucoStats')).toBeInTheDocument()
+    expect(screen.getByText('trucoStats')).toBeInTheDocument()
     expect(screen.getByText('Partida rápida')).toBeInTheDocument()
   })
 })

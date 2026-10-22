@@ -1,4 +1,4 @@
-# TrucoStats — Desarrollo
+# trucoStats — Desarrollo
 
 ## Etapa 0 — Preparación del proyecto
 
@@ -1347,3 +1347,9 @@ primera que falla.
 - **Qué cambió:** la pestaña "Individuales" ordenaba por porcentaje de victorias; ahora ordena por puntos, igual que el podio. Así alguien que ganó 1 de 1 (100%) ya no queda arriba de quien ganó 6 de 9.
 - **Cómo:** el criterio de orden quedó en una sola función (`byRanking`, en `groupStats.ts`) que usan el podio y la lista. Tener el orden en un solo lugar evita que las dos pantallas se contradigan si algún día cambia.
 - **Prueba:** un caso donde el porcentaje y los puntos dan órdenes distintos; falla con el código anterior y pasa con el nuevo.
+
+## Etapa 56 — El nombre pasa a ser "trucoStats"
+
+- **Qué cambió:** el nombre se escribe con t minúscula en todos lados: título de la pantalla de inicio, pestaña del navegador, nombre de la app instalada (`manifest.webmanifest` y `apple-mobile-web-app-title`), remitente y asunto de los correos, texto de la invitación y documentación.
+- **Lo que no se cambió:** el nombre del repositorio en GitHub, la carpeta del proyecto, la dirección `trucostats.guzmandls.workers.dev` y el comentario de la primera migración (las migraciones ya aplicadas no se tocan). Los nombres internos (`trucostats-db`, claves del navegador como `trucostats.session`) ya estaban en minúscula y no se ven.
+- **Ojo en el iPhone:** si la app ya está agregada a la pantalla de inicio, el nombre de debajo del ícono no se actualiza solo; hay que quitarla y volver a agregarla.

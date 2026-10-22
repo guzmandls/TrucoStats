@@ -1,6 +1,8 @@
-# TrucoStats — Requisitos
+# trucoStats — Requisitos
 
 ## 1. Descripción general
+
+El nombre de la app se escribe siempre **trucoStats**, con la t minúscula (en la app, el ícono instalado, los correos y los textos para compartir).
 
 Inicialmente estará destinada a un grupo de aproximadamente 15 amigos, pero se diseñará para que otros grupos puedan utilizarla en el futuro.
 
@@ -22,7 +24,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 
 ### 3.1. Usuarios
 
-- Un usuario es una persona con cuenta única en TrucoStats (registro e inicio de sesión).
+- Un usuario es una persona con cuenta única en trucoStats (registro e inicio de sesión).
 - Podrá estar vinculado a integrantes en uno o varios grupos.
 - Podrá consultar sus estadísticas individuales globales, sumando las partidas de los integrantes a los que está vinculado, en todos sus grupos.
 - El perfil personal será visible para los integrantes de los grupos en los que participa.
@@ -444,7 +446,7 @@ Cada partida de grupo se cuenta desde el equipo del integrante de la persona (ta
 
 ## 7. Funcionamiento sin Internet
 
-TrucoStats tendrá un funcionamiento offline-first.
+trucoStats tendrá un funcionamiento offline-first.
 
 - La aplicación podrá abrirse sin Internet después de haberse instalado y preparado correctamente.
 - Permitirá iniciar partidas utilizando integrantes del grupo previamente almacenados en el dispositivo.

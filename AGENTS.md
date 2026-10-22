@@ -1,7 +1,7 @@
-# Instrucciones para asistentes de IA — TrucoStats
+# Instrucciones para asistentes de IA — trucoStats
 
 ## Contexto del proyecto
-TrucoStats es una PWA para contar puntos de truco uruguayo, guardar partidas y consultar estadísticas.
+trucoStats es una PWA para contar puntos de truco uruguayo, guardar partidas y consultar estadísticas.
 
 - Leer `docs/requisitos.md` antes de proponer o implementar funcionalidades.
 - Los requisitos documentados son la referencia principal del proyecto.

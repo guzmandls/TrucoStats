@@ -84,7 +84,7 @@ describe('POST /api/recuperar', () => {
     expect(sent[0].headers['api-key']).toBe('clave-de-prueba')
     expect(sent[0].body.sender.email).toBe('remitente@ejemplo.com')
     expect(sent[0].body.to).toEqual([{ email: 'juan@ejemplo.com' }])
-    expect(sent[0].body.subject).toBe('Recupera tu contraseña de TrucoStats')
+    expect(sent[0].body.subject).toBe('Recupera tu contraseña de trucoStats')
     expect(sent[0].body.textContent).toContain(
       'https://app.ejemplo.com/restablecer/',
     )
@@ -316,7 +316,7 @@ describe('correo de la cuenta', () => {
     await post('/api/recuperar', { identifier: 'juan@ejemplo.com' })
 
     expect(sent).toHaveLength(2)
-    expect(sent[1].body.subject).toBe('Recupera tu contraseña de TrucoStats')
+    expect(sent[1].body.subject).toBe('Recupera tu contraseña de trucoStats')
   })
 
   it('el enlace de confirmación se usa una sola vez y uno nuevo reemplaza al anterior', async () => {

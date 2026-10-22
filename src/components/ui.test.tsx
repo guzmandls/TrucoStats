@@ -28,14 +28,14 @@ function wrap(ui: ReactElement) {
 
 describe('PageHeader', () => {
   it('muestra el título como heading principal', () => {
-    render(<PageHeader title="TrucoStats" />)
+    render(<PageHeader title="trucoStats" />)
     expect(
-      screen.getByRole('heading', { level: 1, name: 'TrucoStats' }),
+      screen.getByRole('heading', { level: 1, name: 'trucoStats' }),
     ).toBeInTheDocument()
   })
 
   it('muestra el contenido de la derecha', () => {
-    render(<PageHeader title="TrucoStats" trailing={<button>Nuevo</button>} />)
+    render(<PageHeader title="trucoStats" trailing={<button>Nuevo</button>} />)
     expect(screen.getByRole('banner')).toContainElement(
       screen.getByRole('button', { name: 'Nuevo' }),
     )
@@ -272,7 +272,7 @@ describe('Screen', () => {
   it('envuelve la pantalla con su cabecera, contenido y pie', () => {
     render(
       <Screen>
-        <PageHeader title="TrucoStats" />
+        <PageHeader title="trucoStats" />
         <ScreenContent>
           <span>Contenido</span>
         </ScreenContent>

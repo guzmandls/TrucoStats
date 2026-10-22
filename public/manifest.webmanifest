@@ -1,6 +1,6 @@
 {
-  "name": "TrucoStats",
-  "short_name": "TrucoStats",
+  "name": "trucoStats",
+  "short_name": "trucoStats",
   "description": "Contador de puntos de truco uruguayo con estadísticas.",
   "lang": "es",
   "start_url": "/",
