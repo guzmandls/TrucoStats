@@ -83,7 +83,7 @@ describe('Instalar', () => {
     expect(
       screen.getByRole('dialog', { name: 'Instalar en iPhone' }),
     ).toBeInTheDocument()
-    expect(screen.getByText('Agregar a pantalla de inicio')).toBeInTheDocument()
+    expect(screen.getByText('Agregar a Inicio')).toBeInTheDocument()
     expect(screen.getByText('Abrir como app web')).toBeInTheDocument()
   })
 

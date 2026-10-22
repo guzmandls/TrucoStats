@@ -34,8 +34,7 @@ export function InstallCard({ onInstall }: { onInstall: () => void }) {
       </div>
       <div className={styles.cardBody}>
         <p className={styles.text}>
-          Tenla en tu pantalla de inicio y ábrela como una app, a pantalla
-          completa.
+          Agrega trucoStats a tu pantalla de inicio y úsala como cualquier app.
         </p>
         <Button onClick={onInstall}>Instalar</Button>
       </div>

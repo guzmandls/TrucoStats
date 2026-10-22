@@ -1450,3 +1450,8 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 ## Etapa 63 — Texto de la página de instalar
 
 - La página `/instalar` dice ahora "Agrega trucoStats a tu pantalla de inicio y úsala como cualquier app." (antes hablaba de "pantalla completa", un término técnico que no hacía falta).
+
+## Etapa 64 — Textos de instalar según el iPhone real
+
+- La tarjeta del inicio usa el mismo texto que `/instalar`: "Agrega trucoStats a tu pantalla de inicio y úsala como cualquier app."
+- En los pasos del iPhone, la opción se llama **"Agregar a Inicio"** (así aparece en el menú Compartir de Safari en iOS 26) y puede estar escondida detrás de **"Ver más"**. Antes decía "Agregar a pantalla de inicio", el nombre de versiones anteriores de iOS; se corrigió con una captura del teléfono del desarrollador.
