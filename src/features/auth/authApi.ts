@@ -69,6 +69,14 @@ export async function changePassword(
   await postJson('/api/contrasena', { current, password })
 }
 
+// Elimina la cuenta (pide la contraseña). Después, como al cerrar sesión, se
+// quitan de este celular los grupos y las partidas de grupo de la cuenta.
+export async function deleteAccount(password: string): Promise<void> {
+  await postJson('/api/eliminar-cuenta', { password })
+  clearSession()
+  await clearAccountData()
+}
+
 // Pide guardar un correo nuevo: se manda un enlace de confirmación a esa dirección.
 export async function requestEmailChange(email: string): Promise<void> {
   await postJson('/api/correo', { email })

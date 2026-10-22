@@ -1467,3 +1467,10 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **Qué hace:** en el perfil, la sección "Contraseña" pide la actual y la nueva dos veces. Este celular sigue con la sesión iniciada y se cierran las de los demás.
 - **Servidor:** `POST /api/contrasena` (`worker/account.ts`). Pide la contraseña actual aunque haya sesión iniciada, por si el celular quedó en otras manos. Para cerrar las demás sesiones borra las de la cuenta salvo la del pedido (se compara el *hash* del token, que es lo que se guarda). También anula los enlaces de recuperación pendientes.
 - **Por qué 403 y no 401 si la actual es incorrecta:** la app interpreta un 401 como "sesión vencida" y cerraría la sesión. Acá la sesión es válida; lo que está mal es el dato.
+
+## Etapa 67 — Eliminar la cuenta
+
+- **Qué hace:** "Eliminar cuenta" al final del perfil. El cartel explica qué pasa, avisa si hay partidas sin enviar y pide la contraseña. Después, el celular queda sin sesión y vuelve al inicio.
+- **Servidor:** `POST /api/eliminar-cuenta` (`worker/account.ts`). Sale de cada grupo con la misma lógica que "Salir del grupo", que se separó en una función (`leaveAs` en `worker/leave.ts`) para no repetirla. Después borra la cuenta; las sesiones y los enlaces de correo se borran solos (`ON DELETE CASCADE`).
+- **Por qué no se borran sus partidas:** son también de los demás jugadores. Su integrante queda en el grupo, libre, y las estadísticas de todos siguen igual.
+- **Para las tiendas:** Apple exige que una app que permite crear cuentas también permita eliminarlas desde la app.

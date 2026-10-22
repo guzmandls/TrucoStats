@@ -27,6 +27,17 @@ export async function leaveGroup(
     return errorResponse('No eres integrante de este grupo', 403)
   }
 
+  const deleted = await leaveAs(groupId, membership.memberId, env)
+  return json({ deleted })
+}
+
+// Saca a una persona del grupo (salir del grupo o eliminar la cuenta). Devuelve
+// true si el grupo se eliminó porque era su único integrante.
+export async function leaveAs(
+  groupId: string,
+  memberId: string,
+  env: Env,
+): Promise<boolean> {
   const count = await env.DB.prepare(
     'SELECT COUNT(*) AS total FROM members WHERE group_id = ? AND active = 1',
   )
@@ -35,14 +46,14 @@ export async function leaveGroup(
   if ((count?.total ?? 0) <= 1) {
     // Los integrantes se borran junto con el grupo (ON DELETE CASCADE).
     await env.DB.prepare('DELETE FROM groups WHERE id = ?').bind(groupId).run()
-    return json({ deleted: true })
+    return true
   }
 
   await env.DB.prepare(
     'UPDATE members SET user_id = NULL, is_admin = 0 WHERE id = ?',
   )
-    .bind(membership.memberId)
+    .bind(memberId)
     .run()
   await ensureAdmin(groupId, env)
-  return json({ deleted: false })
+  return false
 }
