@@ -474,7 +474,7 @@ Cada partida tendrá un único anotador responsable para evitar modificaciones s
 - **Frontend:** React y TypeScript.
 - **Aplicación instalable:** PWA.
 - **Almacenamiento local:** IndexedDB.
-- **Funcionamiento offline:** Service Worker.
+- **Funcionamiento offline:** Service Worker. Guarda solo los archivos de la app; los datos del servidor (`/api`) nunca se guardan en caché ni se responden desde ella.
 - **Backend:** Cloudflare Workers.
 - **Base de datos:** Cloudflare D1 (SQLite/SQL).
 - **Hosting:** Cloudflare.

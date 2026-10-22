@@ -1,4 +1,6 @@
-const CACHE = 'trucostats-v1'
+// Cambiar el nombre borra la caché anterior al activarse. v1 guardaba también
+// respuestas de /api (y las devolvía viejas para siempre): v2 la descarta.
+const CACHE = 'trucostats-v2'
 const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest']
 
 self.addEventListener('install', (event) => {
@@ -15,10 +17,19 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys()
-      await Promise.all(
-        keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)),
-      )
+      const stale = keys.filter((key) => key !== CACHE)
+      await Promise.all(stale.map((key) => caches.delete(key)))
       await self.clients.claim()
+      // Si había una caché vieja, las pestañas abiertas pudieron recibir datos
+      // viejos de ella: se recargan una vez para empezar limpias.
+      if (stale.length > 0) {
+        const windows = await self.clients.matchAll({ type: 'window' })
+        await Promise.all(
+          windows.map((client) =>
+            client.navigate(client.url).catch(() => undefined),
+          ),
+        )
+      }
     })(),
   )
 })
@@ -30,6 +41,11 @@ self.addEventListener('fetch', (event) => {
   }
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) {
+    return
+  }
+  // Los datos (grupos, partidas, sesión) siempre van al servidor: nunca se
+  // guardan ni se devuelven desde la caché.
+  if (url.pathname.startsWith('/api/')) {
     return
   }
 
