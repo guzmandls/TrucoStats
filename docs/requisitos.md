@@ -6,6 +6,8 @@ El nombre de la app se escribe siempre **trucoStats**, con la t minúscula (en l
 
 El ícono de la app es "tS" en crema sobre fondo negro (diseño del desarrollador, `public/app-icon.svg`); de él salen todos los tamaños.
 
+La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla completa. La zona de la hora, la señal y la batería queda en una franja negra fija; la app empieza debajo de ella y la barra inferior llega hasta el borde de abajo, dejando lugar a la barra de inicio del teléfono.
+
 Inicialmente estará destinada a un grupo de aproximadamente 15 amigos, pero se diseñará para que otros grupos puedan utilizarla en el futuro.
 
 El objetivo es ofrecer un contador sencillo, rápido y similar al conteo tradicional en papel, incorporando historial y estadísticas.
