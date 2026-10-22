@@ -28,6 +28,7 @@ import { formatDuration, personalSummary } from '../matches/stats'
 import type { Match } from '../matches/types'
 import { winRateColor } from '../matches/winRateColor'
 import { EmailSection } from './EmailSection'
+import { PasswordSection } from './PasswordSection'
 import { myMatches } from './myMatches'
 import styles from './ProfileScreen.module.css'
 
@@ -177,6 +178,7 @@ export function ProfileScreen() {
           </>
         )}
         <EmailSection />
+        <PasswordSection />
       </ScreenContent>
       {photoMessage && (
         <Dialog title={photoMessage} onClose={() => setPhotoMessage(null)}>

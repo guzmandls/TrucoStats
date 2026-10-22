@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { clearSession, getSession, saveSession } from '../../lib/session'
 import { EmailSection } from '../profile/EmailSection'
+import { PasswordSection } from '../profile/PasswordSection'
 import { AuthScreen } from './AuthScreen'
 import { ConfirmEmailScreen } from './ConfirmEmailScreen'
 import { ForgotPasswordScreen } from './ForgotPasswordScreen'
@@ -307,5 +308,68 @@ describe('EmailSection (perfil)', () => {
         'Ya existe una cuenta',
       ),
     )
+  })
+})
+
+describe('PasswordSection (perfil)', () => {
+  function fillPasswords(current: string, next: string, repeat: string) {
+    fill('Contraseña actual', current)
+    fill('Contraseña nueva', next)
+    fill('Repetir contraseña nueva', repeat)
+    fireEvent.click(screen.getByRole('button', { name: 'Cambiar contraseña' }))
+  }
+
+  it('no aparece sin una cuenta registrada', () => {
+    saveSession({
+      token: 'c'.repeat(64),
+      user: { id: 'g1', username: null, email: null, name: 'Invitado' },
+    })
+    render(<PasswordSection />)
+    expect(screen.queryByText('Contraseña')).toBeNull()
+  })
+
+  it('si las nuevas no coinciden, no manda nada', () => {
+    saveSession(account)
+    const calls = stubServer(() => json({ ok: true }))
+    render(<PasswordSection />)
+
+    fillPasswords('vieja-contraseña', 'una-nueva-1', 'una-nueva-2')
+
+    expect(screen.getByRole('alert')).toHaveTextContent('no coinciden')
+    expect(calls).toEqual([])
+  })
+
+  it('cambia la contraseña y avisa que se cerraron las demás sesiones', async () => {
+    saveSession(account)
+    const calls = stubServer(() => json({ ok: true }))
+    render(<PasswordSection />)
+
+    fillPasswords('vieja-contraseña', 'una-nueva-1', 'una-nueva-1')
+
+    expect(await screen.findByRole('status')).toHaveTextContent(
+      'Se cerró la sesión en los demás celulares',
+    )
+    expect(calls).toEqual([
+      {
+        url: '/api/contrasena',
+        body: { current: 'vieja-contraseña', password: 'una-nueva-1' },
+      },
+    ])
+    expect(getSession()?.token).toBe(account.token)
+  })
+
+  it('muestra el error si la contraseña actual no es correcta', async () => {
+    saveSession(account)
+    stubServer(() =>
+      json({ error: 'La contraseña actual no es correcta' }, 403),
+    )
+    render(<PasswordSection />)
+
+    fillPasswords('equivocada', 'una-nueva-1', 'una-nueva-1')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'La contraseña actual no es correcta',
+    )
+    expect(getSession()).not.toBeNull()
   })
 })
