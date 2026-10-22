@@ -1,21 +1,18 @@
-/* Foto arriba y, debajo, porcentaje y cifras: el mismo armado que el perfil.
-   Va de borde a borde, así que lleva su propio margen. */
+/* Igual que el perfil: arriba la foto y el porcentaje lado a lado; debajo, los
+   bloques de cifras a todo el ancho. Va de borde a borde, así que lleva su
+   propio margen. */
 .ficha {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
-  padding: var(--space-4);
+  padding: var(--space-5) var(--space-4) var(--space-4);
 }
 
-.photo {
-  display: flex;
-  justify-content: center;
-}
-
-.hero {
+.top {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  justify-content: center;
+  gap: var(--space-8);
 }
 
 .person {
