@@ -41,8 +41,8 @@ export function InstallScreen() {
           <Section title="Instalar">
             <div className={styles.cardBody}>
               <p className={styles.text}>
-                Agrega trucoStats a tu pantalla de inicio y ábrela como una app,
-                a pantalla completa.
+                Agrega trucoStats a tu pantalla de inicio y úsala como cualquier
+                app.
               </p>
               <Button
                 onClick={() =>

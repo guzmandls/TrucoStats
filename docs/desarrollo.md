@@ -1446,3 +1446,7 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **iPhone:** Apple no deja que una página se instale sola, así que solo se pueden mostrar los pasos (Compartir → Agregar a pantalla de inicio). Se aclara que desde el navegador interno de WhatsApp no se puede: hay que abrir el enlace en Safari.
 - **¿Ya está instalada?** Se sabe con `display-mode: standalone` (y `navigator.standalone` en iPhone).
 - **Un error que apareció probando:** si la instalación del sistema fallaba, el error quedaba sin atender y no pasaba nada al tocar. Ahora, si falla, se muestran los pasos.
+
+## Etapa 63 — Texto de la página de instalar
+
+- La página `/instalar` dice ahora "Agrega trucoStats a tu pantalla de inicio y úsala como cualquier app." (antes hablaba de "pantalla completa", un término técnico que no hacía falta).
