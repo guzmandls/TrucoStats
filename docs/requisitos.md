@@ -133,6 +133,7 @@ Existen dos tipos de partida:
 - Cada segmento representará un punto.
 - Cada cuadrado completo con su diagonal representará cinco puntos.
 - El anotador podrá sumar puntos mediante botones o dibujando segmentos.
+- Los cuadrados tienen las esquinas rectas (sin redondear) y un trazo firme (6 px). Al sumar un punto, el trazo nuevo se dibuja de un extremo al otro en menos de una quinta de segundo; no se anima al abrir una partida que ya tenía puntos, al deshacer ni si el dispositivo pide reducir las animaciones.
 - El orden predeterminado de los segmentos será: lado izquierdo, lado superior, lado derecho, lado inferior y diagonal (del vértice inferior izquierdo al superior derecho).
 - Podrá corregir errores utilizando botones Deshacer.
 - No será necesario registrar cada movimiento del contador en el historial de auditoría.

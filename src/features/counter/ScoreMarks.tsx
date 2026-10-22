@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 import { TallyMark } from './TallyMark'
+import { useJustDrawn } from './useJustDrawn'
 import styles from './ScoreMarks.module.css'
 
 interface ScoreMarksProps {
@@ -8,6 +9,7 @@ interface ScoreMarksProps {
 }
 
 export function ScoreMarks({ points, spacerIndex }: ScoreMarksProps) {
+  const justDrawn = useJustDrawn(points)
   const fullMarks = Math.floor(points / 5)
   const partial = points % 5
 
@@ -25,7 +27,14 @@ export function ScoreMarks({ points, spacerIndex }: ScoreMarksProps) {
         <Fragment key={index}>
           {index === spacerIndex && <div className={styles.spacer} />}
           <div className={styles.block}>
-            <TallyMark filled={segments} />
+            <TallyMark
+              filled={segments}
+              drawing={
+                justDrawn !== null && index === Math.floor((justDrawn - 1) / 5)
+                  ? (justDrawn - 1) % 5
+                  : null
+              }
+            />
           </div>
         </Fragment>
       ))}

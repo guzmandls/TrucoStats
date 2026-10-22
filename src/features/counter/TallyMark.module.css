@@ -5,10 +5,16 @@
   color: var(--ink);
 }
 
-.mark line {
+.mark path {
   fill: none;
-  stroke-linecap: round;
-  stroke-width: 2;
+  stroke-width: 3;
+  /* Con puntas cuadradas los lados se encuentran en esquinas rectas. */
+  stroke-linecap: square;
+}
+
+/* La diagonal termina justo en las esquinas, sin sobresalir. */
+.mark .diagonal {
+  stroke-linecap: butt;
 }
 
 .drawn {
@@ -17,4 +23,26 @@
 
 .empty {
   stroke: transparent;
+}
+
+/* El trazo que se acaba de sumar se dibuja de un extremo al otro. */
+.drawing {
+  stroke-dasharray: 1;
+  animation: draw 160ms ease-out;
+}
+
+@keyframes draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .drawing {
+    animation: none;
+  }
 }
