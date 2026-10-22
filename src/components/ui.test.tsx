@@ -176,7 +176,7 @@ describe('Stepper', () => {
         value={value}
         min={min}
         max={max}
-        decreaseLabel="Quitar"
+        decreaseLabel="Eliminar"
         increaseLabel="Agregar"
         onDecrease={onDecrease}
         onIncrease={onIncrease}
@@ -189,21 +189,21 @@ describe('Stepper', () => {
     const { onDecrease, onIncrease } = renderStepper(3)
     expect(screen.getByText('3')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Agregar' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Quitar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar' }))
     expect(onIncrease).toHaveBeenCalledTimes(1)
     expect(onDecrease).toHaveBeenCalledTimes(1)
   })
 
   it('deshabilita quitar cuando llega al mínimo', () => {
     renderStepper(1, 1, 2)
-    expect(screen.getByRole('button', { name: 'Quitar' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Eliminar' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeEnabled()
   })
 
   it('deshabilita agregar cuando llega al máximo', () => {
     renderStepper(2, 1, 2)
     expect(screen.getByRole('button', { name: 'Agregar' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Quitar' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Eliminar' })).toBeEnabled()
   })
 })
 

@@ -43,7 +43,7 @@ export function PhotoDialog({
       </Button>
       {hasPhoto && (
         <Button variant="secondary" disabled={busy} onClick={onRemove}>
-          Quitar foto
+          Eliminar foto
         </Button>
       )}
     </Dialog>

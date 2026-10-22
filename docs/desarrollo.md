@@ -1487,3 +1487,7 @@ Se sacaron capturas de todas las pantallas y se listaron las diferencias entre e
 - **Qué cambió:** el perfil quedó solo con la foto y las estadísticas. Todo lo que se edita (foto, usuario, correo, contraseña y eliminar la cuenta) pasó a una pantalla aparte, "Editar perfil" (`/perfil/editar`). Se llega con el lápiz de la barra de arriba o tocando la foto. La foto del perfil ya no tiene la insignia del lápiz.
 - **La foto:** en "Editar perfil" se ve grande, con el botón "Cambiar foto". Tocarla la abre en pantalla completa (`PhotoViewer`: fondo negro, la imagen entera con `object-fit: contain`, y se cierra tocando, con la X o con Escape).
 - **Reutilizar en vez de copiar:** la lógica de "tu foto" (cuál es, de qué color es la silueta y cómo cambiarla en todos tus grupos) estaba dentro del perfil. Se movió a `profile/myPhoto.ts` para que la usen las dos pantallas.
+
+## Etapa 70 — "Eliminar" en vez de "Quitar"
+
+- Los textos de la app no usan "quitar" (ni palabras de duda como "quizás"): los botones y etiquetas pasaron a "Eliminar foto", "Eliminar integrante", "Eliminar de administradores", "Eliminar de Nosotros/Ellos" y "Eliminar a … de la lista".

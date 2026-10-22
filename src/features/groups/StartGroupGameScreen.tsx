@@ -247,7 +247,7 @@ export function StartGroupGameScreen() {
               <button
                 type="button"
                 className={styles.removeGuest}
-                aria-label={`Quitar a ${person.name} de la lista`}
+                aria-label={`Eliminar a ${person.name} de la lista`}
                 onClick={() => removeGuest(person.id)}
               >
                 <CloseIcon size={18} />
@@ -256,7 +256,7 @@ export function StartGroupGameScreen() {
             <button
               type="button"
               className={inNos ? styles.sideOn : styles.side}
-              aria-label={inNos ? 'Quitar de Nosotros' : 'Agregar a Nosotros'}
+              aria-label={inNos ? 'Eliminar de Nosotros' : 'Agregar a Nosotros'}
               onClick={() => toggleMember(person.id, 'nos')}
             >
               N
@@ -264,7 +264,7 @@ export function StartGroupGameScreen() {
             <button
               type="button"
               className={inEllos ? styles.sideOn : styles.side}
-              aria-label={inEllos ? 'Quitar de Ellos' : 'Agregar a Ellos'}
+              aria-label={inEllos ? 'Eliminar de Ellos' : 'Agregar a Ellos'}
               onClick={() => toggleMember(person.id, 'ellos')}
             >
               E

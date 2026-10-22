@@ -63,7 +63,9 @@ describe('EditProfileScreen', () => {
 
     fireEvent.click(await screen.findByRole('button', { name: 'Cambiar foto' }))
     const dialog = await screen.findByRole('dialog', { name: 'Editar foto' })
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Quitar foto' }))
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Eliminar foto' }),
+    )
 
     await waitFor(async () => {
       const groups = await loadGroups()

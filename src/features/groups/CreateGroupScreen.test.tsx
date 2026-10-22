@@ -97,7 +97,7 @@ describe('CreateGroupScreen', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Agregar integrante' }))
     expect(memberInput(3)).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Quitar integrante' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Eliminar integrante' }))
     await waitFor(() =>
       expect(screen.queryByLabelText('Integrante 3')).not.toBeInTheDocument(),
     )
@@ -106,7 +106,7 @@ describe('CreateGroupScreen', () => {
 
   it('no baja de un integrante pero no limita el máximo', () => {
     renderScreen()
-    const remove = screen.getByRole('button', { name: 'Quitar integrante' })
+    const remove = screen.getByRole('button', { name: 'Eliminar integrante' })
     const add = screen.getByRole('button', { name: 'Agregar integrante' })
 
     fireEvent.click(remove)

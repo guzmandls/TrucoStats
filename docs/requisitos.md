@@ -4,6 +4,8 @@
 
 El nombre de la app se escribe siempre **trucoStats**, con la t minúscula (en la app, el ícono instalado, los correos y los textos para compartir).
 
+En los textos de la app se dice "Eliminar" (nunca "Quitar") y no se usan palabras de duda como "quizás" o "tal vez".
+
 El ícono de la app es "tS" en crema sobre fondo negro (diseño del desarrollador, `public/app-icon.svg`); de él salen todos los tamaños.
 
 La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla completa. La zona de la hora, la señal y la batería queda en una franja negra fija; la app empieza debajo de ella y la barra inferior llega hasta el borde de abajo, dejando lugar a la barra de inicio del teléfono. En todas las pantallas la cabecera y la barra inferior quedan fijas: solo se desplaza el contenido del medio, sin barras de desplazamiento visibles y sin que la pantalla entera rebote. Mantener apretado un botón no selecciona texto (solo se puede seleccionar dentro de los campos de texto).
@@ -70,7 +72,7 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Cada grupo tendrá una lista de integrantes.
 - Cada integrante tendrá un nombre y, opcionalmente, una cuenta de usuario vinculada.
 - Cada integrante podrá tener una foto de perfil. Si no la tiene, se mostrará una foto por defecto (una silueta sobre un fondo de color derivado del integrante, distinto dentro del grupo).
-- La foto de perfil se edita tocando la foto en la ficha del integrante (la edita él mismo o un administrador). En el perfil propio se edita desde "Editar perfil" (la cambia en todos los grupos donde se sabe quién es la persona). Al tocarla se abre una ventana "Editar foto" con "Agregar foto" o "Cambiar foto" y, si ya hay una, "Quitar foto". Una pequeña insignia con un lápiz sobre la foto avisa que se puede editar.
+- La foto de perfil se edita tocando la foto en la ficha del integrante (la edita él mismo o un administrador). En el perfil propio se edita desde "Editar perfil" (la cambia en todos los grupos donde se sabe quién es la persona). Al tocarla se abre una ventana "Editar foto" con "Agregar foto" o "Cambiar foto" y, si ya hay una, "Eliminar foto". Una pequeña insignia con un lápiz sobre la foto avisa que se puede editar.
 - Un integrante sin cuenta vinculada es igualmente válido: acumula partidas y estadísticas dentro de su grupo.
 - Un integrante sin cuenta no tiene estadísticas individuales globales, porque no tiene una identidad por fuera del grupo.
 - Al ingresar a un grupo con el enlace de invitación, se pregunta "¿Cuál de los integrantes eres?" y el usuario elige a cuál de los integrantes existentes corresponde.
