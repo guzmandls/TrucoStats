@@ -18,60 +18,15 @@
     />
     <meta name="apple-mobile-web-app-title" content="trucoStats" />
     <title>trucoStats</title>
-    <!-- Pantalla de inicio: está acá (y no en React) para que se vea desde el
-         primer instante, sin esperar a que cargue el código de la app. -->
+    <!-- Fondo negro mientras arranca la app: el mismo de la franja de la hora
+         y de la pantalla que muestra Android al abrirla. -->
     <style>
       html {
         background: #1c1c1c;
       }
-      #splash {
-        position: fixed;
-        inset: 0;
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #1c1c1c;
-        transition: opacity 200ms ease;
-      }
-      #splash.splash-out {
-        opacity: 0;
-        pointer-events: none;
-      }
-      #splash svg {
-        width: min(56vw, 240px);
-        height: auto;
-      }
     </style>
   </head>
   <body>
-    <!-- Pantalla de inicio: el logo de public/app-icon.svg (sin el fondo),
-         centrado, mientras carga la app. -->
-    <div id="splash" aria-hidden="true">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-        <g
-          fill="#f7f4ea"
-          transform="translate(50.2,906.2) scale(0.3920,-0.5292)"
-        >
-          <path
-            d="M1340 1056H475V1250H220V1056H30V825H220V280C220 88 325 0 552 0H1620V231H595C505 231 475 256 475 330V825H1340Z"
-          />
-          <rect x="530" y="1086" width="255" height="296" />
-          <rect x="840" y="1086" width="255" height="428" />
-          <path
-            transform="translate(1060,0)"
-            d="M675 -24C1042 -24 1266 153 1266 440C1266 664 1125 795 807 862L664 893C481 933 407 984 407 1076C407 1185 514 1261 666 1261C826 1261 931 1174 942 1033H1230C1221 1333 1008 1514 665 1514C326 1514 99 1332 99 1061C99 848 242 711 537 647L694 613C883 572 961 516 961 420C961 304 848 229 677 229C486 229 371 325 367 489H70C70 165 293 -24 675 -24Z"
-            stroke="#1c1c1c"
-            stroke-width="110"
-            stroke-linejoin="round"
-          />
-          <path
-            transform="translate(1060,0)"
-            d="M675 -24C1042 -24 1266 153 1266 440C1266 664 1125 795 807 862L664 893C481 933 407 984 407 1076C407 1185 514 1261 666 1261C826 1261 931 1174 942 1033H1230C1221 1333 1008 1514 665 1514C326 1514 99 1332 99 1061C99 848 242 711 537 647L694 613C883 572 961 516 961 420C961 304 848 229 677 229C486 229 371 325 367 489H70C70 165 293 -24 675 -24Z"
-          />
-        </g>
-      </svg>
-    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

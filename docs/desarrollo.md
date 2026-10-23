@@ -113,7 +113,7 @@ docs/           requisitos, este diario y pendientes
   - En Android, el evento `beforeinstallprompt` permite un botón "Instalar" de un toque.
   - En iPhone solo se pueden mostrar los pasos (Compartir → Agregar a Inicio).
   - `display-mode: standalone` dice si la app ya está instalada.
-- **Pantalla de inicio:** el logo está escrito en `index.html`, así se ve desde el primer instante, antes de que cargue el código. Cuando la app ya se dibujó, se desvanece. Preferí el logo fijo a una animación.
+- **Sin pantalla de carga:** la app pesa unos 130 KB comprimidos y, después de la primera visita, abre desde la caché del service worker, así que tarda una fracción de segundo. Un logo de carga se veía como un parpadeo, así que preferí no tenerlo: mientras arranca solo se ve el fondo negro (definido en `index.html`, el mismo de la franja de la hora y de la pantalla de Android).
 
 ## Cloudflare Workers
 

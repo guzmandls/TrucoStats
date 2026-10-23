@@ -8,7 +8,7 @@ En los textos de la app se dice "Eliminar" (nunca "Quitar") y no se usan palabra
 
 El ícono de la app es "tS" en crema sobre fondo negro (diseño del desarrollador, `public/app-icon.svg`); de él salen todos los tamaños.
 
-Al abrir la app se ve el logo completo, centrado sobre fondo #1c1c1c, mientras carga; cuando la app está lista se desvanece (0,2 s). Sin animación ni esperas agregadas.
+Al abrir la app no hay pantalla de carga: mientras arranca se ve el fondo negro y enseguida la app.
 
 La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla completa. La zona de la hora, la señal y la batería queda en una franja negra fija; la app empieza debajo de ella y la barra inferior llega hasta el borde de abajo, dejando lugar a la barra de inicio del teléfono. En todas las pantallas la cabecera y la barra inferior quedan fijas: solo se desplaza el contenido del medio, sin barras de desplazamiento visibles y sin que la pantalla entera rebote. Mantener apretado un botón no selecciona texto (solo se puede seleccionar dentro de los campos de texto).
 

@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { ConfirmEmailScreen } from './features/auth/ConfirmEmailScreen'
 import { ForgotPasswordScreen } from './features/auth/ForgotPasswordScreen'
@@ -17,12 +16,8 @@ import { StartGroupGameScreen } from './features/groups/StartGroupGameScreen'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { InstallScreen } from './features/install/InstallScreen'
 import { EditProfileScreen } from './features/profile/EditProfileScreen'
-import { finishSplash } from './splash'
 
 function App() {
-  // La app ya se dibujó: la pantalla de inicio se puede ir.
-  useEffect(() => finishSplash(), [])
-
   return (
     <BrowserRouter>
       <Routes>
