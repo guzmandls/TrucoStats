@@ -10,7 +10,11 @@ export default defineConfig({
   },
   server: {
     // En desarrollo, las rutas /api van al Worker que corre con `npx wrangler dev`.
-    proxy: { '/api': 'http://127.0.0.1:8787' },
+    // El manifiesto también lo sirve el Worker (ver worker/manifest.ts).
+    proxy: {
+      '/api': 'http://127.0.0.1:8787',
+      '/manifest.webmanifest': 'http://127.0.0.1:8787',
+    },
   },
   test: {
     environment: 'jsdom',

@@ -1,3 +1,4 @@
+import { appManifest, inviteManifest } from './manifest'
 import { changePassword, changeUsername, deleteAccount } from './account'
 import {
   createGroup,
@@ -46,6 +47,7 @@ const LIVE_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/en-vivo\/([^/]{1,100})$/
 const CLAIM_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/reclamar$/
 const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
+const INVITE_MANIFEST = /^\/api\/manifiesto\/([^/]{1,100})$/
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -53,6 +55,14 @@ export default {
 
     if (pathname === '/api/salud') {
       return json({ estado: 'ok' })
+    }
+
+    if (pathname === '/manifest.webmanifest') {
+      return appManifest()
+    }
+    const inviteManifestPath = INVITE_MANIFEST.exec(pathname)
+    if (inviteManifestPath) {
+      return inviteManifest(inviteManifestPath[1])
     }
 
     if (pathname === '/api/registro') {
