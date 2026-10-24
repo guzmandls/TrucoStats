@@ -6,7 +6,7 @@ import {
   postJson,
   putJson,
 } from '../../lib/api'
-import { saveSession, type Account } from '../../lib/session'
+import type { Account } from '../../lib/session'
 import type { Match } from '../matches/types'
 import type { Group } from './types'
 
@@ -58,7 +58,6 @@ export async function fetchGroupByCode(
 
 interface JoinResponse {
   user: Account
-  token?: string
   memberId: string
 }
 
@@ -70,13 +69,10 @@ export async function joinRemoteGroup(
   memberId: string,
   name: string,
 ): Promise<void> {
-  const response = await postJson<JoinResponse>(
-    `/api/grupos/${inviteCode}/unirse`,
-    { memberId, name },
-  )
-  if (response.token) {
-    saveSession({ token: response.token, user: response.user })
-  }
+  await postJson<JoinResponse>(`/api/grupos/${inviteCode}/unirse`, {
+    memberId,
+    name,
+  })
 }
 
 // Envía una partida de grupo. Es idempotente: reenviarla no la duplica.

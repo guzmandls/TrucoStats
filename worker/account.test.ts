@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Env } from './groups'
-import { registerTestUser, request } from './testAuth'
+import { registerTestUser, request, joinWithNewAccount } from './testAuth'
 import { createTestDb } from './testDb'
 
 let env: Env
@@ -121,10 +121,7 @@ describe('POST /api/eliminar-cuenta', () => {
     // Un grupo con otra persona (que pasa a ser administradora) y otro donde
     // estaba solo (que se elimina).
     const shared = await createGroup(token, 'g1', ['Juan', 'Pedro'])
-    const joined = await post(`/api/grupos/${shared}/unirse`, {
-      memberId: 'g1-1',
-    })
-    const pedro = ((await joined.json()) as { token: string }).token
+    const pedro = await joinWithNewAccount(env, shared, 'g1-1')
     const alone = await createGroup(token, 'g2', ['Juan'])
 
     const response = await post(

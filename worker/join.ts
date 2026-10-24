@@ -2,11 +2,11 @@ import { membershipOf } from './access'
 import { isNonEmptyString, MAX_NAME_LENGTH, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { findGroupIdByCode } from './matches'
-import { authenticate, createGuest } from './users'
+import { authenticate } from './users'
 
-// Une a una persona a un grupo eligiendo uno de sus integrantes. Si todavía no
-// tiene sesión, se le crea una cuenta invitada y el token vuelve en la
-// respuesta para que la app lo guarde.
+// Une a una persona a un grupo eligiendo uno de sus integrantes. Hace falta una
+// cuenta registrada: así el lugar queda de una persona que puede volver a
+// entrar desde cualquier celular (y no trabado en una cuenta sin datos).
 export async function joinGroup(
   inviteCode: string,
   request: Request,
@@ -49,24 +49,19 @@ export async function joinGroup(
     return errorResponse('Integrante no encontrado', 404)
   }
 
-  let user = await authenticate(request, env)
-  if (user) {
-    const current = await membershipOf(user.id, groupId, env)
-    if (current && current.memberId !== member.id) {
-      return errorResponse('Ya eres otro integrante de este grupo', 409)
-    }
+  const user = await authenticate(request, env)
+  if (!user || user.username === null) {
+    return errorResponse('Necesitas una cuenta para unirte a un grupo', 401)
   }
-  if (member.user_id && member.user_id !== user?.id) {
+  const current = await membershipOf(user.id, groupId, env)
+  if (current && current.memberId !== member.id) {
+    return errorResponse('Ya eres otro integrante de este grupo', 409)
+  }
+  if (member.user_id && member.user_id !== user.id) {
     return errorResponse('Ese integrante ya fue elegido por otra persona', 409)
   }
 
   const name = fields.name === undefined ? member.name : fields.name.trim()
-  let token: string | undefined
-  if (!user) {
-    const guest = await createGuest(name, env)
-    user = guest.user
-    token = guest.token
-  }
 
   // Las partidas ya guardadas muestran el nombre nuevo.
   await env.DB.batch([
@@ -80,7 +75,6 @@ export async function joinGroup(
 
   return json({
     user,
-    ...(token ? { token } : {}),
     memberId: member.id,
     member: { id: member.id, name },
   })

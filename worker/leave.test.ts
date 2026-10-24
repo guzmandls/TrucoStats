@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Env } from './groups'
-import { registerTestUser, request } from './testAuth'
+import { registerTestUser, request, joinWithNewAccount } from './testAuth'
 import { createTestDb } from './testDb'
 
 let env: Env
@@ -56,10 +56,7 @@ beforeEach(async () => {
     adminToken,
   )
   code = ((await created.json()) as { inviteCode: string }).inviteCode
-  const joined = await send('POST', `/api/grupos/${code}/unirse`, {
-    memberId: 'm2',
-  })
-  pedroToken = ((await joined.json()) as { token: string }).token
+  pedroToken = await joinWithNewAccount(env, code, 'm2')
 })
 
 describe('POST /api/grupos/:código/salir', () => {

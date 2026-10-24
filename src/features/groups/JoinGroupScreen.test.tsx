@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { JoinGroupScreen } from './JoinGroupScreen'
 import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
-import { clearSession, getSession, saveSession } from '../../lib/session'
+import { clearSession, saveSession } from '../../lib/session'
 import { clearMembership, loadMembership } from './membership'
 import type { Group } from './types'
 
@@ -208,48 +208,25 @@ describe('JoinGroupScreen', () => {
     )
   })
 
-  it('se puede seguir sin cuenta', async () => {
+  it('sin cuenta no hay forma de elegir integrante', async () => {
     clearSession()
     stubServer(serverWithGroup)
     renderJoin()
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Seguir sin cuenta' }),
-    )
-
-    expect(
-      await screen.findByRole('radio', { name: 'Pedro' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Necesitas una cuenta')).toBeInTheDocument()
+    expect(screen.queryByText('Seguir sin cuenta')).toBeNull()
+    expect(screen.queryByRole('radio', { name: 'Pedro' })).toBeNull()
   })
 
-  it('se une con el nombre original y guarda la cuenta invitada', async () => {
-    clearSession()
-    const fetchMock = stubServer(serverWithGroup)
+  it('una cuenta invitada de antes también tiene que registrarse', async () => {
+    saveSession({
+      token: 'g'.repeat(64),
+      user: { id: 'g1', username: null, email: null, name: 'Invitado' },
+    })
+    stubServer(serverWithGroup)
     renderJoin()
 
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Seguir sin cuenta' }),
-    )
-    fireEvent.click(await screen.findByRole('radio', { name: 'Pedro' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Unirme al grupo' }))
-
-    await waitFor(() =>
-      expect(screen.getByTestId('location')).toHaveTextContent('/grupo/g1'),
-    )
-    const [url, init] = fetchMock.mock.calls[1] as unknown as [
-      string,
-      RequestInit,
-    ]
-    expect(url).toBe(`/api/grupos/${CODE}/unirse`)
-    expect(JSON.parse(init.body as string)).toEqual({
-      memberId: 'm2',
-      name: 'Pedro',
-    })
-    expect(getSession()).toEqual({ token: 't'.repeat(64), user: guest })
-    const [saved] = await loadGroups()
-    expect(saved.myMemberId).toBe('m2')
-    expect(saved.inviteCode).toBe(CODE)
-    expect(loadMembership()).toContain('g1')
+    expect(await screen.findByText('Necesitas una cuenta')).toBeInTheDocument()
   })
 
   it('envía el nombre nuevo al servidor y lo guarda en el celular', async () => {

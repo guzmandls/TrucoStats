@@ -8,11 +8,11 @@ const MAX_EMAIL_LENGTH = 100
 const HASH_ITERATIONS = 100_000
 const SESSION_DAYS = 90
 const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-// Letras, números, punto, guion y guion bajo; entre 3 y 20 caracteres.
+// Letras, números, punto, guion y guion bajo; entre 1 y 20 caracteres.
 const USERNAME_FORMAT = /^[A-Za-z0-9_.-]{1,20}$/
 
-// Una cuenta invitada tiene username y email null (ver createGuest). El correo
-// de una cuenta registrada es opcional.
+// Las cuentas invitadas de antes (ya no se crean) tienen username y email null.
+// El correo de una cuenta registrada es opcional.
 export interface User {
   id: string
   username: string | null
@@ -157,24 +157,6 @@ export async function authenticate(
   return row ?? null
 }
 
-// Cuenta sin correo ni contraseña que se crea al unirse a un grupo: da una
-// identidad al celular sin pedirle nada a la persona.
-export async function createGuest(
-  name: string,
-  env: Env,
-): Promise<{ token: string; user: User }> {
-  const id = crypto.randomUUID()
-  await env.DB.prepare(
-    'INSERT INTO users (id, name, created_at) VALUES (?, ?, ?)',
-  )
-    .bind(id, name, new Date().toISOString())
-    .run()
-  return {
-    token: await openSession(id, env),
-    user: { id, username: null, email: null, name },
-  }
-}
-
 export async function register(request: Request, env: Env): Promise<Response> {
   const body = await readBody(request)
   if (!body) {
@@ -225,35 +207,22 @@ export async function register(request: Request, env: Env): Promise<Response> {
 
   const salt = randomHex(16)
   const passwordHash = await hashPassword(password, salt)
-  // Si quien se registra ya tiene una cuenta invitada, esa misma cuenta pasa a
-  // ser una cuenta registrada: conserva su integrante, su nombre y su historial.
-  const guest = await authenticate(request, env)
-  const upgrading = guest !== null && guest.username === null
-  const id = upgrading ? guest.id : crypto.randomUUID()
-  const user: User = {
-    id,
-    username,
-    email,
-    name: upgrading ? guest.name : username,
-  }
+  const id = crypto.randomUUID()
+  const user: User = { id, username, email, name: username }
   try {
-    await (
-      upgrading
-        ? env.DB.prepare(
-            'UPDATE users SET username = ?, email = ?, password_hash = ?, password_salt = ? WHERE id = ?',
-          ).bind(username, email, passwordHash, salt, id)
-        : env.DB.prepare(
-            'INSERT INTO users (id, username, email, name, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          ).bind(
-            id,
-            username,
-            email,
-            user.name,
-            passwordHash,
-            salt,
-            new Date().toISOString(),
-          )
-    ).run()
+    await env.DB.prepare(
+      'INSERT INTO users (id, username, email, name, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    )
+      .bind(
+        id,
+        username,
+        email,
+        username,
+        passwordHash,
+        salt,
+        new Date().toISOString(),
+      )
+      .run()
   } catch {
     return errorResponse('Ese usuario o correo ya existe', 409)
   }
@@ -298,37 +267,7 @@ export async function login(request: Request, env: Env): Promise<Response> {
     email: row.email,
     name: row.name,
   }
-  // Quien jugó como invitado y ahora inicia sesión con una cuenta que ya tenía no
-  // pierde sus lugares: pasan a esa cuenta.
-  const guest = await authenticate(request, env)
-  if (guest && guest.username === null && guest.id !== row.id) {
-    await moveGuestToAccount(guest.id, row.id, env)
-  }
   return json({ token: await openSession(row.id, env), user })
-}
-
-// Pasa a `userId` los integrantes y las partidas de la cuenta invitada, salvo en
-// los grupos donde la cuenta ya tiene su propio lugar.
-async function moveGuestToAccount(
-  guestId: string,
-  userId: string,
-  env: Env,
-): Promise<void> {
-  await env.DB.batch([
-    env.DB.prepare(
-      `UPDATE members SET user_id = ? WHERE user_id = ?
-       AND group_id NOT IN (SELECT group_id FROM members WHERE user_id = ?)`,
-    ).bind(userId, guestId, userId),
-    env.DB.prepare(
-      'UPDATE matches SET created_by = ? WHERE created_by = ?',
-    ).bind(userId, guestId),
-    env.DB.prepare(
-      'UPDATE matches SET canceled_by = ? WHERE canceled_by = ?',
-    ).bind(userId, guestId),
-    env.DB.prepare(
-      'UPDATE match_events SET user_id = ? WHERE user_id = ?',
-    ).bind(userId, guestId),
-  ])
 }
 
 export async function currentUser(

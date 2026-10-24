@@ -15,7 +15,7 @@ import {
   TextInput,
 } from '../../components/ui'
 import { ApiError } from '../../lib/api'
-import { useSession } from '../../lib/session'
+import { isRegistered, useSession } from '../../lib/session'
 import { avatarColors } from './avatar'
 import { parseAliasList } from '../matches/guests'
 import {
@@ -49,11 +49,10 @@ export function JoinGroupScreen() {
   const [memberId, setMemberId] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [aliasText, setAliasText] = useState('')
-  // Sin sesión se pide registrarse o iniciar sesión antes de elegir; quien no
-  // quiere puede seguir sin cuenta (se le crea una cuenta invitada).
+  // Unirse exige una cuenta registrada: sin ella se pide registrarse o
+  // iniciar sesión antes de elegir.
   const session = useSession()
-  const [withoutAccount, setWithoutAccount] = useState(false)
-  const needsAccount = session === null && !withoutAccount
+  const needsAccount = !isRegistered(session)
   const [joining, setJoining] = useState(false)
   const [attempt, setAttempt] = useState(0)
   const [canRetry, setCanRetry] = useState(true)
@@ -205,13 +204,6 @@ export function JoinGroupScreen() {
               >
                 Iniciar sesión
               </Button>
-              <button
-                type="button"
-                className={styles.withoutAccount}
-                onClick={() => setWithoutAccount(true)}
-              >
-                Seguir sin cuenta
-              </button>
             </div>
           </Section>
         )}

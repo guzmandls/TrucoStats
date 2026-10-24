@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Env } from './groups'
-import { registerTestUser, request } from './testAuth'
+import { registerTestUser, request, joinWithNewAccount } from './testAuth'
 import { createTestDb } from './testDb'
 
 let env: Env
@@ -58,13 +58,8 @@ describe('PATCH /api/grupos/:código/integrantes/:id', () => {
   })
 
   it('el administrador no puede renombrar a quien ya eligió su lugar, pero esa persona sí', async () => {
-    // Pedro elige su lugar sin sesión previa (se le crea una cuenta invitada).
-    const joined = await request(env, `/api/grupos/${code}/unirse`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ memberId: 'm2' }),
-    })
-    const pedroToken = ((await joined.json()) as { token: string }).token
+    // Pedro elige su lugar con su cuenta.
+    const pedroToken = await joinWithNewAccount(env, code, 'm2')
 
     expect((await rename('m2', { name: 'Pedrito' })).status).toBe(403)
 

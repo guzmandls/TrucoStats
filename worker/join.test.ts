@@ -1,4 +1,6 @@
 // @vitest-environment node
+import { readFileSync } from 'node:fs'
+import { join as joinPath } from 'node:path'
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Env } from './groups'
 import { registerTestUser, request } from './testAuth'
@@ -29,7 +31,6 @@ function send(
 }
 
 interface Joined {
-  token?: string
   user: {
     id: string
     username: string | null
@@ -96,11 +97,6 @@ describe('crear grupo', () => {
     }
 
     expect((await send('POST', '/api/grupos', group)).status).toBe(401)
-
-    const guest = (await (await join('m2')).json()) as Joined
-    expect((await send('POST', '/api/grupos', group, guest.token)).status).toBe(
-      401,
-    )
   })
 
   it('deja al creador vinculado como administrador', async () => {
@@ -118,21 +114,32 @@ describe('crear grupo', () => {
 })
 
 describe('POST /api/grupos/:código/unirse', () => {
-  it('crea una cuenta invitada y vincula al integrante', async () => {
-    const response = await join('m2', 'Pedrito')
+  let pedro: string
+
+  beforeEach(async () => {
+    pedro = await registerTestUser(env, 'pedro')
+  })
+
+  it('exige una cuenta registrada: sin sesión no se puede elegir a nadie', async () => {
+    const response = await join('m2')
+
+    expect(response.status).toBe(401)
+    const group = (await (
+      await send('GET', `/api/grupos/${code}`, undefined, adminToken)
+    ).json()) as GroupBody
+    expect(group.claimedMemberIds).toEqual(['m1'])
+  })
+
+  it('vincula al integrante con la cuenta', async () => {
+    const response = await join('m2', 'Pedrito', pedro)
 
     expect(response.status).toBe(200)
     const body = (await response.json()) as Joined
-    expect(body.token).toMatch(/^[0-9a-f]{64}$/)
-    expect(body.user).toMatchObject({
-      username: null,
-      email: null,
-      name: 'Pedrito',
-    })
+    expect(body.user.username).toBe('pedro')
     expect(body.member).toEqual({ id: 'm2', name: 'Pedrito' })
 
     const group = (await (
-      await send('GET', `/api/grupos/${code}`, undefined, body.token)
+      await send('GET', `/api/grupos/${code}`, undefined, pedro)
     ).json()) as GroupBody
     expect(group.myMemberId).toBe('m2')
     expect(group.claimedMemberIds).toEqual(['m1', 'm2'])
@@ -140,54 +147,54 @@ describe('POST /api/grupos/:código/unirse', () => {
   })
 
   it('conserva el nombre si no se envía uno nuevo', async () => {
-    const body = (await (await join('m2')).json()) as Joined
+    const body = (await (await join('m2', undefined, pedro)).json()) as Joined
 
     expect(body.member.name).toBe('Pedro')
   })
 
   it('actualiza el nombre en las partidas ya guardadas', async () => {
     await send('POST', `/api/grupos/${code}/partidas`, match, adminToken)
-    const guest = (await (await join('m2', 'Pedrito')).json()) as Joined
+    await join('m2', 'Pedrito', pedro)
 
     const matches = (await (
-      await send('GET', `/api/grupos/${code}/partidas`, undefined, guest.token)
+      await send('GET', `/api/grupos/${code}/partidas`, undefined, pedro)
     ).json()) as { matches: { teams: { ellos: { name: string }[] } }[] }
     expect(matches.matches[0].teams.ellos[0].name).toBe('Pedrito')
   })
 
   it('no deja elegir un integrante que ya eligió otra persona', async () => {
-    await join('m2')
-    const response = await join('m2')
+    await join('m2', undefined, pedro)
+    const other = await registerTestUser(env, 'otra')
 
-    expect(response.status).toBe(409)
+    expect((await join('m2', undefined, other)).status).toBe(409)
   })
 
-  it('deja volver a elegir el mismo integrante con la misma sesión', async () => {
-    const first = (await (await join('m2')).json()) as Joined
-    const again = await join('m2', 'Pedro Pérez', first.token)
+  it('deja volver a elegir el mismo integrante con la misma cuenta', async () => {
+    await join('m2', undefined, pedro)
 
-    expect(again.status).toBe(200)
-    expect(((await again.json()) as Joined).token).toBeUndefined()
+    expect((await join('m2', 'Pedro Pérez', pedro)).status).toBe(200)
   })
 
   it('no deja ser dos integrantes del mismo grupo', async () => {
-    const first = (await (await join('m2')).json()) as Joined
-    const response = await join('m3', undefined, first.token)
+    await join('m2', undefined, pedro)
 
-    expect(response.status).toBe(409)
+    expect((await join('m3', undefined, pedro)).status).toBe(409)
   })
 
   it('rechaza pedidos inválidos', async () => {
-    expect((await send('POST', `/api/grupos/${code}/unirse`, {})).status).toBe(
-      400,
-    )
-    expect((await join('zzz')).status).toBe(404)
-    expect((await join('m2', '   ')).status).toBe(400)
+    expect(
+      (await send('POST', `/api/grupos/${code}/unirse`, {}, pedro)).status,
+    ).toBe(400)
+    expect((await join('zzz', undefined, pedro)).status).toBe(404)
+    expect((await join('m2', '   ', pedro)).status).toBe(400)
     expect(
       (
-        await send('POST', `/api/grupos/${'0'.repeat(32)}/unirse`, {
-          memberId: 'm2',
-        })
+        await send(
+          'POST',
+          `/api/grupos/${'0'.repeat(32)}/unirse`,
+          { memberId: 'm2' },
+          pedro,
+        )
       ).status,
     ).toBe(404)
     expect((await send('GET', `/api/grupos/${code}/unirse`)).status).toBe(405)
@@ -195,10 +202,13 @@ describe('POST /api/grupos/:código/unirse', () => {
 })
 
 describe('permisos', () => {
-  let guest: Joined
+  let pedro: string
+  let pedroId: string
 
   beforeEach(async () => {
-    guest = (await (await join('m2')).json()) as Joined
+    pedro = await registerTestUser(env, 'pedro')
+    const joined = (await (await join('m2', undefined, pedro)).json()) as Joined
+    pedroId = joined.user.id
   })
 
   function rename(memberId: string, token?: string) {
@@ -211,12 +221,12 @@ describe('permisos', () => {
   }
 
   it('cada integrante puede cambiar su propio nombre', async () => {
-    expect((await rename('m2', guest.token)).status).toBe(200)
+    expect((await rename('m2', pedro)).status).toBe(200)
   })
 
   it('un integrante no puede cambiar el nombre de otro', async () => {
-    expect((await rename('m3', guest.token)).status).toBe(403)
-    expect((await rename('m1', guest.token)).status).toBe(403)
+    expect((await rename('m3', pedro)).status).toBe(403)
+    expect((await rename('m1', pedro)).status).toBe(403)
   })
 
   it('el administrador puede cambiar el nombre de cualquiera', async () => {
@@ -238,7 +248,7 @@ describe('permisos', () => {
       'POST',
       `/api/grupos/${code}/partidas`,
       match,
-      guest.token,
+      pedro,
     )
     expect(created.status).toBe(201)
 
@@ -246,7 +256,7 @@ describe('permisos', () => {
       'GET',
       `/api/grupos/${code}/partidas`,
       undefined,
-      guest.token,
+      pedro,
     )
     expect(listed.status).toBe(200)
   })
@@ -269,52 +279,57 @@ describe('permisos', () => {
   })
 
   it('guarda quién registró la partida', async () => {
-    await send('POST', `/api/grupos/${code}/partidas`, match, guest.token)
+    await send('POST', `/api/grupos/${code}/partidas`, match, pedro)
 
     const row = await env.DB.prepare('SELECT created_by FROM matches').first<{
       created_by: string
     }>()
-    expect(row?.created_by).toBe(guest.user.id)
+    expect(row?.created_by).toBe(pedroId)
   })
 })
 
-describe('convertir la cuenta invitada en una cuenta registrada', () => {
-  it('conserva el integrante y el historial', async () => {
-    const guest = (await (await join('m2')).json()) as Joined
-    await send('POST', `/api/grupos/${code}/partidas`, match, guest.token)
+describe('migración 0012: integrantes de cuentas invitadas', () => {
+  it('quedan libres y las sesiones de esas cuentas se cierran', async () => {
+    // Una cuenta invitada de antes, con su integrante y su sesión.
+    await env.DB.batch([
+      env.DB.prepare(
+        "INSERT INTO users (id, name, created_at) VALUES ('inv', 'Beto', '2026-01-01')",
+      ),
+      env.DB.prepare(
+        "INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES ('h', 'inv', '2026-01-01', '2099-01-01')",
+      ),
+      env.DB.prepare("UPDATE members SET user_id = 'inv' WHERE id = 'm2'"),
+    ])
 
-    const response = await send(
-      'POST',
-      '/api/registro',
-      { username: 'pedro', password: 'contraseña-segura' },
-      guest.token,
+    const migration = readFileSync(
+      joinPath(
+        import.meta.dirname,
+        '..',
+        'migrations',
+        '0012_sin_invitados_en_grupos.sql',
+      ),
+      'utf8',
     )
+    for (const statement of migration
+      .replace(/--.*$/gm, '')
+      .split(';')
+      .map((part) => part.trim())
+      .filter(Boolean)) {
+      await env.DB.prepare(statement).run()
+    }
 
-    expect(response.status).toBe(201)
-    const upgraded = (await response.json()) as Joined
-    expect(upgraded.user.id).toBe(guest.user.id)
-    expect(upgraded.user.username).toBe('pedro')
-    // Conserva el nombre que eligió al unirse.
-    expect(upgraded.user.name).toBe('Pedro')
-
-    const group = (await (
-      await send('GET', `/api/grupos/${code}`, undefined, upgraded.token)
-    ).json()) as GroupBody
-    expect(group.myMemberId).toBe('m2')
-    const login = await send('POST', '/api/sesion', {
-      identifier: 'pedro',
-      password: 'contraseña-segura',
-    })
-    expect(login.status).toBe(200)
-  })
-
-  it('una cuenta invitada no puede iniciar sesión', async () => {
-    await join('m2')
-    const login = await send('POST', '/api/sesion', {
-      identifier: 'null',
-      password: 'x',
-    })
-
-    expect(login.status).toBe(401)
+    const member = await env.DB.prepare(
+      "SELECT user_id FROM members WHERE id = 'm2'",
+    ).first<{ user_id: string | null }>()
+    expect(member?.user_id).toBeNull()
+    const sessions = await env.DB.prepare(
+      "SELECT COUNT(*) AS total FROM sessions WHERE user_id = 'inv'",
+    ).first<{ total: number }>()
+    expect(sessions?.total).toBe(0)
+    // El administrador sigue siéndolo.
+    const admin = await env.DB.prepare(
+      "SELECT is_admin FROM members WHERE id = 'm1'",
+    ).first<{ is_admin: number }>()
+    expect(admin?.is_admin).toBe(1)
   })
 })

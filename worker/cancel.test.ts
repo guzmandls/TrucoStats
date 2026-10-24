@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Env } from './groups'
-import { registerTestUser, request } from './testAuth'
+import { registerTestUser, request, joinWithNewAccount } from './testAuth'
 import { createTestDb } from './testDb'
 
 let env: Env
@@ -82,11 +82,8 @@ async function listed() {
   return ((await response.json()) as { matches: MatchBody['match'][] }).matches
 }
 
-async function join(memberId: string): Promise<string> {
-  const response = await send('POST', `/api/grupos/${code}/unirse`, {
-    memberId,
-  })
-  return ((await response.json()) as { token: string }).token
+function join(memberId: string): Promise<string> {
+  return joinWithNewAccount(env, code, memberId)
 }
 
 beforeEach(async () => {

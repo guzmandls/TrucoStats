@@ -33,3 +33,27 @@ export function request(
     env,
   )
 }
+
+let people = 0
+
+// Una persona nueva, con cuenta registrada, elige el integrante `memberId` del
+// grupo. Devuelve su token.
+export async function joinWithNewAccount(
+  env: Env,
+  code: string,
+  memberId: string,
+  username = `persona${(people += 1)}`,
+): Promise<string> {
+  const token = await registerTestUser(env, username)
+  await request(
+    env,
+    `/api/grupos/${code}/unirse`,
+    {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ memberId }),
+    },
+    token,
+  )
+  return token
+}
