@@ -1,0 +1,31 @@
+/* Tu foto en la barra negra, con un aro crema para que se distinga. */
+.photo {
+  display: inline-flex;
+  border-radius: 50%;
+  box-shadow: 0 0 0 var(--border-width) var(--paper);
+}
+
+.photo:focus-visible {
+  outline: var(--border-width) solid var(--paper);
+  outline-offset: 4px;
+}
+
+/* Sin sesión: "Entrar", como un botón chico de contorno crema. */
+.enter {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 var(--space-3);
+  border: var(--border-width) solid var(--paper);
+  border-radius: var(--radius-pill);
+  color: var(--paper);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  text-decoration: none;
+}
+
+.enter:focus-visible {
+  outline: var(--border-width) solid var(--paper);
+  outline-offset: 2px;
+}
