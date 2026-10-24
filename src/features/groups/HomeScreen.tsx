@@ -34,6 +34,7 @@ import {
 import { loadMatches } from '../matches/matchesStorage'
 import { loadGroups } from './groupsStorage'
 import { hasMembership, loadMembership, replaceMembership } from './membership'
+import { AccountBadge } from './AccountBadge'
 import { GroupRow } from './GroupRow'
 import styles from './HomeScreen.module.css'
 import { groupOverview } from '../matches/groupOverview'
@@ -125,6 +126,7 @@ export function HomeScreen() {
     <Screen>
       <PageHeader
         title="trucoStats"
+        center={<AccountBadge groups={groups} />}
         trailing={
           <HeaderMenu
             label="Menú"

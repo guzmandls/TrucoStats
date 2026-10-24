@@ -43,8 +43,46 @@ describe('menú de la pantalla principal (cuenta)', () => {
     const labels = within(screen.getByRole('banner'))
       .getAllByRole('link')
       .map((link) => link.textContent)
-    expect(labels).toEqual(['Registrarse', 'Iniciar sesión', 'Ver perfil'])
+    // "Entrar" está siempre a la vista en la barra; después, las del menú.
+    expect(labels).toEqual([
+      'Entrar',
+      'Registrarse',
+      'Iniciar sesión',
+      'Ver perfil',
+    ])
     expect(screen.queryByText('Crear grupo')).not.toBeInTheDocument()
+  })
+
+  it('sin sesión la barra muestra "Entrar", que lleva a iniciar sesión', () => {
+    renderHome()
+
+    expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute(
+      'href',
+      '/iniciar-sesion',
+    )
+  })
+
+  it('con sesión la barra muestra tu foto, que abre el perfil', () => {
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+    })
+    renderHome()
+
+    expect(
+      screen.getByRole('link', { name: 'Perfil de juan' }),
+    ).toHaveAttribute('href', '/perfil')
+    expect(screen.queryByRole('link', { name: 'Entrar' })).toBeNull()
+  })
+
+  it('una cuenta invitada de antes no cuenta como sesión: muestra "Entrar"', () => {
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'g1', username: null, email: null, name: 'Invitado' },
+    })
+    renderHome()
+
+    expect(screen.getByRole('link', { name: 'Entrar' })).toBeInTheDocument()
   })
 
   it('con sesión el menú empieza con el usuario (que abre el perfil), y sigue con crear grupo y cerrar sesión', () => {
