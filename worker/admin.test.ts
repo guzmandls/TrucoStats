@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Env } from './groups'
-import { registerTestUser, request } from './testAuth'
+import { registerTestUser, request, joinWithNewAccount } from './testAuth'
 import { createTestDb } from './testDb'
 
 let env: Env
@@ -67,11 +67,8 @@ beforeEach(async () => {
     adminToken,
   )
   code = ((await created.json()) as { inviteCode: string }).inviteCode
-  // Pedro elige su integrante y queda con una cuenta invitada.
-  const joined = await send('POST', `/api/grupos/${code}/unirse`, {
-    memberId: 'm2',
-  })
-  pedroToken = ((await joined.json()) as { token: string }).token
+  // Pedro elige su integrante con su cuenta.
+  pedroToken = await joinWithNewAccount(env, code, 'm2')
 })
 
 describe('POST /integrantes (agregar)', () => {
@@ -167,9 +164,12 @@ describe('POST /integrantes/:id/liberar', () => {
     expect(response.status).toBe(200)
     expect((await readGroup()).claimedMemberIds).toEqual(['m1'])
     // Ahora otra persona puede elegir ese integrante.
-    const again = await send('POST', `/api/grupos/${code}/unirse`, {
-      memberId: 'm2',
-    })
+    const again = await send(
+      'POST',
+      `/api/grupos/${code}/unirse`,
+      { memberId: 'm2' },
+      await registerTestUser(env, 'otra'),
+    )
     expect(again.status).toBe(200)
   })
 

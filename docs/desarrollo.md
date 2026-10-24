@@ -180,12 +180,12 @@ docs/           requisitos, este diario y pendientes
   - La misma respuesta al pedir recuperar la contraseña, exista o no la cuenta.
   - **Comparación en tiempo constante:** no cortar en la primera diferencia, para no filtrar información por el tiempo de respuesta.
 - **Enlaces seguros:** el enlace del correo usa una dirección fija (`APP_URL`), no la del pedido, para que nadie pueda hacer que apunte a otro sitio. Máximo 3 correos por hora por cuenta.
-- **Cuenta invitada:** quien entra por un enlace sin cuenta recibe una identidad sin datos, que después puede convertir en cuenta registrada. Si inicia sesión con una cuenta que ya tenía, sus lugares pasan a esa cuenta.
+- **Sin cuentas invitadas:** al principio, quien entraba por un enlace sin cuenta recibía una identidad sin datos guardada solo en su celular. Su lugar en el grupo quedaba "tomado" por alguien que no podía volver a entrar desde otro celular. Preferí exigir cuenta para unirse: cada lugar es de una persona real.
 - **Permisos por fila:** la app muestra una acción solo si la persona puede usarla, y el servidor lo vuelve a comprobar. La app nunca es la única barrera.
 - **Código de invitación:** 32 caracteres aleatorios (128 bits) que no se pueden adivinar. Funciona como contraseña del grupo.
 - **Decisiones:**
   - Preferí cuentas con usuario y contraseña, con correo opcional (solo para recuperarla).
-  - Solo hace falta cuenta para crear grupos.
+  - Hace falta cuenta para crear grupos y para unirse a uno; el contador y la partida rápida funcionan sin cuenta.
   - Al eliminar una cuenta no se borran sus partidas, porque también son de los demás: su integrante queda libre en el grupo.
   - Apple exige que una app con cuentas permita eliminarlas.
 

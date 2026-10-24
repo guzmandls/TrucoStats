@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { Env } from './groups'
-import { registerTestUser, request } from './testAuth'
+import { registerTestUser, request, joinWithNewAccount } from './testAuth'
 import { createTestDb } from './testDb'
 
 let env: Env
@@ -92,11 +92,8 @@ describe('POST /api/grupos/:código/reclamar', () => {
   })
 
   it('aunque otra persona ya se unió con el enlace, el creador todavía puede reclamar y las partidas fluyen entre los dos', async () => {
-    // Pedro se une con el enlace (cuenta invitada) antes de que el creador reclame.
-    const joined = await send('POST', `/api/grupos/${code}/unirse`, {
-      memberId: 'm2',
-    })
-    const pedroToken = ((await joined.json()) as { token: string }).token
+    // Pedro se une con el enlace antes de que el creador reclame.
+    const pedroToken = await joinWithNewAccount(env, code, 'm2')
     const juanToken = await registerTestUser(env, 'juan')
 
     expect((await claim('m1', juanToken)).status).toBe(200)
@@ -133,7 +130,7 @@ describe('POST /api/grupos/:código/reclamar', () => {
   })
 
   it('no se puede reclamar un integrante que ya eligió otra persona', async () => {
-    await send('POST', `/api/grupos/${code}/unirse`, { memberId: 'm2' })
+    await joinWithNewAccount(env, code, 'm2')
     const token = await registerTestUser(env, 'juan')
 
     expect((await claim('m2', token)).status).toBe(409)
