@@ -73,10 +73,12 @@ export function CounterScreen() {
   const canShare = isRegistered(session)
   const inGroup = counter.context.type === 'group' && !!counter.context.groupId
   const groupHome = inGroup ? `/grupo/${counter.context.groupId}` : '/'
-  const isQuick = counter.context.type === 'quick'
+  // Compartir en vivo es solo para la partida rápida y con cuenta: sin cuenta
+  // la opción no aparece.
+  const canShareLive = counter.context.type === 'quick' && canShare
 
   const openShare = () => {
-    if (canShare && !counter.context.shareId) {
+    if (!counter.context.shareId) {
       counter.share(newShareId())
     }
     setSharing(true)
@@ -126,7 +128,7 @@ export function CounterScreen() {
                     },
                   ]
                 : []),
-              ...(isQuick
+              ...(canShareLive
                 ? [
                     {
                       label: 'Compartir en vivo',
@@ -212,9 +214,9 @@ export function CounterScreen() {
         </Dialog>
       )}
 
-      {sharing && (
+      {sharing && canShareLive && counter.context.shareId && (
         <ShareLiveDialog
-          shareId={canShare ? (counter.context.shareId ?? null) : null}
+          shareId={counter.context.shareId}
           onClose={() => setSharing(false)}
         />
       )}
