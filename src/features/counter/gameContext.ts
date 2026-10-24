@@ -9,6 +9,9 @@ export interface GameContext {
   // Identifica esta partida cuando se transmite en vivo (puede haber varias a la
   // vez en un grupo). Se crea al armar la partida.
   liveId?: string
+  // Partida rápida compartida en vivo: id secreto para mirarla (el del enlace y
+  // el QR). Solo existe desde que se comparte.
+  shareId?: string
 }
 
 export function quickContext(): GameContext {
@@ -32,6 +35,9 @@ export function isGameContext(value: unknown): value is GameContext {
     return false
   }
   if (context.liveId !== undefined && typeof context.liveId !== 'string') {
+    return false
+  }
+  if (context.shareId !== undefined && typeof context.shareId !== 'string') {
     return false
   }
   if (

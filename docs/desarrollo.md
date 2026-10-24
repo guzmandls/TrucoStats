@@ -137,7 +137,7 @@ docs/           requisitos, este diario y pendientes
 
 - **D1:** la base de datos SQL de Cloudflare, basada en **SQLite**. Guarda lo que comparten los celulares. `--local` usa una copia en la PC; `--remote`, la real.
 - **Migraciones:** archivos SQL numerados en `migrations/`, que cambian el esquema en orden y una sola vez, igual en la PC y en producción. En producción se aplican **antes** de publicar el código que las necesita. Una migración ya aplicada no se edita: se agrega otra.
-  - `0001` grupos, integrantes, partidas y jugadores · `0002` código de invitación · `0003` cuentas y sesiones · `0004` cancelación e historial de cambios · `0005` varios administradores · `0006` invitados y apodos · `0007` y `0008` partidas en vivo · `0009` enlaces por correo · `0010` versión del grupo · `0011` usuario sin distinguir mayúsculas.
+  - `0001` grupos, integrantes, partidas y jugadores · `0002` código de invitación · `0003` cuentas y sesiones · `0004` cancelación e historial de cambios · `0005` varios administradores · `0006` invitados y apodos · `0007` y `0008` partidas en vivo · `0009` enlaces por correo · `0010` versión del grupo · `0011` usuario sin distinguir mayúsculas · `0012` sin cuentas invitadas en grupos · `0013` partidas rápidas compartidas.
 - **Conceptos de SQL:**
   - **Clave primaria** (identifica cada fila) y **clave foránea** (la enlaza con otra tabla).
   - **`ON DELETE CASCADE`:** al borrar un grupo se borran sus integrantes. Las partidas no tienen esa regla a propósito: se conservan.
@@ -166,6 +166,8 @@ docs/           requisitos, este diario y pendientes
   - Quien mira una partida en vivo le pregunta al servidor cada pocos segundos (**polling**). Es más simple y gratis que una conexión abierta (WebSocket), y alcanza para un marcador.
   - Quien cuenta publica cada tanto aunque no cambie nada (**latido**), así el servidor sabe que la partida sigue viva.
   - Los tiempos ("hace cuánto se actualizó") salen del reloj del servidor, no del celular, que puede estar desfasado.
+- **Enlace secreto** (capability URL): para compartir la partida rápida en vivo sin pedir cuenta a quien mira, el enlace lleva un id aleatorio de 128 bits (`crypto.getRandomValues`). Tener el enlace es el permiso para mirar; como no se puede adivinar, no hace falta usuario. Solo la cuenta que la creó puede actualizarla.
+- **Código QR:** lo genero en el celular con `qrcode-generator`, una librería chica sin dependencias, y lo dibujo como SVG. No hace falta ningún servicio externo.
 - **Cliente de la API** (`src/lib/api.ts`): un solo lugar para todos los pedidos, con límite de tiempo, token de sesión y errores uniformes.
 
 ## Cuentas y seguridad

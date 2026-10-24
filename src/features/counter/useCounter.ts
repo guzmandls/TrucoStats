@@ -76,6 +76,7 @@ type GameAction =
   | { type: 'resumeTimer'; now: number }
   | { type: 'settleAway'; lastActiveAt: number; now: number }
   | { type: 'hydrate'; state: GameState }
+  | { type: 'share'; shareId: string }
 
 export function clampTarget(target: number, min: number = MIN_TARGET): number {
   const stepped = Math.round(target / TARGET_STEP) * TARGET_STEP
@@ -103,6 +104,10 @@ function withFirstReached(state: GameState, counter: CounterState): GameState {
 function gameReducer(state: GameState, action: GameAction): GameState {
   if (action.type === 'hydrate') {
     return action.state
+  }
+
+  if (action.type === 'share') {
+    return { ...state, context: { ...state.context, shareId: action.shareId } }
   }
 
   if (action.type === 'pauseTimer') {
@@ -147,13 +152,14 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         declined: false,
       }
     }
+    // La partida siguiente ya no está compartida: el enlace era de esta.
     case 'confirm':
       if (!winnerOf(state.counter, state.target)) {
         return state
       }
-      return createGameState(state.target, state.context)
+      return createGameState(state.target, withoutShare(state.context))
     case 'cancelGame':
-      return createGameState(state.target, state.context)
+      return createGameState(state.target, withoutShare(state.context))
     case 'decline': {
       const winner = winnerOf(state.counter, state.target)
       if (!winner) {
@@ -174,6 +180,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     default:
       return state
   }
+}
+
+function withoutShare(context: GameContext): GameContext {
+  const rest = { ...context }
+  delete rest.shareId
+  return rest
 }
 
 function createGameState(
@@ -256,9 +268,16 @@ export function useCounter(
           type: 'hydrate',
           state: {
             ...hydratedState,
+            // Si ya se compartió (aunque no tenga puntos), sigue compartida:
+            // quien mira ya tiene el enlace.
             context: hasMoves(game)
               ? hydratedState.context
-              : initialContextRef.current,
+              : {
+                  ...initialContextRef.current,
+                  ...(hydratedState.context.shareId
+                    ? { shareId: hydratedState.context.shareId }
+                    : {}),
+                },
           },
         })
       }
@@ -493,6 +512,11 @@ export function useCounter(
 
   const paused = isPaused(state.timer)
 
+  // Comparte la partida en vivo (si ya estaba compartida, no cambia el enlace).
+  const share = useCallback((shareId: string) => {
+    dispatch({ type: 'share', shareId })
+  }, [])
+
   const togglePause = useCallback(() => {
     dispatch(
       isPaused(state.timer)
@@ -532,6 +556,7 @@ export function useCounter(
     confirm,
     cancelGame,
     decline,
+    share,
     paused,
     togglePause,
     elapsed,

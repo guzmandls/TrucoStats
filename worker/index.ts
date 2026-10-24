@@ -29,6 +29,7 @@ import { joinGroup } from './join'
 import { leaveGroup } from './leave'
 import { listLive, publishLive, stopLive } from './live'
 import { createMatch, listMatches } from './matches'
+import { getShared, publishShared } from './sharedLive'
 import { currentUser, login, logout, register } from './users'
 
 const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
@@ -48,6 +49,7 @@ const CLAIM_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/reclamar$/
 const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 const INVITE_MANIFEST = /^\/api\/manifiesto\/([^/]{1,100})$/
+const SHARED_LIVE = /^\/api\/en-vivo\/([0-9a-f]{32})$/
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -179,6 +181,17 @@ export default {
       }
       if (request.method === 'DELETE') {
         return stopLive(liveOfGroup[1], id, request, env)
+      }
+      return errorResponse('Método no permitido', 405)
+    }
+
+    const sharedLive = SHARED_LIVE.exec(pathname)
+    if (sharedLive) {
+      if (request.method === 'GET') {
+        return getShared(sharedLive[1], env)
+      }
+      if (request.method === 'PUT') {
+        return publishShared(sharedLive[1], request, env)
       }
       return errorResponse('Método no permitido', 405)
     }

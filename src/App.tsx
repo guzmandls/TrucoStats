@@ -8,6 +8,7 @@ import { CreateGroupScreen } from './features/groups/CreateGroupScreen'
 import { GroupScreen } from './features/groups/GroupScreen'
 import { JoinGroupScreen } from './features/groups/JoinGroupScreen'
 import { LiveMatchScreen } from './features/groups/LiveMatchScreen'
+import { SharedLiveScreen } from './features/groups/SharedLiveScreen'
 import { GroupStatsScreen } from './features/groups/GroupStatsScreen'
 import { MemberScreen } from './features/groups/MemberScreen'
 import { ParticipantsScreen } from './features/groups/ParticipantsScreen'
@@ -34,6 +35,7 @@ function App() {
           element={<ConfirmEmailScreen />}
         />
         <Route path="/unirse/:code" element={<JoinGroupScreen />} />
+        <Route path="/en-vivo/:shareId" element={<SharedLiveScreen />} />
         <Route path="/grupo/:id" element={<GroupScreen />} />
         <Route
           path="/grupo/:id/en-vivo/:liveId"

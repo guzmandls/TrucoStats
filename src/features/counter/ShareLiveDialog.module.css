@@ -1,0 +1,11 @@
+/* El QR va sobre blanco y centrado, con un borde negro como el resto. */
+.qr {
+  display: flex;
+  justify-content: center;
+}
+
+.qr svg {
+  max-width: 100%;
+  height: auto;
+  border: var(--border-width) solid var(--ink);
+}

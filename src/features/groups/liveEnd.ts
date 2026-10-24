@@ -1,10 +1,13 @@
 import { ApiError } from '../../lib/api'
-import { publishLive, type LiveState } from './liveApi'
+import { publishLive, publishShared, type LiveState } from './liveApi'
 
 const KEY = 'trucostats.pendingLiveEnds'
 
 export interface LiveEnd {
+  // Partida de grupo: el código del grupo. Partida rápida compartida: vacío, y
+  // va el id para mirarla.
   inviteCode: string
+  shareId?: string
   liveId: string
   state: LiveState
   status: 'finished' | 'canceled'
@@ -28,6 +31,13 @@ function write(items: LiveEnd[]): void {
   }
 }
 
+function send(end: LiveEnd): Promise<void> {
+  const options = { status: end.status, reason: end.reason }
+  return end.shareId
+    ? publishShared(end.shareId, end.state, options)
+    : publishLive(end.inviteCode, end.liveId, end.state, options)
+}
+
 // Un rechazo definitivo del servidor (que no sea falta de sesión) no mejora
 // reintentando.
 function isFinal(error: unknown): boolean {
@@ -39,10 +49,7 @@ function isFinal(error: unknown): boolean {
 // quienes la miran no la vean en juego para siempre.
 export async function endLive(end: LiveEnd): Promise<void> {
   try {
-    await publishLive(end.inviteCode, end.liveId, end.state, {
-      status: end.status,
-      reason: end.reason,
-    })
+    await send(end)
   } catch (error) {
     if (!isFinal(error)) {
       write([...read().filter((item) => item.liveId !== end.liveId), end])
@@ -58,10 +65,7 @@ export async function retryPendingLiveEnds(): Promise<void> {
   const left: LiveEnd[] = []
   for (const end of pending) {
     try {
-      await publishLive(end.inviteCode, end.liveId, end.state, {
-        status: end.status,
-        reason: end.reason,
-      })
+      await send(end)
     } catch (error) {
       if (!isFinal(error)) {
         left.push(end)
