@@ -30,7 +30,8 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application",
-    // Las rutas /api/* las atiende el Worker; el resto, la app (archivos de dist).
-    "run_worker_first": ["/api/*"],
+    // Las rutas /api/* y el manifiesto las atiende el Worker; el resto, la app
+    // (archivos de dist).
+    "run_worker_first": ["/api/*", "/manifest.webmanifest"],
   },
 }

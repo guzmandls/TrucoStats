@@ -395,3 +395,51 @@ describe('JoinGroupScreen', () => {
     expect(await screen.findAllByRole('radio')).toHaveLength(3)
   })
 })
+
+describe('JoinGroupScreen: primero instalar la app', () => {
+  const IPHONE =
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 26_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Mobile/15E148 Safari/604.1'
+
+  beforeEach(() => {
+    clearSession()
+    vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue(IPHONE)
+    document.head.innerHTML =
+      '<link rel="manifest" href="/manifest.webmanifest" />'
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    document.head.innerHTML = ''
+  })
+
+  it('en el navegador del celular muestra cómo instalar y no deja elegir todavía', async () => {
+    stubServer(serverWithGroup)
+    renderJoin()
+
+    expect(
+      await screen.findByText('Primero instala trucoStats en tu celular.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Agregar a Inicio')).toBeInTheDocument()
+    expect(screen.queryByText('Necesitas una cuenta')).toBeNull()
+    expect(screen.queryByRole('radio', { name: 'Pedro' })).toBeNull()
+    // Instalada desde acá, la app arranca en esta invitación.
+    expect(
+      document.querySelector('link[rel="manifest"]')?.getAttribute('href'),
+    ).toBe(`/api/manifiesto/${CODE}`)
+  })
+
+  it('en la app instalada sigue con la cuenta y la elección', async () => {
+    vi.stubGlobal(
+      'matchMedia',
+      (query: string) =>
+        ({ matches: query === '(display-mode: standalone)' }) as MediaQueryList,
+    )
+    stubServer(serverWithGroup)
+    renderJoin()
+
+    expect(await screen.findByText('Necesitas una cuenta')).toBeInTheDocument()
+    expect(
+      document.querySelector('link[rel="manifest"]')?.getAttribute('href'),
+    ).toBe('/manifest.webmanifest')
+  })
+})
