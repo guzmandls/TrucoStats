@@ -10,6 +10,8 @@ function loadServiceWorker(existingCaches: string[] = []) {
   const listeners: Record<string, (event: unknown) => void> = {}
   const deleted: string[] = []
   const navigated: string[] = []
+  const added: string[][] = []
+  const put: string[] = []
   const self = {
     location: { origin: 'https://trucostats.test' },
     addEventListener: (type: string, listener: (event: unknown) => void) => {
@@ -31,29 +33,45 @@ function loadServiceWorker(existingCaches: string[] = []) {
     delete: async (key: string) => deleted.push(key),
     open: async () => ({
       match: async () => undefined,
-      put: async () => undefined,
-      addAll: async () => undefined,
+      put: async (key: string) => put.push(key),
+      addAll: async (paths: string[]) => added.push(paths),
     }),
   }
+  const page =
+    '<html><head><link rel="icon" href="/favicon.ico" /><link rel="stylesheet" crossorigin href="/assets/index-b.css"></head>' +
+    '<body><script type="module" crossorigin src="/assets/index-b.js"></script></body></html>'
   runInNewContext(readFileSync('public/sw.js', 'utf8'), {
     self,
     caches,
     URL,
     Response,
-    fetch: async () => new Response('ok'),
+    fetch: async () => new Response(page),
   })
-  return { listeners, deleted, navigated }
+  return { listeners, deleted, navigated, added, put }
 }
 
-function fetchEvent(path: string) {
+function fetchEvent(path: string, extra: Record<string, unknown> = {}) {
   return {
     request: {
       method: 'GET',
       url: `https://trucostats.test${path}`,
       mode: 'cors',
+      cache: 'default',
+      ...extra,
     },
     respondWith: vi.fn(),
+    waitUntil: vi.fn(),
   }
+}
+
+function activate(listeners: Record<string, (event: unknown) => void>) {
+  let done: Promise<unknown> = Promise.resolve()
+  listeners.activate({
+    waitUntil: (promise: Promise<unknown>) => {
+      done = promise
+    },
+  })
+  return done
 }
 
 describe('service worker', () => {
@@ -71,6 +89,13 @@ describe('service worker', () => {
     }
   })
 
+  it('no responde los pedidos "no-store" (ver si hay versión nueva): van al servidor', () => {
+    const { listeners } = loadServiceWorker()
+    const event = fetchEvent('/', { cache: 'no-store' })
+    listeners.fetch(event)
+    expect(event.respondWith).not.toHaveBeenCalled()
+  })
+
   it('sigue sirviendo los archivos de la app desde la caché', () => {
     const { listeners } = loadServiceWorker()
     const event = fetchEvent('/assets/index-abc.js')
@@ -78,33 +103,42 @@ describe('service worker', () => {
     expect(event.respondWith).toHaveBeenCalled()
   })
 
-  it('al activarse borra la caché vieja (con datos viejos) y recarga las pestañas', async () => {
-    const { listeners, deleted, navigated } = loadServiceWorker([
-      'trucostats-v1',
-      'trucostats-v2',
-      'trucostats-v3',
-      'trucostats-v4',
+  it('al abrir una página guarda también todos sus archivos', async () => {
+    const { listeners, added, put } = loadServiceWorker()
+    const event = fetchEvent('/grupo/g1', { mode: 'navigate' })
+    listeners.fetch(event)
+
+    await (event.respondWith.mock.calls[0][0] as Promise<Response>)
+    await (event.waitUntil.mock.calls[0][0] as Promise<unknown>)
+
+    expect(added).toContainEqual([
+      '/favicon.ico',
+      '/assets/index-b.css',
+      '/assets/index-b.js',
     ])
-    let done: Promise<unknown> = Promise.resolve()
-    listeners.activate({
-      waitUntil: (promise: Promise<unknown>) => {
-        done = promise
-      },
-    })
-    await done
-    expect(deleted).toEqual(['trucostats-v1', 'trucostats-v2', 'trucostats-v3'])
-    expect(navigated).toEqual(['https://trucostats.test/grupo/g1'])
+    expect(put).toEqual(['/index.html'])
   })
 
-  it('si no había caché vieja no recarga nada', async () => {
-    const { listeners, navigated } = loadServiceWorker(['trucostats-v4'])
+  it('al activarse borra las cachés viejas, pero no recarga las pantallas abiertas', async () => {
+    const { listeners, deleted, navigated } = loadServiceWorker([
+      'trucostats-v3',
+      'trucostats-v4',
+      'trucostats-v5',
+    ])
+    await activate(listeners)
+    expect(deleted).toEqual(['trucostats-v3', 'trucostats-v4'])
+    expect(navigated).toEqual([])
+  })
+
+  it('ya no guarda "/" entre los archivos de la app', async () => {
+    const { listeners, added } = loadServiceWorker()
     let done: Promise<unknown> = Promise.resolve()
-    listeners.activate({
+    listeners.install({
       waitUntil: (promise: Promise<unknown>) => {
         done = promise
       },
     })
     await done
-    expect(navigated).toEqual([])
+    expect(added[0]).toEqual(['/index.html', '/manifest.webmanifest'])
   })
 })
