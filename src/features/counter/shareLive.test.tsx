@@ -25,7 +25,6 @@ function renderCounter(gameContext?: GameContext) {
       <Routes>
         <Route path="/partida" element={<CounterScreen />} />
         <Route path="/" element={<div>inicio</div>} />
-        <Route path="/registrarse" element={<div>registro</div>} />
       </Routes>
     </MemoryRouter>,
   )
@@ -80,18 +79,12 @@ afterEach(() => {
 })
 
 describe('compartir en vivo la partida rápida', () => {
-  it('sin cuenta pide registrarse o iniciar sesión, y no publica nada', async () => {
+  it('sin cuenta la opción no aparece', () => {
     renderCounter()
-    await openShare()
-
+    fireEvent.click(screen.getByRole('button', { name: 'Menú' }))
     expect(
-      screen.getByText(
-        /Para compartir la partida en vivo necesitas una cuenta/,
-      ),
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('img')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'Registrarse' }))
-    expect(screen.getByText('registro')).toBeInTheDocument()
+      screen.queryByRole('button', { name: 'Compartir en vivo' }),
+    ).not.toBeInTheDocument()
     expect(shareCalls()).toHaveLength(0)
   })
 
@@ -148,7 +141,8 @@ describe('compartir en vivo la partida rápida', () => {
     )
   })
 
-  it('la partida de grupo no tiene esta opción', async () => {
+  it('la partida de grupo no tiene esta opción, aunque haya cuenta', async () => {
+    login()
     renderCounter({
       type: 'group',
       groupId: 'g1',

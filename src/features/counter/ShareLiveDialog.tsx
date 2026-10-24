@@ -1,47 +1,19 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { QrCode } from '../../components/QrCode'
 import { Button, Dialog, Notice, TextInput } from '../../components/ui'
 import { sharedLink } from '../groups/liveApi'
 import styles from './ShareLiveDialog.module.css'
 
 interface ShareLiveDialogProps {
-  // Id para mirar la partida; null si falta una cuenta para compartir.
-  shareId: string | null
+  // Id para mirar la partida.
+  shareId: string
   onClose: () => void
 }
 
 // Compartir en vivo la partida rápida: un QR y un enlace para que cualquiera la
-// mire desde su celular, sin cuenta. Quien comparte necesita una cuenta.
+// mire desde su celular, sin cuenta. Solo se ofrece a quien tiene cuenta.
 export function ShareLiveDialog({ shareId, onClose }: ShareLiveDialogProps) {
-  const navigate = useNavigate()
   const [message, setMessage] = useState<string | null>(null)
-
-  if (!shareId) {
-    return (
-      <Dialog title="Compartir en vivo" onClose={onClose} closeButton>
-        <p>
-          Para compartir la partida en vivo necesitas una cuenta. Quien la mira
-          no necesita cuenta.
-        </p>
-        <Button
-          onClick={() =>
-            navigate('/registrarse', { state: { from: '/partida' } })
-          }
-        >
-          Registrarse
-        </Button>
-        <Button
-          variant="secondary"
-          onClick={() =>
-            navigate('/iniciar-sesion', { state: { from: '/partida' } })
-          }
-        >
-          Iniciar sesión
-        </Button>
-      </Dialog>
-    )
-  }
 
   const link = sharedLink(shareId)
   const canShare = typeof navigator.share === 'function'
