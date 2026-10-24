@@ -4,13 +4,25 @@
   overflow-y: auto;
   overscroll-behavior-y: contain;
   background-color: var(--paper);
-  background-image: repeating-linear-gradient(
-    to bottom,
-    var(--line) 0,
-    var(--line) 1px,
-    transparent 1px,
-    transparent var(--row-height)
-  );
+  /* El papel: la línea vertical del medio y los renglones. La línea es parte
+     del fondo (y no un elemento) para que cubra siempre todo el alto, haya
+     pocos o muchos puntos: Safari no estira bien un elemento con alturas en
+     porcentaje dentro de una columna flexible. */
+  background-image:
+    linear-gradient(
+      to right,
+      transparent calc(50% - var(--divider-width) / 2),
+      var(--line-strong) calc(50% - var(--divider-width) / 2),
+      var(--line-strong) calc(50% + var(--divider-width) / 2),
+      transparent calc(50% + var(--divider-width) / 2)
+    ),
+    repeating-linear-gradient(
+      to bottom,
+      var(--line) 0,
+      var(--line) 1px,
+      transparent 1px,
+      transparent var(--row-height)
+    );
   background-attachment: local;
 }
 
@@ -36,12 +48,5 @@
   left: 0;
   right: 0;
   height: var(--divider-width);
-  background: var(--line-strong);
-}
-
-/* Línea que separa los dos equipos (sigue la del medio de la barra inferior). */
-.divider {
-  flex: 0 0 var(--divider-width);
-  align-self: stretch;
   background: var(--line-strong);
 }

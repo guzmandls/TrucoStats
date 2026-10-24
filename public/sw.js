@@ -1,9 +1,25 @@
 // Cambiar el nombre borra la caché anterior al activarse. v1 guardaba también
-// respuestas de /api (y las devolvía viejas para siempre): v2 la descarta. v3:
-// íconos nuevos (los archivos sin huella en el nombre, como los íconos, quedan
-// guardados hasta que cambia este nombre). v4: otra versión del ícono.
-const CACHE = 'trucostats-v4'
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest']
+// respuestas de /api (y las devolvía viejas para siempre): v2 la descarta. v3 y
+// v4: íconos nuevos (los archivos sin huella en el nombre, como los íconos,
+// quedan guardados hasta que cambia este nombre). v5: deja de guardar "/" (la
+// app comparaba su versión con esa copia vieja y se recargaba sin motivo).
+const CACHE = 'trucostats-v5'
+const APP_SHELL = ['/index.html', '/manifest.webmanifest']
+
+// Los archivos que usa una página (código, estilos, íconos), sacados de su HTML.
+function assetsOf(html) {
+  return [...html.matchAll(/(?:src|href)="(\/[^"]+)"/g)]
+    .map((match) => match[1])
+    .filter((path) => !path.startsWith('/api/'))
+}
+
+// Guarda la página junto con todos sus archivos: así una página guardada nunca
+// queda sin su código (si no, sin conexión se vería vacía y sin botones).
+async function saveIndex(cache, response) {
+  const html = await response.clone().text()
+  await cache.addAll(assetsOf(html)).catch(() => undefined)
+  await cache.put('/index.html', response)
+}
 
 self.addEventListener('install', (event) => {
   self.skipWaiting()
@@ -15,23 +31,17 @@ self.addEventListener('install', (event) => {
   )
 })
 
+// Al activarse borra las cachés viejas. No recarga las pantallas abiertas:
+// siguen funcionando con su código, y la app se actualiza sola al volver a ella
+// (src/main.tsx).
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       const keys = await caches.keys()
-      const stale = keys.filter((key) => key !== CACHE)
-      await Promise.all(stale.map((key) => caches.delete(key)))
+      await Promise.all(
+        keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)),
+      )
       await self.clients.claim()
-      // Si había una caché vieja, las pestañas abiertas pudieron recibir datos
-      // viejos de ella: se recargan una vez para empezar limpias.
-      if (stale.length > 0) {
-        const windows = await self.clients.matchAll({ type: 'window' })
-        await Promise.all(
-          windows.map((client) =>
-            client.navigate(client.url).catch(() => undefined),
-          ),
-        )
-      }
     })(),
   )
 })
@@ -46,8 +56,9 @@ self.addEventListener('fetch', (event) => {
     return
   }
   // Los datos (grupos, partidas, sesión) siempre van al servidor: nunca se
-  // guardan ni se devuelven desde la caché.
-  if (url.pathname.startsWith('/api/')) {
+  // guardan ni se devuelven desde la caché. Lo mismo cualquier pedido que la app
+  // hace con "no-store" (por ejemplo, para ver si hay una versión nueva).
+  if (url.pathname.startsWith('/api/') || request.cache === 'no-store') {
     return
   }
 
@@ -56,8 +67,10 @@ self.addEventListener('fetch', (event) => {
       (async () => {
         try {
           const fresh = await fetch(request)
-          const cache = await caches.open(CACHE)
-          cache.put('/index.html', fresh.clone())
+          if (fresh.ok) {
+            const cache = await caches.open(CACHE)
+            event.waitUntil(saveIndex(cache, fresh.clone()))
+          }
           return fresh
         } catch {
           const cache = await caches.open(CACHE)
@@ -83,7 +96,7 @@ self.addEventListener('fetch', (event) => {
         }
         return fresh
       } catch {
-        return cached ?? Response.error()
+        return Response.error()
       }
     })(),
   )

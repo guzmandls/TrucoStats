@@ -107,7 +107,8 @@ docs/           requisitos, este diario y pendientes
 - **Service worker** (`public/sw.js`): programa en segundo plano que guarda en **caché** los archivos de la app para usarla sin conexión. Solo funciona en HTTPS o en localhost (**contexto seguro**).
   - Los archivos con **huella en el nombre** (`index-abc123.js`) se pueden guardar para siempre. Los que no la tienen (íconos) se renuevan cambiando el nombre de la caché (`trucostats-v4`), que borra la vieja al activarse.
   - **Nunca guarda respuestas de la API.** Durante semanas, grupos y sesiones no se actualizaban entre celulares porque el service worker devolvía respuestas viejas de `/api`. La caché sirve para lo que no cambia; para datos que cambian y dependen de quién pide, hay que desactivarla (`Cache-Control: no-store` en el servidor y `cache: 'no-store'` en la app).
-  - Una app abierta en segundo plano puede seguir con código viejo: al volver a verla compara su archivo principal con el publicado y se recarga si cambió.
+  - Una app abierta en segundo plano puede seguir con código viejo: al volver a verla compara su archivo principal con el publicado y se recarga si cambió (una sola vez por versión). Esa comparación tiene que ir al servidor: al principio el service worker la contestaba con una copia vieja de la página y la app se recargaba cada vez que volvía, a veces sin conexión todavía, y quedaba vacía y sin botones. Ahora el service worker no toca los pedidos `no-store`.
+  - Al guardar la página, el service worker guarda también todos los archivos que usa (los saca de su HTML). Así una página guardada nunca queda sin su código.
 - **Íconos:** `npm run icons` (`@vite-pwa/assets-generator`) genera todos los tamaños desde `public/app-icon.svg`. El **maskable** lleva margen porque Android recorta los íconos en círculo u otras formas.
 - **Instalación:**
   - En Android, el evento `beforeinstallprompt` permite un botón "Instalar" de un toque.

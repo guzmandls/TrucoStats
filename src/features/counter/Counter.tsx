@@ -27,8 +27,6 @@ export function Counter({ counter, drawingRef }: CounterProps) {
           <ScoreMarks points={nos} spacerIndex={spacerIndex} />
         </div>
 
-        <div className={styles.divider} aria-hidden="true" />
-
         <div className={styles.column}>
           <ScoreMarks points={ellos} spacerIndex={spacerIndex} />
         </div>
