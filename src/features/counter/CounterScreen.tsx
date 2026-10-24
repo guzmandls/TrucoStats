@@ -7,6 +7,7 @@ import {
   PauseIcon,
   PersonIcon,
   PlayIcon,
+  ShareIcon,
   UndoIcon,
 } from '../../components/Icons'
 import {
@@ -19,7 +20,9 @@ import {
   TextInput,
 } from '../../components/ui'
 import { HoldButton } from '../../components/HoldButton'
+import { isRegistered, useSession } from '../../lib/session'
 import { Counter } from './Counter'
+import { ShareLiveDialog } from './ShareLiveDialog'
 import { useLiveBroadcast } from './useLiveBroadcast'
 import { quickContext, type GameContext } from './gameContext'
 import { formatClock } from './gameTimer'
@@ -31,6 +34,15 @@ import {
   type CounterController,
 } from './useCounter'
 import styles from './CounterScreen.module.css'
+
+// Id secreto para mirar la partida compartida: difícil de adivinar, porque es
+// lo único que da acceso.
+function newShareId(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join(
+    '',
+  )
+}
 
 const TEAM_LABELS: Record<'nos' | 'ellos', string> = {
   nos: 'Nosotros',
@@ -56,8 +68,19 @@ export function CounterScreen() {
   const [canceling, setCanceling] = useState(false)
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
+  const [sharing, setSharing] = useState(false)
+  const session = useSession()
+  const canShare = isRegistered(session)
   const inGroup = counter.context.type === 'group' && !!counter.context.groupId
   const groupHome = inGroup ? `/grupo/${counter.context.groupId}` : '/'
+  const isQuick = counter.context.type === 'quick'
+
+  const openShare = () => {
+    if (canShare && !counter.context.shareId) {
+      counter.share(newShareId())
+    }
+    setSharing(true)
+  }
 
   const nosPoints = counter.points('nos')
   const ellosPoints = counter.points('ellos')
@@ -100,6 +123,15 @@ export function CounterScreen() {
                       label: 'Cancelar partida',
                       icon: <CloseIcon />,
                       onClick: () => setCanceling(true),
+                    },
+                  ]
+                : []),
+              ...(isQuick
+                ? [
+                    {
+                      label: 'Compartir en vivo',
+                      icon: <ShareIcon />,
+                      onClick: openShare,
                     },
                   ]
                 : []),
@@ -178,6 +210,13 @@ export function CounterScreen() {
             Seguir jugando
           </Button>
         </Dialog>
+      )}
+
+      {sharing && (
+        <ShareLiveDialog
+          shareId={canShare ? (counter.context.shareId ?? null) : null}
+          onClose={() => setSharing(false)}
+        />
       )}
 
       <BottomBar counter={counter} locked={counter.awaitingConfirmation} />

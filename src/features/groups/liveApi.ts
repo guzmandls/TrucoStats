@@ -74,3 +74,33 @@ export async function fetchLive(inviteCode: string): Promise<LiveMatch[]> {
   )
   return response.live
 }
+
+// Partida rápida compartida en vivo: quien cuenta (con cuenta) la publica y
+// cualquiera con el enlace la mira, sin cuenta.
+export async function publishShared(
+  shareId: string,
+  state: LiveState,
+  options: PublishOptions = {},
+): Promise<void> {
+  await apiRequest(`/api/en-vivo/${shareId}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      state,
+      ...(options.status ? { status: options.status } : {}),
+      ...(options.reason ? { reason: options.reason } : {}),
+    }),
+    ...(options.keepalive ? { keepalive: true } : {}),
+  })
+}
+
+export async function fetchShared(shareId: string): Promise<LiveMatch> {
+  const response = await apiRequest<{ live: LiveMatch }>(
+    `/api/en-vivo/${shareId}`,
+  )
+  return response.live
+}
+
+// Enlace para mirar la partida compartida (el que lleva el QR).
+export function sharedLink(shareId: string): string {
+  return `${window.location.origin}/en-vivo/${shareId}`
+}

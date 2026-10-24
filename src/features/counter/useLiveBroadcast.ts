@@ -1,8 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getToken } from '../../lib/session'
 import { loadGroups } from '../groups/groupsStorage'
 import { newMemberId } from '../groups/groupAdmin'
-import { publishLive, stopLive, type LiveState } from '../groups/liveApi'
+import {
+  publishLive,
+  publishShared,
+  stopLive,
+  type LiveState,
+  type PublishOptions,
+} from '../groups/liveApi'
 import { endLive } from '../groups/liveEnd'
 import type { CounterController } from './useCounter'
 
@@ -18,9 +24,10 @@ export interface LiveBroadcast {
 }
 
 // Publica en el servidor cómo va una partida de grupo, para que los demás
-// integrantes puedan mirarla desde su celular. No hace nada en la partida
-// rápida, sin sesión, sin conexión o si el grupo todavía no está en el
-// servidor: el contador sigue funcionando igual.
+// integrantes puedan mirarla desde su celular, o una partida rápida que se
+// compartió en vivo, para quien tenga el enlace. No hace nada en una partida
+// rápida sin compartir, sin sesión, sin conexión o si el grupo todavía no está
+// en el servidor: el contador sigue funcionando igual.
 //
 // Cerrar el contador no termina la partida: sigue en vivo, igual que la partida
 // guardada en el celular, hasta que termine o se cancele. Al salir se publica
@@ -33,7 +40,8 @@ export function useLiveBroadcast(counter: CounterController): LiveBroadcast {
   // Cada partida tiene su id; si es una partida vieja que no lo tiene, se crea uno
   // para esta sesión del contador.
   const [fallbackId] = useState(() => newMemberId())
-  const liveId = context.liveId ?? fallbackId
+  const shareId = context.type === 'quick' ? (context.shareId ?? null) : null
+  const liveId = shareId ?? context.liveId ?? fallbackId
   // Partida que ya se terminó o canceló desde acá: no se vuelve a publicar.
   const endedId = useRef<string | null>(null)
 
@@ -68,18 +76,29 @@ export function useLiveBroadcast(counter: CounterController): LiveBroadcast {
     }
   })
 
-  const enabled = inviteCode !== null && getToken() !== null
+  // A dónde se publica: la partida del grupo o la rápida compartida.
+  const send = useMemo(() => {
+    if (shareId) {
+      return (state: LiveState, options?: PublishOptions) =>
+        publishShared(shareId, state, options)
+    }
+    if (inviteCode) {
+      return (state: LiveState, options?: PublishOptions) =>
+        publishLive(inviteCode, liveId, state, options)
+    }
+    return null
+  }, [shareId, inviteCode, liveId])
+
+  const enabled = send !== null && getToken() !== null
 
   const publishNow = useCallback(
     (keepalive: boolean) => {
-      if (!inviteCode || !latest.current || endedId.current === liveId) {
+      if (!send || !latest.current || endedId.current === liveId) {
         return
       }
-      void publishLive(inviteCode, liveId, latest.current, {
-        keepalive,
-      }).catch(() => undefined)
+      void send(latest.current, { keepalive }).catch(() => undefined)
     },
-    [inviteCode, liveId],
+    [send, liveId],
   )
 
   // Cada cambio de la partida se publica enseguida (con una pequeña espera para
@@ -130,8 +149,9 @@ export function useLiveBroadcast(counter: CounterController): LiveBroadcast {
 
   // Al salir del contador: si ya hay puntos la partida sigue en vivo (se publica
   // el estado final); si no se jugó nada, se borra para no dejar una partida 0-0.
+  // La compartida no se borra: quien mira ya tiene el enlace.
   useEffect(() => {
-    if (!enabled || !inviteCode) {
+    if (!enabled || !send) {
       return
     }
     return () => {
@@ -139,31 +159,30 @@ export function useLiveBroadcast(counter: CounterController): LiveBroadcast {
         return
       }
       const last = latest.current
-      if (last && last.scores.nos + last.scores.ellos > 0) {
-        void publishLive(inviteCode, liveId, last, { keepalive: true }).catch(
-          () => undefined,
-        )
-      } else {
+      if (last && (shareId || last.scores.nos + last.scores.ellos > 0)) {
+        void send(last, { keepalive: true }).catch(() => undefined)
+      } else if (inviteCode) {
         void stopLive(inviteCode, liveId).catch(() => undefined)
       }
     }
-  }, [enabled, inviteCode, liveId])
+  }, [enabled, send, shareId, inviteCode, liveId])
 
   const end = useCallback(
     (status: 'finished' | 'canceled', reason?: string) => {
-      if (!inviteCode || !latest.current || !getToken()) {
+      if (!send || !latest.current || !getToken()) {
         return
       }
       endedId.current = liveId
       void endLive({
-        inviteCode,
+        inviteCode: inviteCode ?? '',
+        ...(shareId ? { shareId } : {}),
         liveId,
         state: latest.current,
         status,
         reason,
       })
     },
-    [inviteCode, liveId],
+    [send, inviteCode, shareId, liveId],
   )
 
   return { end }
