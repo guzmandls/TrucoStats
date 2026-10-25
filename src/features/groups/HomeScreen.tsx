@@ -15,6 +15,7 @@ import {
   DownloadIcon,
   ExitIcon,
   GroupPlusIcon,
+  HistoryIcon,
   LoginIcon,
   PersonIcon,
   UserPlusIcon,
@@ -53,6 +54,11 @@ export function HomeScreen() {
   const { installed } = useInstall()
   const installAction = useInstallAction()
   // Mientras no esté instalada, el menú ofrece instalarla.
+  const quickItem = {
+    label: 'Partidas rápidas',
+    to: '/partidas-rapidas',
+    icon: <HistoryIcon />,
+  }
   const installItem = installed
     ? []
     : [
@@ -147,6 +153,7 @@ export function HomeScreen() {
                       to: '/crear-grupo',
                       icon: <GroupPlusIcon />,
                     },
+                    quickItem,
                     ...installItem,
                     {
                       label: 'Cerrar sesión',
@@ -179,6 +186,7 @@ export function HomeScreen() {
                             icon: <PersonIcon />,
                           },
                         ]),
+                    quickItem,
                     ...installItem,
                   ]
             }

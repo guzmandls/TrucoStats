@@ -15,13 +15,16 @@ import styles from './HistoryRow.module.css'
 
 interface HistoryRowProps {
   match: Match
-  group: Group
+  // Sin grupo es una partida rápida: "Nosotros" contra "Ellos", sin fotos.
+  group?: Group
   // Puntos que sumó (+) o restó (−) la persona de este celular en esta partida;
   // null si no jugó o no se sabe.
   pointChange?: number | null
   onAction?: (match: Match, action: MatchAction) => void
   // Si se pasa, el menú ofrece "Ver historial" (solo para partidas ya enviadas).
   onShowHistory?: (match: Match) => void
+  // Si se pasa, el menú ofrece "Eliminar partida" (partidas rápidas).
+  onDelete?: (match: Match) => void
   // Versión para las estadísticas: solo la tarjeta con la fecha debajo, sin
   // opciones ni puntos.
   compact?: boolean
@@ -31,11 +34,21 @@ function TeamLine({
   team,
   won,
   group,
+  label,
 }: {
   team: Participant[]
   won: boolean
-  group: Group
+  group?: Group
+  // Nombre del equipo cuando no hay integrantes (partida rápida).
+  label: string
 }) {
+  if (!group) {
+    return (
+      <div className={`${styles.team} ${won ? styles.won : styles.lost}`}>
+        <span className={styles.names}>{participantNames(team) ?? label}</span>
+      </div>
+    )
+  }
   const colors = avatarColors(group.members.map((member) => member.id))
   const names = participantNames(team)
   if (!names) {
@@ -69,9 +82,10 @@ export function HistoryRow({
   pointChange = null,
   onAction = () => {},
   onShowHistory,
+  onDelete,
   compact = false,
 }: HistoryRowProps) {
-  const actions = compact ? [] : availableActions(match, group)
+  const actions = compact || !group ? [] : availableActions(match, group)
   const canShowHistory = !compact && onShowHistory && !isPending(match)
   const menuItems = [
     ...actions.map((action) => ({
@@ -80,6 +94,9 @@ export function HistoryRow({
     })),
     ...(canShowHistory
       ? [{ label: 'Ver historial', onClick: () => onShowHistory(match) }]
+      : []),
+    ...(!compact && onDelete
+      ? [{ label: 'Eliminar partida', onClick: () => onDelete(match) }]
       : []),
   ]
   const showChange =
@@ -102,11 +119,13 @@ export function HistoryRow({
               team={match.teams.nos}
               won={match.winner === 'nos'}
               group={group}
+              label="Nosotros"
             />
             <TeamLine
               team={match.teams.ellos}
               won={match.winner === 'ellos'}
               group={group}
+              label="Ellos"
             />
           </div>
           <div className={styles.scores}>
