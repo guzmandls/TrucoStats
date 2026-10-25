@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { BackIcon, ChevronRightIcon, ShieldIcon } from '../../components/Icons'
+import {
+  BackIcon,
+  ChevronRightIcon,
+  PlusIcon,
+  ShieldIcon,
+} from '../../components/Icons'
 import {
   Avatar,
   ConfirmDialog,
@@ -13,6 +18,7 @@ import {
   ScreenContent,
 } from '../../components/ui'
 import { ApiError } from '../../lib/api'
+import { AddMemberDialog } from './AddMemberDialog'
 import { AliasesDialog } from './AliasesDialog'
 import { avatarColors } from './avatar'
 import { RenameMemberDialog } from './RenameMemberDialog'
@@ -33,6 +39,7 @@ type Pending =
   | { kind: 'release'; member: Member }
   | { kind: 'rename'; member: Member }
   | { kind: 'aliases'; member: Member }
+  | { kind: 'add' }
 
 export function ParticipantsScreen() {
   const { id } = useParams<{ id: string }>()
@@ -182,6 +189,16 @@ export function ParticipantsScreen() {
             <BackIcon />
           </HeaderIconButton>
         }
+        trailing={
+          admin && inviteCode ? (
+            <HeaderIconButton
+              label="Agregar integrante"
+              onClick={() => setPending({ kind: 'add' })}
+            >
+              <PlusIcon />
+            </HeaderIconButton>
+          ) : undefined
+        }
       />
       <ScreenContent>
         <div className={styles.list}>
@@ -266,6 +283,13 @@ export function ParticipantsScreen() {
           aliases={pending.member.aliases ?? []}
           onClose={() => setPending(null)}
           onSaved={() => void run(() => Promise.resolve())}
+        />
+      )}
+      {pending?.kind === 'add' && inviteCode && (
+        <AddMemberDialog
+          inviteCode={inviteCode}
+          onClose={() => setPending(null)}
+          onAdded={() => void run(() => Promise.resolve())}
         />
       )}
       {message && (

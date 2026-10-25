@@ -15,7 +15,6 @@ import {
   CloudOffIcon,
   PeopleIcon,
   SearchIcon,
-  UserPlusIcon,
   ShareIcon,
 } from '../../components/Icons'
 import {
@@ -57,7 +56,6 @@ import {
 } from './groupsApi'
 import { saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
-import { AddMemberDialog } from './AddMemberDialog'
 import { RenameGroupDialog } from './RenameGroupDialog'
 import { ClaimMemberDialog } from './ClaimMemberDialog'
 import { isGroupAdmin } from './groupAdmin'
@@ -112,7 +110,6 @@ export function GroupScreen() {
   )
   const [confirmingLeave, setConfirmingLeave] = useState(false)
   const [inviting, setInviting] = useState(false)
-  const [adding, setAdding] = useState(false)
   const [renaming, setRenaming] = useState(false)
   // Grupo del servidor sin nadie vinculado (creado antes de las cuentas): la
   // persona que lo creó elige cuál integrante es.
@@ -512,15 +509,6 @@ export function GroupScreen() {
                 to: `/grupo/${group.id}/participantes`,
                 icon: <PeopleIcon />,
               },
-              ...(isGroupAdmin(group) && group.inviteCode
-                ? [
-                    {
-                      label: 'Agregar integrante',
-                      onClick: () => setAdding(true),
-                      icon: <UserPlusIcon />,
-                    },
-                  ]
-                : []),
               {
                 label: 'Invitar',
                 onClick: handleInvite,
@@ -699,16 +687,6 @@ export function GroupScreen() {
           inviteCode={group.inviteCode}
           matchId={historyOf.id}
           onClose={() => setHistoryOf(null)}
-        />
-      )}
-      {adding && group.inviteCode && (
-        <AddMemberDialog
-          inviteCode={group.inviteCode}
-          onClose={() => setAdding(false)}
-          onAdded={() => {
-            setAdding(false)
-            void pullGroup(group.id).then(reload)
-          }}
         />
       )}
       {renaming && (

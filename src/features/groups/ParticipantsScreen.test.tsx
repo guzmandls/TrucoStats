@@ -186,6 +186,41 @@ describe('ParticipantsScreen (administración)', () => {
     ).toBeNull()
   })
 
+  it('el administrador agrega un integrante con el + de la barra', async () => {
+    await saveGroup(adminGroup)
+    renderParticipants()
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Agregar integrante' }),
+    )
+    fireEvent.change(screen.getByLabelText('Nombre'), {
+      target: { value: 'Marta' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Agregar' }))
+
+    await waitFor(() =>
+      expect(
+        calls.some(
+          (call) =>
+            call.method === 'POST' &&
+            call.path === '/api/grupos/abc123/integrantes' &&
+            JSON.parse(call.body!).name === 'Marta',
+        ),
+      ).toBe(true),
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  })
+
+  it('quien no es administrador no ve el + para agregar', async () => {
+    await saveGroup({ ...adminGroup, myMemberId: 'm3' })
+    renderParticipants()
+
+    await screen.findByRole('link', { name: /Juan/ })
+    expect(
+      screen.queryByRole('button', { name: 'Agregar integrante' }),
+    ).toBeNull()
+  })
+
   it('el administrador cambia el nombre de un integrante que nadie eligió', async () => {
     await saveGroup({ ...adminGroup, adminMemberIds: ['m1'] })
     renderParticipants()
