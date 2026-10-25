@@ -167,6 +167,7 @@ docs/           requisitos, este diario y pendientes
   - Quien mira una partida en vivo le pregunta al servidor cada pocos segundos (**polling**). Es más simple y gratis que una conexión abierta (WebSocket), y alcanza para un marcador.
   - Quien cuenta publica cada tanto aunque no cambie nada (**latido**), así el servidor sabe que la partida sigue viva.
   - Los tiempos ("hace cuánto se actualizó") salen del reloj del servidor, no del celular, que puede estar desfasado.
+- **Calcular en el servidor por privacidad:** para mostrar las estadísticas personales de otra persona, el servidor las calcula y devuelve solo los totales. Preferí eso a mandar sus partidas al celular: así no se ve con quién jugó en grupos donde uno no está.
 - **Enlace secreto** (capability URL): para compartir la partida rápida en vivo sin pedir cuenta a quien mira, el enlace lleva un id aleatorio de 128 bits (`crypto.getRandomValues`). Tener el enlace es el permiso para mirar; como no se puede adivinar, no hace falta usuario. Solo la cuenta que la creó puede actualizarla.
 - **Código QR:** lo genero en el celular con `qrcode-generator`, una librería chica sin dependencias, y lo dibujo como SVG. No hace falta ningún servicio externo.
 - **Cliente de la API** (`src/lib/api.ts`): un solo lugar para todos los pedidos, con límite de tiempo, token de sesión y errores uniformes.

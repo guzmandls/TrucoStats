@@ -1,5 +1,6 @@
 import { appManifest, inviteManifest } from './manifest'
 import { updateMyAvatar } from './accountAvatar'
+import { memberProfile } from './profile'
 import {
   createQuickMatch,
   deleteQuickMatch,
@@ -42,6 +43,8 @@ const GROUP_BY_CODE = /^\/api\/grupos\/([0-9a-f]{32})$/
 const MEMBER_OF_GROUP =
   /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})$/
 const MEMBERS_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/integrantes$/
+const MEMBER_PROFILE =
+  /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})\/perfil$/
 const MEMBER_ACTION =
   /^\/api\/grupos\/([0-9a-f]{32})\/integrantes\/([^/]{1,100})\/(liberar|administrador|apodos)$/
 const MATCHES_OF_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/partidas$/
@@ -250,6 +253,18 @@ export default {
     if (membersOfGroup) {
       return request.method === 'POST'
         ? addMember(membersOfGroup[1], request, env)
+        : errorResponse('Método no permitido', 405)
+    }
+
+    const profileOfMember = MEMBER_PROFILE.exec(pathname)
+    if (profileOfMember) {
+      return request.method === 'GET'
+        ? memberProfile(
+            profileOfMember[1],
+            decodeURIComponent(profileOfMember[2]),
+            request,
+            env,
+          )
         : errorResponse('Método no permitido', 405)
     }
 

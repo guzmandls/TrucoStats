@@ -20,6 +20,8 @@ import {
 import { ApiError } from '../../lib/api'
 import { AddMemberDialog } from './AddMemberDialog'
 import { AliasesDialog } from './AliasesDialog'
+import { fileToAvatarDataUrl, UNREADABLE_IMAGE } from './imageFile'
+import { PhotoDialog } from './PhotoDialog'
 import { avatarColors } from './avatar'
 import { RenameMemberDialog } from './RenameMemberDialog'
 import { isGroupAdmin } from './groupAdmin'
@@ -27,6 +29,7 @@ import {
   fetchGroupByCode,
   releaseRemoteMember,
   removeRemoteMember,
+  setRemoteAvatar,
   setRemoteMemberAdmin,
 } from './groupsApi'
 import { pullGroup } from './groupsSync'
@@ -40,6 +43,7 @@ type Pending =
   | { kind: 'rename'; member: Member }
   | { kind: 'aliases'; member: Member }
   | { kind: 'add' }
+  | { kind: 'photo'; member: Member }
 
 export function ParticipantsScreen() {
   const { id } = useParams<{ id: string }>()
@@ -49,6 +53,7 @@ export function ParticipantsScreen() {
   const [claimed, setClaimed] = useState<string[]>([])
   const [pending, setPending] = useState<Pending | null>(null)
   const [message, setMessage] = useState<string | null>(null)
+  const [photoBusy, setPhotoBusy] = useState(false)
 
   const admin = group ? isGroupAdmin(group) : false
   const inviteCode = group?.inviteCode
@@ -113,6 +118,26 @@ export function ParticipantsScreen() {
     }
   }
 
+  // Pone (o quita, con null) la foto de un integrante que nadie eligió.
+  const savePhoto = async (member: Member, file: File | null) => {
+    setPhotoBusy(true)
+    try {
+      let dataUrl: string | null = null
+      if (file) {
+        try {
+          dataUrl = await fileToAvatarDataUrl(file)
+        } catch {
+          setPending(null)
+          setMessage(UNREADABLE_IMAGE)
+          return
+        }
+      }
+      await run(() => setRemoteAvatar(inviteCode!, member.id, dataUrl))
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
   const menuItems = (member: Member) => {
     if (!inviteCode) {
       return []
@@ -162,6 +187,16 @@ export function ParticipantsScreen() {
               },
             ]
           : []),
+      // La foto de quien ya eligió su lugar es la de su cuenta: solo la cambia
+      // esa persona. La de un lugar libre la pone el administrador.
+      ...(!isClaimed
+        ? [
+            {
+              label: 'Cambiar foto',
+              onClick: () => setPending({ kind: 'photo', member }),
+            },
+          ]
+        : []),
       ...(isClaimed && !isMe
         ? [
             {
@@ -214,7 +249,14 @@ export function ParticipantsScreen() {
                     src={member.avatar}
                     size={48}
                   />
-                  <span className={styles.memberName}>{member.name}</span>
+                  <span className={styles.memberText}>
+                    <span className={styles.memberName}>{member.name}</span>
+                    {(member.aliases ?? []).length > 0 && (
+                      <span className={styles.memberAliases}>
+                        {(member.aliases ?? []).join(', ')}
+                      </span>
+                    )}
+                  </span>
                   {group.adminMemberIds.includes(member.id) && (
                     <span
                       className={styles.shield}
@@ -283,6 +325,15 @@ export function ParticipantsScreen() {
           aliases={pending.member.aliases ?? []}
           onClose={() => setPending(null)}
           onSaved={() => void run(() => Promise.resolve())}
+        />
+      )}
+      {pending?.kind === 'photo' && (
+        <PhotoDialog
+          hasPhoto={!!pending.member.avatar}
+          busy={photoBusy}
+          onFile={(file) => void savePhoto(pending.member, file)}
+          onRemove={() => void savePhoto(pending.member, null)}
+          onClose={() => setPending(null)}
         />
       )}
       {pending?.kind === 'add' && inviteCode && (

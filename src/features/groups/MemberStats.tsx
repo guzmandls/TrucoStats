@@ -1,15 +1,7 @@
-import {
-  Avatar,
-  Figure,
-  Figures,
-  StatRow,
-  WinRateRing,
-} from '../../components/ui'
+import { Avatar, StatRow } from '../../components/ui'
 import type { MemberStats } from '../matches/groupStats'
 import type { Participant } from '../matches/types'
 import { formatDuration } from '../matches/stats'
-import { winRateColor } from '../matches/winRateColor'
-import { EditableAvatar } from './EditableAvatar'
 import type { Member } from './types'
 import styles from './MemberStats.module.css'
 
@@ -42,53 +34,6 @@ function PersonValue({
 
 function duration(seconds: number | null): string {
   return seconds === null ? '—' : formatDuration(seconds)
-}
-
-export function MemberStatsFicha({
-  member,
-  color,
-  stats,
-  onEditPhoto,
-}: {
-  member: Member
-  color: string
-  stats: MemberStats
-  // Si se pasa, tocar la foto abre la edición.
-  onEditPhoto?: () => void
-}) {
-  const rate = stats.winRate
-  const rateColor = rate === null ? 'var(--line-strong)' : winRateColor(rate)
-  const total = stats.played
-
-  // Mismo armado que el perfil: arriba la foto y el porcentaje lado a lado;
-  // debajo, las victorias y las jugadas (las derrotas van en el detalle).
-  return (
-    <div className={styles.ficha}>
-      <div className={styles.top}>
-        {onEditPhoto ? (
-          <EditableAvatar
-            name={member.name}
-            color={color}
-            src={member.avatar}
-            size={92}
-            onEdit={onEditPhoto}
-          />
-        ) : (
-          <Avatar
-            name={member.name}
-            color={color}
-            src={member.avatar}
-            size={92}
-          />
-        )}
-        <WinRateRing percent={rate ?? 0} color={rateColor} size={92} />
-      </div>
-      <Figures>
-        <Figure value={stats.wins} label="victorias" />
-        <Figure value={total} label="jugadas" />
-      </Figures>
-    </div>
-  )
 }
 
 export function MemberStatsRows({

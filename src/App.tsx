@@ -11,9 +11,9 @@ import { LiveMatchScreen } from './features/groups/LiveMatchScreen'
 import { SharedLiveScreen } from './features/groups/SharedLiveScreen'
 import { QuickMatchesScreen } from './features/matches/QuickMatchesScreen'
 import { GroupStatsScreen } from './features/groups/GroupStatsScreen'
-import { MemberScreen } from './features/groups/MemberScreen'
 import { ParticipantsScreen } from './features/groups/ParticipantsScreen'
 import { ProfileScreen } from './features/profile/ProfileScreen'
+import { MemberProfileScreen } from './features/profile/MemberProfileScreen'
 import { StartGroupGameScreen } from './features/groups/StartGroupGameScreen'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { InstallScreen } from './features/install/InstallScreen'
@@ -50,7 +50,7 @@ function App() {
         />
         <Route
           path="/grupo/:id/participantes/:memberId"
-          element={<MemberScreen />}
+          element={<MemberProfileScreen />}
         />
         <Route path="/perfil" element={<ProfileScreen />} />
         <Route path="/perfil/editar" element={<EditProfileScreen />} />

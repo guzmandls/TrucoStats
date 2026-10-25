@@ -72,7 +72,15 @@ export function EditProfileScreen() {
       <PageHeader
         title="Editar perfil"
         leading={
-          <HeaderIconButton label="Volver" onClick={() => navigate('/perfil')}>
+          <HeaderIconButton
+            label="Volver"
+            onClick={() =>
+              typeof window.history.state?.idx === 'number' &&
+              window.history.state.idx > 0
+                ? navigate(-1)
+                : navigate('/perfil')
+            }
+          >
             <BackIcon />
           </HeaderIconButton>
         }

@@ -1,16 +1,8 @@
 import 'fake-indexeddb/auto'
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { deleteMatch, loadMatches, saveMatch } from '../matches/matchesStorage'
-import type { Match } from '../matches/types'
-import { MemberScreen } from './MemberScreen'
+import { deleteMatch, loadMatches } from '../matches/matchesStorage'
 import { ParticipantsScreen } from './ParticipantsScreen'
 import { deleteGroup, loadGroups, saveGroup } from './groupsStorage'
 import type { Group } from './types'
@@ -28,28 +20,6 @@ const group: Group = {
   ],
 }
 
-const match: Match = {
-  id: 'match-1',
-  type: 'group',
-  groupId: 'g1',
-  modality: '2v2',
-  playedAt: '2026-03-01T20:00:00.000Z',
-  durationSeconds: 900,
-  target: 30,
-  winner: 'nos',
-  teams: {
-    nos: [
-      { id: 'm1', name: 'Juan' },
-      { id: 'm2', name: 'Pedro' },
-    ],
-    ellos: [
-      { id: 'm3', name: 'Luis' },
-      { id: 'm4', name: 'Ana' },
-    ],
-  },
-  scores: { nos: 30, ellos: 21 },
-}
-
 function renderParticipants() {
   return render(
     <MemoryRouter initialEntries={[`/grupo/${group.id}/participantes`]}>
@@ -62,21 +32,6 @@ function renderParticipants() {
           path="/grupo/:id/participantes/:memberId"
           element={<div>ficha</div>}
         />
-        <Route path="/grupo/:id" element={<div>grupo</div>} />
-      </Routes>
-    </MemoryRouter>,
-  )
-}
-
-function renderMember() {
-  return render(
-    <MemoryRouter initialEntries={[`/grupo/${group.id}/participantes/m1`]}>
-      <Routes>
-        <Route
-          path="/grupo/:id/participantes/:memberId"
-          element={<MemberScreen />}
-        />
-        <Route path="/grupo/:id/participantes" element={<div>lista</div>} />
         <Route path="/grupo/:id" element={<div>grupo</div>} />
       </Routes>
     </MemoryRouter>,
@@ -221,6 +176,39 @@ describe('ParticipantsScreen (administración)', () => {
     ).toBeNull()
   })
 
+  it('muestra los apodos debajo del nombre', async () => {
+    await saveGroup({
+      ...adminGroup,
+      members: [
+        { id: 'm1', name: 'Juan', aliases: ['Juancho', 'Juanito'] },
+        ...adminGroup.members.slice(1),
+      ],
+    })
+    renderParticipants()
+
+    expect(await screen.findByText('Juancho, Juanito')).toBeInTheDocument()
+  })
+
+  it('el administrador pone la foto solo a un integrante que nadie eligió', async () => {
+    await saveGroup(adminGroup)
+    renderParticipants()
+    await waitFor(() =>
+      expect(calls.some((call) => call.method === 'GET')).toBe(true),
+    )
+    await new Promise((resolve) => setTimeout(resolve, 100))
+
+    // Pedro (m2) ya fue elegido: su foto es la de su cuenta.
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Opciones de Pedro' }),
+    )
+    expect(screen.queryByRole('menuitem', { name: 'Cambiar foto' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Opciones de Pedro' }))
+
+    fireEvent.click(screen.getByRole('button', { name: 'Opciones de Luis' }))
+    fireEvent.click(screen.getByRole('menuitem', { name: 'Cambiar foto' }))
+    expect(await screen.findByRole('dialog')).toHaveTextContent('Editar foto')
+  })
+
   it('el administrador cambia el nombre de un integrante que nadie eligió', async () => {
     await saveGroup({ ...adminGroup, adminMemberIds: ['m1'] })
     renderParticipants()
@@ -337,104 +325,5 @@ describe('ParticipantsScreen (administración)', () => {
     expect(
       await screen.findByRole('menuitem', { name: 'Liberar integrante' }),
     ).toBeInTheDocument()
-  })
-})
-
-describe('MemberScreen', () => {
-  beforeEach(async () => {
-    for (const existing of await loadGroups()) {
-      await deleteGroup(existing.id)
-    }
-    for (const existing of await loadMatches()) {
-      await deleteMatch(existing.id)
-    }
-    await saveGroup(group)
-  })
-
-  it('muestra las estadísticas personales del integrante', async () => {
-    await saveMatch(match)
-    renderMember()
-
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Participante' }),
-    ).toBeInTheDocument()
-    expect(await screen.findByText('Detalle')).toBeInTheDocument()
-    expect(screen.getByText('Al que más le gana')).toBeInTheDocument()
-  })
-
-  it('muestra los apodos solo si el integrante los tiene', async () => {
-    await deleteGroup(group.id)
-    await saveGroup({
-      ...group,
-      members: [
-        { id: 'm1', name: 'Juan', aliases: ['Juancho'] },
-        ...group.members.slice(1),
-      ],
-    })
-    renderMember()
-
-    expect(await screen.findByText('Juancho')).toBeInTheDocument()
-    expect(screen.getByText('Apodos')).toBeInTheDocument()
-  })
-
-  it('sin apodos no aparece la sección de apodos', async () => {
-    renderMember()
-
-    await screen.findByText('Detalle')
-    expect(screen.queryByText('Apodos')).toBeNull()
-    expect(screen.queryByText('Sin apodos')).toBeNull()
-  })
-
-  it('al tocar la foto se abre la edición, también si todavía no jugó', async () => {
-    renderMember()
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Editar foto' }))
-
-    const dialog = await screen.findByRole('dialog')
-    expect(dialog).toHaveTextContent('Editar foto')
-    expect(
-      within(dialog).getByRole('button', { name: 'Agregar foto' }),
-    ).toBeInTheDocument()
-    // Sin foto no hay nada que quitar.
-    expect(
-      within(dialog).queryByRole('button', { name: 'Eliminar foto' }),
-    ).toBeNull()
-    // Ya no existe el botón "Elige foto" ocupando lugar en la pantalla.
-    expect(screen.queryByText('Elige foto')).toBeNull()
-  })
-
-  it('con foto ofrece cambiarla o quitarla', async () => {
-    await deleteGroup(group.id)
-    await saveGroup({
-      ...group,
-      members: [
-        { id: 'm1', name: 'Juan', avatar: 'data:image/jpeg;base64,AAA' },
-        ...group.members.slice(1),
-      ],
-    })
-    renderMember()
-
-    fireEvent.click(await screen.findByRole('button', { name: 'Editar foto' }))
-
-    const dialog = await screen.findByRole('dialog')
-    expect(
-      within(dialog).getByRole('button', { name: 'Cambiar foto' }),
-    ).toBeInTheDocument()
-    fireEvent.click(
-      within(dialog).getByRole('button', { name: 'Eliminar foto' }),
-    )
-    await waitFor(async () => {
-      const [stored] = await loadGroups()
-      expect(stored.members[0].avatar).toBeUndefined()
-    })
-  })
-
-  it('en un grupo del servidor solo edita la foto quien es ese integrante o un administrador', async () => {
-    await deleteGroup(group.id)
-    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm3' })
-    renderMember()
-
-    await screen.findByText('Detalle')
-    expect(screen.queryByRole('button', { name: 'Editar foto' })).toBeNull()
   })
 })

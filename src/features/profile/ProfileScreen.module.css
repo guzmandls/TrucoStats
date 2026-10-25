@@ -28,3 +28,20 @@
   outline: var(--border-width) solid var(--ink);
   outline-offset: 3px;
 }
+
+/* Una tarjeta por grupo, que abre tu perfil en ese grupo. */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+.headerPoints {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.notice {
+  padding: 0 var(--space-4) var(--space-4);
+}
