@@ -33,18 +33,30 @@
   outline-offset: 2px;
 }
 
-.memberName {
+.memberText {
   flex: 0 1 auto;
   min-width: 0;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   padding: 0 var(--space-3) 0 var(--space-4);
+}
+
+.memberName {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: var(--text-xl);
   font-weight: 700;
   letter-spacing: var(--tracking-tight);
+}
+
+/* Los apodos del integrante, debajo de su nombre. */
+.memberAliases {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  color: var(--ink-muted);
 }
 
 .shield {

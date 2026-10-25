@@ -107,20 +107,43 @@ describe('ProfileScreen', () => {
     await saveGroup({ ...group, myMemberId: 'm1' })
 
     renderProfile()
-    await screen.findByRole('heading', { name: 'Resumen' })
+    await screen.findByRole('heading', { name: 'Estadísticas personales' })
 
     const main = screen.getByRole('main')
     expect(main).toHaveTextContent('victorias')
     expect(main).toHaveTextContent('jugadas')
 
-    expect(valueIn('Resumen', 'Derrotas')).toBe('1')
-    expect(valueIn('Resumen', 'Duración promedio')).toBe('30 min')
-    expect(valueIn('Resumen', 'Grupos')).toBe('1')
+    expect(valueIn('Estadísticas personales', 'Derrotas')).toBe('1')
+    expect(valueIn('Estadísticas personales', 'Duración promedio')).toBe(
+      '30 min',
+    )
+    expect(valueIn('Estadísticas personales', 'Grupos')).toBe('1')
 
     expect(valueIn('Partidas rápidas', 'Jugadas')).toBe('1')
     expect(valueIn('Partidas rápidas', 'Porcentaje de victorias')).toBe('100%')
     expect(valueIn('Partidas de grupo', 'Jugadas')).toBe('1')
     expect(valueIn('Partidas de grupo', 'Porcentaje de victorias')).toBe('0%')
+  })
+
+  it('lista tus grupos, y cada uno abre tu perfil en ese grupo', async () => {
+    await saveGroup({ ...group, myMemberId: 'm1' })
+    await saveMatch(
+      buildMatch({
+        id: 'g-1',
+        type: 'group',
+        groupId: 'g1',
+        modality: '1v1',
+        teams: {
+          nos: [{ id: 'm1', name: 'Juan' }],
+          ellos: [{ id: 'x', name: 'Otro', guest: true }],
+        },
+      }),
+    )
+    renderProfile()
+
+    const link = await screen.findByRole('link', { name: /Los pibes/ })
+    expect(link).toHaveAttribute('href', '/grupo/g1/participantes/m1')
+    expect(link).toHaveTextContent('1 victoria · 1 jugada · 100%')
   })
 
   it('vuelve al inicio con el botón de la barra', async () => {

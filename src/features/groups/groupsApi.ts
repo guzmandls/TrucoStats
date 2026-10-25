@@ -8,6 +8,7 @@ import {
 } from '../../lib/api'
 import type { Account } from '../../lib/session'
 import type { Match } from '../matches/types'
+import type { Personal } from '../profile/ProfileView'
 import type { Group } from './types'
 
 interface RegisterResponse {
@@ -109,6 +110,18 @@ export async function setRemoteAvatar(
 // Cambia (o quita, con null) la foto de la cuenta: se ve en todos sus grupos.
 export async function setAccountAvatar(avatar: string | null): Promise<void> {
   await putJson('/api/yo/foto', { avatar })
+}
+
+// Las estadísticas personales de un integrante del grupo (null si nadie eligió
+// ese lugar). Las calcula el servidor con todas sus partidas.
+export async function fetchMemberProfile(
+  inviteCode: string,
+  memberId: string,
+): Promise<Personal | null> {
+  const response = await apiRequest<{ personal: Personal | null }>(
+    `/api/grupos/${inviteCode}/integrantes/${encodeURIComponent(memberId)}/perfil`,
+  )
+  return response.personal
 }
 
 // --- Administración del grupo (solo para administradores) ---
