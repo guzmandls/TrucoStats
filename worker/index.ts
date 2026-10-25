@@ -1,5 +1,10 @@
 import { appManifest, inviteManifest } from './manifest'
 import { updateMyAvatar } from './accountAvatar'
+import {
+  createQuickMatch,
+  deleteQuickMatch,
+  listQuickMatches,
+} from './quickMatches'
 import { changePassword, changeUsername, deleteAccount } from './account'
 import {
   createGroup,
@@ -51,6 +56,7 @@ const LEAVE_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/salir$/
 const JOIN_GROUP = /^\/api\/grupos\/([0-9a-f]{32})\/unirse$/
 const INVITE_MANIFEST = /^\/api\/manifiesto\/([^/]{1,100})$/
 const SHARED_LIVE = /^\/api\/en-vivo\/([0-9a-f]{32})$/
+const QUICK_MATCH = /^\/api\/partidas-rapidas\/([^/]{1,100})$/
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -111,6 +117,22 @@ export default {
     if (pathname === '/api/yo/foto') {
       return request.method === 'PUT'
         ? updateMyAvatar(request, env)
+        : errorResponse('Método no permitido', 405)
+    }
+
+    if (pathname === '/api/partidas-rapidas') {
+      if (request.method === 'GET') {
+        return listQuickMatches(request, env)
+      }
+      if (request.method === 'POST') {
+        return createQuickMatch(request, env)
+      }
+      return errorResponse('Método no permitido', 405)
+    }
+    const quickMatch = QUICK_MATCH.exec(pathname)
+    if (quickMatch) {
+      return request.method === 'DELETE'
+        ? deleteQuickMatch(decodeURIComponent(quickMatch[1]), request, env)
         : errorResponse('Método no permitido', 405)
     }
 

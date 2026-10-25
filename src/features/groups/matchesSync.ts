@@ -1,6 +1,7 @@
 import { ApiError } from '../../lib/api'
 import { loadMatches, saveMatch } from '../matches/matchesStorage'
 import type { Match } from '../matches/types'
+import { syncQuickMatches } from '../matches/quickSync'
 import { retryPendingLiveEnds } from './liveEnd'
 import { cancelRemoteMatch, registerGroup, sendMatch } from './groupsApi'
 import { loadGroups, setGroupInviteCode } from './groupsStorage'
@@ -163,6 +164,8 @@ export function syncPendingMatches(): Promise<number> {
     let total = 0
     // Los cierres de partidas en vivo que no pudieron avisarse también se reintentan.
     void retryPendingLiveEnds()
+    // Las partidas rápidas van a la cuenta, aparte de los grupos.
+    void syncQuickMatches()
     try {
       do {
         runAgain = false

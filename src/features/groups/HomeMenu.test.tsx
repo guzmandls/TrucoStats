@@ -49,6 +49,7 @@ describe('menú de la pantalla principal (cuenta)', () => {
       'Registrarse',
       'Iniciar sesión',
       'Ver perfil',
+      'Partidas rápidas',
     ])
     expect(screen.queryByText('Crear grupo')).not.toBeInTheDocument()
   })
@@ -96,7 +97,7 @@ describe('menú de la pantalla principal (cuenta)', () => {
     const labels = within(screen.getByRole('navigation'))
       .getAllByRole('link')
       .map((link) => link.textContent)
-    expect(labels).toEqual(['juan', 'Crear grupo'])
+    expect(labels).toEqual(['juan', 'Crear grupo', 'Partidas rápidas'])
     expect(
       within(screen.getByRole('navigation')).getByRole('link', {
         name: 'juan',
