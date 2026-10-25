@@ -702,23 +702,12 @@ describe('GroupScreen', () => {
     ).toBeInTheDocument()
   })
 
-  it('ofrece agregar un integrante solo a los administradores', async () => {
+  it('agregar integrante ya no está en el menú del grupo (está en Participantes)', async () => {
     await saveGroup({
       ...group,
       inviteCode: 'abc123',
       myMemberId: 'm1',
     })
-    const { unmount } = renderGroup()
-    fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
-    fireEvent.click(
-      await screen.findByRole('button', { name: 'Agregar integrante' }),
-    )
-    expect(await screen.findByRole('dialog')).toHaveTextContent(
-      'Agregar integrante',
-    )
-    unmount()
-
-    await saveGroup({ ...group, inviteCode: 'abc123', myMemberId: 'm2' })
     renderGroup()
     fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
     await screen.findByRole('link', { name: 'Participantes' })

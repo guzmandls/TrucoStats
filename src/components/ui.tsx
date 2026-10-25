@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import type {
   ButtonHTMLAttributes,
   InputHTMLAttributes,
@@ -725,6 +725,26 @@ export function Dialog({
   )
 }
 
+// Parte de la pantalla donde se ve un elemento: la ventana, recortada por los
+// contenedores con desplazamiento que lo rodean (lo que sale de ellos no se ve).
+function visibleArea(element: HTMLElement): { top: number; bottom: number } {
+  let top = 0
+  let bottom = window.innerHeight
+  for (
+    let parent = element.parentElement;
+    parent;
+    parent = parent.parentElement
+  ) {
+    const { overflowY } = getComputedStyle(parent)
+    if (overflowY !== 'visible') {
+      const rect = parent.getBoundingClientRect()
+      top = Math.max(top, rect.top)
+      bottom = Math.min(bottom, rect.bottom)
+    }
+  }
+  return { top, bottom }
+}
+
 interface OverflowMenuProps {
   label: string
   items: { label: string; onClick: () => void }[]
@@ -734,7 +754,25 @@ interface OverflowMenuProps {
 // cierra al elegir una opción, al tocar afuera o con Escape.
 export function OverflowMenu({ label, items }: OverflowMenuProps) {
   const [open, setOpen] = useState(false)
+  // Si abajo no hay lugar (por ejemplo, en la última fila), se abre hacia arriba.
+  const [upward, setUpward] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    const panel = panelRef.current
+    const container = containerRef.current
+    if (!open || !panel || !container) {
+      setUpward(false)
+      return
+    }
+    const area = visibleArea(container)
+    const button = container.getBoundingClientRect()
+    const height = panel.offsetHeight
+    const below = area.bottom - button.bottom
+    const above = button.top - area.top
+    setUpward(below < height && above > below)
+  }, [open])
 
   useEffect(() => {
     if (!open) {
@@ -774,7 +812,11 @@ export function OverflowMenu({ label, items }: OverflowMenuProps) {
         <DotsIcon size={20} />
       </button>
       {open && (
-        <div className={styles.overflowPanel} role="menu">
+        <div
+          ref={panelRef}
+          className={cx(styles.overflowPanel, upward && styles.overflowPanelUp)}
+          role="menu"
+        >
           {items.map((item) => (
             <button
               key={item.label}

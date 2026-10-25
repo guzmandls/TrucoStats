@@ -102,6 +102,12 @@
   overflow: hidden;
 }
 
+/* Hacia arriba del botón, cuando abajo no entra. */
+.overflowPanelUp {
+  top: auto;
+  bottom: calc(100% - var(--space-2));
+}
+
 .overflowItem {
   display: block;
   width: 100%;
