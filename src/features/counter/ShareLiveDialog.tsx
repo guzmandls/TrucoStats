@@ -40,7 +40,6 @@ export function ShareLiveDialog({ shareId, onClose }: ShareLiveDialogProps) {
 
   return (
     <Dialog title="Compartir en vivo" onClose={onClose} closeButton>
-      <p>Quien escanee el código ve la partida en vivo desde su celular.</p>
       <div className={styles.qr}>
         <QrCode value={link} label="Código QR de la partida en vivo" />
       </div>
