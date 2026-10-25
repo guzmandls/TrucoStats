@@ -275,7 +275,14 @@ export async function currentUser(
   env: Env,
 ): Promise<Response> {
   const user = await authenticate(request, env)
-  return user ? json({ user }) : errorResponse('No iniciaste sesión', 401)
+  if (!user) {
+    return errorResponse('No iniciaste sesión', 401)
+  }
+  // La foto de la cuenta va aparte: no se guarda con la sesión del celular.
+  const row = await env.DB.prepare('SELECT avatar FROM users WHERE id = ?')
+    .bind(user.id)
+    .first<{ avatar: string | null }>()
+  return json({ user, avatar: row?.avatar ?? null })
 }
 
 export async function logout(request: Request, env: Env): Promise<Response> {

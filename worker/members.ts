@@ -7,6 +7,7 @@ import {
 import { errorResponse, json } from './http'
 import { membershipOf } from './access'
 import { findGroupIdByCode } from './matches'
+import { setAccountAvatarStatements } from './accountAvatar'
 import { authenticate } from './users'
 
 // Cambia el nombre y/o la foto de un integrante (la foto null la quita). Sin
@@ -72,6 +73,12 @@ export async function updateMember(
   if (!member) {
     return errorResponse('Integrante no encontrado', 404)
   }
+  // La foto de quien ya eligió su lugar es la de su cuenta: solo esa persona la
+  // cambia (y cambia en todos sus grupos). El administrador solo pone fotos a
+  // integrantes que nadie eligió.
+  if (hasAvatar && member.user_id && member.user_id !== user.id) {
+    return errorResponse('Solo esa persona puede cambiar su foto', 403)
+  }
   // El administrador solo puede cambiar el nombre de un integrante que nadie
   // eligió todavía; quien ya eligió su lugar es el único que cambia su nombre.
   if (hasName && membership.memberId !== memberId && member.user_id) {
@@ -96,7 +103,15 @@ export async function updateMember(
       ).bind(name, memberId),
     )
   }
-  if (hasAvatar) {
+  if (hasAvatar && member.user_id) {
+    statements.push(
+      ...setAccountAvatarStatements(
+        member.user_id,
+        fields.avatar as string | null,
+        env,
+      ),
+    )
+  } else if (hasAvatar) {
     statements.push(
       env.DB.prepare('UPDATE members SET avatar = ? WHERE id = ?').bind(
         fields.avatar,

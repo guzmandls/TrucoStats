@@ -106,6 +106,11 @@ export async function setRemoteAvatar(
   })
 }
 
+// Cambia (o quita, con null) la foto de la cuenta: se ve en todos sus grupos.
+export async function setAccountAvatar(avatar: string | null): Promise<void> {
+  await putJson('/api/yo/foto', { avatar })
+}
+
 // --- Administración del grupo (solo para administradores) ---
 
 // Agrega un integrante nuevo.

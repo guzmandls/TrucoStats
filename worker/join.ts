@@ -1,3 +1,4 @@
+import { linkAvatarStatements } from './accountAvatar'
 import { membershipOf } from './access'
 import { isNonEmptyString, MAX_NAME_LENGTH, type Env } from './groups'
 import { errorResponse, json } from './http'
@@ -71,6 +72,7 @@ export async function joinGroup(
     env.DB.prepare(
       'UPDATE match_players SET name = ? WHERE member_id = ?',
     ).bind(name, member.id),
+    ...linkAvatarStatements(user.id, member.id, env),
   ])
 
   return json({

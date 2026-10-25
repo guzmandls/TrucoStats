@@ -211,7 +211,7 @@ export async function releaseMember(
     return errorResponse('Ese integrante no fue elegido por nadie', 409)
   }
   await env.DB.prepare(
-    'UPDATE members SET user_id = NULL, is_admin = 0 WHERE id = ?',
+    'UPDATE members SET user_id = NULL, is_admin = 0, avatar = NULL WHERE id = ?',
   )
     .bind(memberId)
     .run()

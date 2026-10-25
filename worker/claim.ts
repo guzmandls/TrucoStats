@@ -1,3 +1,4 @@
+import { linkAvatarStatements } from './accountAvatar'
 import type { Env } from './groups'
 import { errorResponse, json } from './http'
 import { findGroupIdByCode } from './matches'
@@ -61,10 +62,11 @@ export async function claimMember(
     return errorResponse('Ese integrante ya fue elegido por otra persona', 409)
   }
 
-  await env.DB.prepare(
-    'UPDATE members SET user_id = ?, is_admin = 1 WHERE id = ?',
-  )
-    .bind(user.id, member.id)
-    .run()
+  await env.DB.batch([
+    env.DB.prepare(
+      'UPDATE members SET user_id = ?, is_admin = 1 WHERE id = ?',
+    ).bind(user.id, member.id),
+    ...linkAvatarStatements(user.id, member.id, env),
+  ])
   return json({ memberId: member.id })
 }

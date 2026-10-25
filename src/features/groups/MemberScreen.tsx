@@ -13,7 +13,8 @@ import {
 import { memberStats } from '../matches/groupStats'
 import { avatarColors } from './avatar'
 import { fileToAvatarDataUrl, UNREADABLE_IMAGE } from './imageFile'
-import { updateMemberAvatar } from './groupsStorage'
+import { loadGroups, updateMemberAvatar } from './groupsStorage'
+import { applyMyPhoto } from '../profile/myPhoto'
 import { MemberStatsFicha, MemberStatsRows } from './MemberStats'
 import { shareAvatar } from './avatarSync'
 import { isGroupAdmin } from './groupAdmin'
@@ -86,9 +87,7 @@ export function MemberScreen() {
         setPhotoMessage(UNREADABLE_IMAGE)
         return
       }
-      const updated = await updateMemberAvatar(group, member!.id, dataUrl)
-      setGroup(updated)
-      await shareAvatar(updated, member!.id, dataUrl).then(setPhotoMessage)
+      await savePhoto(dataUrl)
     } finally {
       setBusy(false)
     }
@@ -98,9 +97,27 @@ export function MemberScreen() {
     if (!group) {
       return
     }
-    const updated = await updateMemberAvatar(group, member!.id, undefined)
+    await savePhoto(undefined)
+  }
+
+  // Tu foto es la de tu cuenta: se cambia en todos tus grupos. La de un
+  // integrante que nadie eligió (la pone un administrador) es solo de este grupo.
+  async function savePhoto(dataUrl: string | undefined) {
+    if (!group) {
+      return
+    }
+    if (member!.id === group.myMemberId) {
+      const result = await applyMyPhoto(await loadGroups(), dataUrl)
+      const updated = result.groups.find((item) => item.id === group.id)
+      if (updated) {
+        setGroup(updated)
+      }
+      setPhotoMessage(result.problem)
+      return
+    }
+    const updated = await updateMemberAvatar(group, member!.id, dataUrl)
     setGroup(updated)
-    setPhotoMessage(await shareAvatar(updated, member!.id, null))
+    setPhotoMessage(await shareAvatar(updated, member!.id, dataUrl ?? null))
   }
 
   return (
