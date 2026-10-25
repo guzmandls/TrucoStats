@@ -1,4 +1,5 @@
 import { appManifest, inviteManifest } from './manifest'
+import { updateMyAvatar } from './accountAvatar'
 import { changePassword, changeUsername, deleteAccount } from './account'
 import {
   createGroup,
@@ -104,6 +105,12 @@ export default {
     if (pathname === '/api/yo') {
       return request.method === 'GET'
         ? currentUser(request, env)
+        : errorResponse('Método no permitido', 405)
+    }
+
+    if (pathname === '/api/yo/foto') {
+      return request.method === 'PUT'
+        ? updateMyAvatar(request, env)
         : errorResponse('Método no permitido', 405)
     }
 

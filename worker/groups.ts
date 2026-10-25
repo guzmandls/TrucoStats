@@ -1,3 +1,4 @@
+import { linkAvatarStatements } from './accountAvatar'
 import { membershipOf } from './access'
 import { errorResponse, json, unchanged, versionTag } from './http'
 import { authenticate } from './users'
@@ -189,6 +190,15 @@ export async function createGroup(
   }
 
   const inviteCode = createInviteCode()
+  // El creador muestra la foto de su cuenta (si la cuenta no tiene, la que mandó
+  // la app, que pasa a ser la de la cuenta).
+  const account = await env.DB.prepare('SELECT avatar FROM users WHERE id = ?')
+    .bind(user.id)
+    .first<{ avatar: string | null }>()
+  const avatarOf = (member: (typeof group.members)[number]) =>
+    member.id === group.adminMemberId
+      ? (account?.avatar ?? member.avatar ?? null)
+      : (member.avatar ?? null)
   const statements = [
     env.DB.prepare(
       'INSERT INTO groups (id, name, admin_member_id, created_at, invite_code) VALUES (?, ?, ?, ?, ?)',
@@ -206,12 +216,13 @@ export async function createGroup(
         member.id,
         group.id,
         member.name,
-        member.avatar ?? null,
+        avatarOf(member),
         // El creador es el administrador y su integrante queda vinculado.
         member.id === group.adminMemberId ? user.id : null,
         member.id === group.adminMemberId ? 1 : 0,
       ),
     ),
+    ...linkAvatarStatements(user.id, group.adminMemberId, env),
   ]
 
   try {
@@ -233,7 +244,7 @@ export async function createGroup(
       group.members.map((member) => ({
         id: member.id,
         name: member.name,
-        avatar: member.avatar ?? null,
+        avatar: avatarOf(member),
         user_id: member.id === group.adminMemberId ? user.id : null,
         is_admin: member.id === group.adminMemberId ? 1 : 0,
       })),

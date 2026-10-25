@@ -1,10 +1,12 @@
 import { avatarColors } from '../groups/avatar'
-import { shareAvatar } from '../groups/avatarSync'
+import { getSession, isRegistered } from '../../lib/session'
+import { pendingAvatarKey, shareAvatar } from '../groups/avatarSync'
+import { setAccountAvatar } from '../groups/groupsApi'
 import { updateMemberAvatar } from '../groups/groupsStorage'
 import type { Group, Member } from '../groups/types'
 
-// Tu foto es la de tu integrante en cada grupo donde ya sabemos quién eres.
-// Cambiarla desde el perfil la cambia en todos.
+// Tu foto es la de tu cuenta: la misma en cada grupo donde ya sabemos quién
+// eres. Cambiarla (desde el perfil o desde un grupo) la cambia en todos.
 
 export interface MyMember {
   group: Group
@@ -44,16 +46,42 @@ export async function applyMyPhoto(
   dataUrl: string | undefined,
 ): Promise<{ groups: Group[]; problem: string | null }> {
   const updated: Group[] = []
-  let problem: string | null = null
   for (const { group, member } of myMembers(groups)) {
-    const next = await updateMemberAvatar(group, member.id, dataUrl)
-    updated.push(next)
-    problem = (await shareAvatar(next, member.id, dataUrl ?? null)) ?? problem
+    updated.push(await updateMemberAvatar(group, member.id, dataUrl))
+  }
+  let problem: string | null = null
+  // Con cuenta, un solo pedido la cambia en todos los grupos del servidor. Si no
+  // llega (o no hay cuenta), se envía grupo por grupo y lo que falle queda
+  // pendiente para reintentar.
+  let sent = false
+  if (isRegistered(getSession())) {
+    try {
+      await setAccountAvatar(dataUrl ?? null)
+      sent = true
+    } catch {
+      sent = false
+    }
+  }
+  for (const group of updated) {
+    if (sent) {
+      clearPending(group.id)
+    } else if (group.myMemberId) {
+      problem =
+        (await shareAvatar(group, group.myMemberId, dataUrl ?? null)) ?? problem
+    }
   }
   return {
     groups: groups.map(
       (group) => updated.find((item) => item.id === group.id) ?? group,
     ),
     problem,
+  }
+}
+
+function clearPending(groupId: string): void {
+  try {
+    localStorage.removeItem(pendingAvatarKey(groupId))
+  } catch {
+    // Sin almacenamiento no había nada pendiente anotado.
   }
 }

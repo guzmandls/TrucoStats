@@ -137,7 +137,7 @@ docs/           requisitos, este diario y pendientes
 
 - **D1:** la base de datos SQL de Cloudflare, basada en **SQLite**. Guarda lo que comparten los celulares. `--local` usa una copia en la PC; `--remote`, la real.
 - **Migraciones:** archivos SQL numerados en `migrations/`, que cambian el esquema en orden y una sola vez, igual en la PC y en producción. En producción se aplican **antes** de publicar el código que las necesita. Una migración ya aplicada no se edita: se agrega otra.
-  - `0001` grupos, integrantes, partidas y jugadores · `0002` código de invitación · `0003` cuentas y sesiones · `0004` cancelación e historial de cambios · `0005` varios administradores · `0006` invitados y apodos · `0007` y `0008` partidas en vivo · `0009` enlaces por correo · `0010` versión del grupo · `0011` usuario sin distinguir mayúsculas · `0012` sin cuentas invitadas en grupos · `0013` partidas rápidas compartidas.
+  - `0001` grupos, integrantes, partidas y jugadores · `0002` código de invitación · `0003` cuentas y sesiones · `0004` cancelación e historial de cambios · `0005` varios administradores · `0006` invitados y apodos · `0007` y `0008` partidas en vivo · `0009` enlaces por correo · `0010` versión del grupo · `0011` usuario sin distinguir mayúsculas · `0012` sin cuentas invitadas en grupos · `0013` partidas rápidas compartidas · `0014` foto de la cuenta.
 - **Conceptos de SQL:**
   - **Clave primaria** (identifica cada fila) y **clave foránea** (la enlaza con otra tabla).
   - **`ON DELETE CASCADE`:** al borrar un grupo se borran sus integrantes. Las partidas no tienen esa regla a propósito: se conservan.
@@ -147,6 +147,7 @@ docs/           requisitos, este diario y pendientes
   - **Migración que transforma datos:** además de agregar columnas, un `UPDATE` adapta lo que ya existía.
   - **Disparador** (trigger): regla que se ejecuta sola después de un `INSERT`, `UPDATE` o `DELETE`. Lo uso para subir la versión del grupo con cualquier cambio, sin depender de que el código se acuerde.
   - **`COLLATE NOCASE`:** compara sin distinguir mayúsculas. El usuario se guarda como se escribe ("Guzman") pero "guzman" es el mismo.
+- **Copia de un dato (desnormalización):** la foto vive en la cuenta (`users.avatar`), pero cada integrante vinculado guarda una copia. Preferí eso a cambiar todas las consultas de los grupos: siguen leyendo `members.avatar` como siempre, y al cambiar la foto actualizo la cuenta y todas sus copias en un mismo lote. Como las copias están en `members`, los disparadores avisan a cada grupo del cambio.
 - **Borrado lógico** (soft delete): una partida cancelada no se borra, se marca. Queda rastro y se puede restaurar.
 - **Tabla de eventos** (auditoría): `match_events` guarda quién registró, canceló o restauró cada partida y cuándo. Solo se agregan filas, nunca se editan.
 - **Límite del plan gratuito:** 5 millones de filas leídas por día. Por eso las actualizaciones sin cambios no leen las partidas (ver "API y HTTP").
