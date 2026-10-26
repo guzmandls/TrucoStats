@@ -1,11 +1,11 @@
 # trucoStats — Desarrollo
 
-Mi diario de aprendizaje: cómo armé trucoStats, qué tecnologías usé, los conceptos nuevos que aparecieron y las decisiones importantes. Está ordenado por tema; los detalles de cada funcionalidad están en `requisitos.md`.
+Diario de aprendizaje del proyecto: cómo se armó trucoStats, qué tecnologías se usaron, los conceptos nuevos que aparecieron y las decisiones importantes. Está ordenado por tema; los detalles de cada funcionalidad están en `requisitos.md`.
 
 ## La app en pocas palabras
 
 - Contador de truco con el sistema de cuadrados (botones N y E, deshacer, cronómetro con pausa).
-- Partidas rápidas (solo en el celular) y partidas de grupo (compartidas entre celulares).
+- Partidas rápidas (en el celular y, con cuenta, también en la cuenta) y partidas de grupo (compartidas entre celulares).
 - Grupos con integrantes, administradores, invitados, apodos, fotos e invitación por enlace.
 - Historial con búsqueda, cancelación y restauración, y el historial de cambios de cada partida.
 - Estadísticas del grupo (podio, récords, ranking por puntos, enfrentamientos) y perfil personal.
@@ -23,7 +23,7 @@ src/            la app (React + TypeScript)
   index.css     sistema de diseño (colores, espacios, letras, grosores)
 worker/         el servidor (Cloudflare Worker): la API /api/...
 migrations/     cambios de la base de datos D1, numerados
-public/         service worker, manifiesto e íconos
+public/         service worker, cabeceras de seguridad, manifiesto e íconos
 docs/           requisitos, este diario y pendientes
 ```
 
@@ -42,6 +42,8 @@ docs/           requisitos, este diario y pendientes
 11. **Rendimiento:** el Worker junto a la base y actualizaciones con versión (304).
 12. **App instalada:** pantalla completa, barras fijas, ícono propio, instalación fácil.
 13. **Gestión de la cuenta:** nombre del grupo, usuario, contraseña, eliminar cuenta.
+14. **Perfil único, foto de la cuenta y partidas rápidas en la cuenta.**
+15. **Seguridad:** límite de intentos, https obligatorio y cabeceras de seguridad.
 
 ## Herramientas y entorno
 
@@ -50,8 +52,8 @@ docs/           requisitos, este diario y pendientes
 - **Vite:** levanta el entorno de desarrollo y arma la versión final (**build**, carpeta `dist`). Con `define` inyecta datos al compilar (la fecha de la versión que se ve al pie del inicio). Su **proxy** de desarrollo reenvía `/api` al Worker local, así la app y el servidor parecen un solo sitio, igual que en producción.
 - **CSS Modules:** estilos propios de cada componente, sin choques de nombres.
 - **npm y `package.json`:** dependencias y comandos (`npm run dev`, `build`, `test`, `deploy`, `icons`). Una **dependencia de desarrollo** (por ejemplo `@cloudflare/workers-types`) solo sirve para programar y no viaja en la app publicada.
-- **ESLint** encuentra errores y malas prácticas; **Prettier** solo da formato. Los mantengo en cero para que la deuda no se acumule.
-- **Git y GitHub:** una rama por funcionalidad → pull request → merge → borrar la rama. Antes de cada merge corro las pruebas, ESLint y Prettier.
+- **ESLint** encuentra errores y malas prácticas; **Prettier** solo da formato. Se mantienen en cero avisos para que la deuda no se acumule.
+- **Git y GitHub:** una rama por funcionalidad → pull request → merge → borrar la rama. Antes de cada merge se corren las pruebas, ESLint y Prettier.
 
 ## React
 
@@ -65,27 +67,27 @@ docs/           requisitos, este diario y pendientes
   - **Hooks propios** (`useCounter`, `useGroup`, `useLiveMatch`) juntan estado y lógica para que las pantallas solo dibujen.
 - **Router (react-router-dom):** asocia direcciones con pantallas (`/grupo/:id`). En una **SPA** no se recarga la página: cambia solo lo que se ve. `:id` es un **parámetro de ruta**.
 - **Lógica separada de las pantallas:** cálculos y almacenamiento viven en archivos aparte, como **funciones puras** (reciben datos y devuelven resultados), así se prueban sin dibujar nada. Las estadísticas y los puntos se **calculan** desde las partidas en vez de guardarse, así siempre coinciden con el historial.
-- **Ajustar el estado durante el render:** comparar el valor nuevo con el anterior y actualizar en el mismo dibujado, en vez de un efecto. Lo usé para animar solo el trazo recién sumado del contador.
+- **Ajustar el estado durante el render:** comparar el valor nuevo con el anterior y actualizar en el mismo dibujado, en vez de un efecto. Se usó para animar solo el trazo recién sumado del contador.
 
 ## Diseño e interfaz
 
 - **Tokens de diseño:** colores, espacios, tamaños de letra y grosores con nombre (variables CSS como `--space-4` o `--text-md`) en `index.css`. Todo estilo sale de ahí, así la app es coherente y se cambia desde un solo lugar. Usar `var(--algo)` sin definirlo invalida la propiedad en silencio.
-- **Componentes compartidos** (`Section`, `Figure`, `Dialog`, `Notice`, `HistoryRow`): cambiar uno cambia muchas pantallas a la vez; por eso prefiero reutilizarlos antes que copiar estilos.
+- **Componentes compartidos** (`Section`, `Figure`, `Dialog`, `Notice`, `HistoryRow`): cambiar uno cambia muchas pantallas a la vez; por eso se reutilizan antes que copiar estilos.
 - **Accesibilidad:** contraste mínimo 4,5:1 entre texto y fondo (guía WCAG); zonas táctiles de al menos 44 px; `aria-label` y roles (`dialog`, `radiogroup`) para lectores de pantalla.
 - **SVG:** dibujo vectorial. Los cuadrados del contador son `<path>` con `pathLength="1"`, así una misma animación (`stroke-dasharray` + `stroke-dashoffset`) dibuja trazos de cualquier largo. `prefers-reduced-motion` respeta "reducir movimiento".
-- **CSS que aprendí en el camino:**
+- **CSS aprendido en el camino:**
   - Selector de hijos directos (`.a > .b`) para que una regla no alcance a elementos anidados.
   - En una columna flexible que se desplaza, los hijos con `overflow: hidden` se achican; `flex-shrink: 0` lo evita, y el contenedor necesita `min-height: 0`.
-  - `IntersectionObserver` avisa cuando un elemento entra en pantalla: lo uso para el **scroll infinito** del historial.
+  - `IntersectionObserver` avisa cuando un elemento entra en pantalla: se usa para el **scroll infinito** del historial.
   - `normalize('NFD')` separa las letras de sus tildes, para buscar sin importar acentos.
   - **Canvas** para achicar fotos y **data URL** para guardar una imagen como texto.
 - **App instalada a pantalla completa:**
   - `viewport-fit=cover` y la barra de estado `black-translucent` hacen que la app se dibuje también debajo de la hora; `env(safe-area-inset-top/bottom)` da el tamaño de esas zonas.
-  - En el iPhone instalado, alturas como `100vh` o `100svh` pueden medir menos que la pantalla (error conocido de WebKit). Por eso armé un **marco de app**: `#root` fijo, anclado debajo de la hora y hasta el borde de abajo.
+  - En el iPhone instalado, alturas como `100vh` o `100svh` pueden medir menos que la pantalla (error conocido de WebKit). Por eso se armó un **marco de app**: `#root` fijo, anclado debajo de la hora y hasta el borde de abajo.
   - Cada pantalla es cabecera + contenido + barra inferior, y solo el contenido se desplaza; `overscroll-behavior` evita que el rebote arrastre la pantalla.
   - Sin barras de desplazamiento visibles y sin selección de texto al mantener apretado (`user-select: none`).
 - **Decisiones:**
-  - Preferí un estilo de cuadernola, negro y crema, con bandas negras de título y una jerarquía fija de grosores de línea (3, 2 y 1 px).
+  - Se eligió un estilo de cuadernola, negro y crema, con bandas negras de título y una jerarquía fija de grosores de línea (3, 2 y 1 px).
   - Los textos dicen "Eliminar" (nunca "Quitar") y no usan palabras de duda.
   - El perfil muestra solo estadísticas; todo lo que se edita está en "Editar perfil".
 
@@ -115,7 +117,7 @@ docs/           requisitos, este diario y pendientes
   - En Android, el evento `beforeinstallprompt` permite un botón "Instalar" de un toque.
   - En iPhone solo se pueden mostrar los pasos (Compartir → Agregar a Inicio).
   - `display-mode: standalone` dice si la app ya está instalada.
-- **Sin pantalla de carga:** la app pesa unos 130 KB comprimidos y, después de la primera visita, abre desde la caché del service worker, así que tarda una fracción de segundo. Un logo de carga se veía como un parpadeo, así que preferí no tenerlo: mientras arranca solo se ve el fondo negro (definido en `index.html`, el mismo de la franja de la hora y de la pantalla de Android).
+- **Sin pantalla de carga:** la app pesa unos 130 KB comprimidos y, después de la primera visita, abre desde la caché del service worker, así que tarda una fracción de segundo. Un logo de carga se veía como un parpadeo, así que se decidió no tenerlo: mientras arranca solo se ve el fondo negro (definido en `index.html`, el mismo de la franja de la hora y de la pantalla de Android).
 
 ## Cloudflare Workers
 
@@ -124,14 +126,14 @@ docs/           requisitos, este diario y pendientes
 - **Wrangler:** la herramienta de línea de comandos.
   - `wrangler dev` corre todo en la PC.
   - `npm run deploy` compila y publica.
-  - `wrangler secret put` guarda claves.
+  - `wrangler secret put NOMBRE` guarda una clave: lo que va después de `put` es el **nombre** del secreto, y el valor se pega después, cuando lo pide.
 - **Binding:** nombre con el que el Worker usa un recurso (`env.DB` para la base), sin escribir direcciones ni contraseñas en el código.
 - **Variables y secretos:**
   - `vars` en `wrangler.jsonc` es para datos públicos, como `APP_URL`.
   - Los **secretos** (la clave de Brevo) se cargan con Wrangler y nunca van al repositorio.
   - En local van en `.dev.vars`, que Git ignora.
-- **Ruta de salud** (`/api/salud`): responde "estoy funcionando"; la uso para comprobar cada publicación.
-- **Placement:** por defecto el Worker corre cerca del usuario, pero la base está en el este de EE.UU. Como cada pedido hace varias consultas seguidas, configuré el Worker para correr junto a la base (`placement.region`). Quedó un solo viaje largo, y los pedidos pasaron de ~0,7 s a ~0,27 s.
+- **Ruta de salud** (`/api/salud`): responde "estoy funcionando"; se usa para comprobar cada publicación.
+- **Placement:** por defecto el Worker corre cerca del usuario, pero la base está en el este de EE.UU. Como cada pedido hace varias consultas seguidas, se configuró el Worker para correr junto a la base (`placement.region`). Quedó un solo viaje largo, y los pedidos pasaron de ~0,7 s a ~0,27 s.
 
 ## Base de datos: D1 y SQL
 
@@ -145,9 +147,9 @@ docs/           requisitos, este diario y pendientes
   - **`JOIN`:** une tablas en una sola consulta; trae los jugadores de todas las partidas de un grupo de una vez.
   - **Lote atómico** (`batch`): varias sentencias juntas; si una falla, no se guarda ninguna.
   - **Migración que transforma datos:** además de agregar columnas, un `UPDATE` adapta lo que ya existía.
-  - **Disparador** (trigger): regla que se ejecuta sola después de un `INSERT`, `UPDATE` o `DELETE`. Lo uso para subir la versión del grupo con cualquier cambio, sin depender de que el código se acuerde.
+  - **Disparador** (trigger): regla que se ejecuta sola después de un `INSERT`, `UPDATE` o `DELETE`. Se usa para subir la versión del grupo con cualquier cambio, sin depender de que el código se acuerde.
   - **`COLLATE NOCASE`:** compara sin distinguir mayúsculas. El usuario se guarda como se escribe ("Guzman") pero "guzman" es el mismo.
-- **Copia de un dato (desnormalización):** la foto vive en la cuenta (`users.avatar`), pero cada integrante vinculado guarda una copia. Preferí eso a cambiar todas las consultas de los grupos: siguen leyendo `members.avatar` como siempre, y al cambiar la foto actualizo la cuenta y todas sus copias en un mismo lote. Como las copias están en `members`, los disparadores avisan a cada grupo del cambio.
+- **Copia de un dato (desnormalización):** la foto vive en la cuenta (`users.avatar`), pero cada integrante vinculado guarda una copia. Así las consultas de los grupos siguen leyendo `members.avatar` como siempre, y al cambiar la foto se actualizan la cuenta y todas sus copias en un mismo lote. Como las copias están en `members`, los disparadores avisan a cada grupo del cambio.
 - **Borrado lógico** (soft delete): una partida cancelada no se borra, se marca. Queda rastro y se puede restaurar.
 - **Tabla de eventos** (auditoría): `match_events` guarda quién registró, canceló o restauró cada partida y cuándo. Solo se agregan filas, nunca se editan.
 - **Límite del plan gratuito:** 5 millones de filas leídas por día. Por eso las actualizaciones sin cambios no leen las partidas (ver "API y HTTP").
@@ -156,20 +158,20 @@ docs/           requisitos, este diario y pendientes
 
 - **API:** la forma en que la app y el servidor se hablan, con rutas bajo `/api/` y datos en **JSON**. Las rutas anidadas reflejan pertenencia: `/api/grupos/:código/partidas`.
 - **Métodos:** `GET` lee, `POST` crea o ejecuta una acción, `PATCH` cambia una parte, `PUT` reemplaza, `DELETE` borra.
-- **Códigos de estado:** 200 ok, 201 creado, 304 sin cambios, 400 pedido inválido, 401 sin sesión, 403 sin permiso, 404 no existe, 405 método no permitido, 409 conflicto.
+- **Códigos de estado:** 200 ok, 201 creado, 304 sin cambios, 308 redirección permanente, 400 pedido inválido, 401 sin sesión, 403 sin permiso, 404 no existe, 405 método no permitido, 409 conflicto, 429 demasiados intentos.
 - **Validar en el servidor:** la app puede equivocarse o ser manipulada; el servidor nunca confía en lo que recibe y comprueba también las reglas del negocio (por ejemplo, que los jugadores sean del grupo).
 - **Idempotencia:** enviar dos veces la misma partida tiene el mismo efecto que enviarla una. Como la app crea el id de cada partida y de cada grupo, se puede reintentar sin duplicar nada.
 - **ETag y 304:**
   - Las respuestas del grupo y de sus partidas llevan una etiqueta de versión (`ETag`), hecha con la versión del grupo y la cuenta que pregunta.
   - La app la manda en el pedido siguiente (`If-None-Match`). Si nada cambió, el servidor responde **304** sin cuerpo y sin leer las partidas.
-  - Por eso puedo actualizar cada 5 s casi sin costo.
+  - Por eso se puede actualizar cada 5 s casi sin costo.
 - **Polling y latido:**
   - Quien mira una partida en vivo le pregunta al servidor cada pocos segundos (**polling**). Es más simple y gratis que una conexión abierta (WebSocket), y alcanza para un marcador.
   - Quien cuenta publica cada tanto aunque no cambie nada (**latido**), así el servidor sabe que la partida sigue viva.
   - Los tiempos ("hace cuánto se actualizó") salen del reloj del servidor, no del celular, que puede estar desfasado.
-- **Calcular en el servidor por privacidad:** para mostrar las estadísticas personales de otra persona, el servidor las calcula y devuelve solo los totales. Preferí eso a mandar sus partidas al celular: así no se ve con quién jugó en grupos donde uno no está.
+- **Calcular en el servidor por privacidad:** para mostrar las estadísticas personales de otra persona, el servidor las calcula y devuelve solo los totales, en vez de mandar sus partidas al celular: así no se ve con quién jugó en grupos donde uno no está.
 - **Enlace secreto** (capability URL): para compartir la partida rápida en vivo sin pedir cuenta a quien mira, el enlace lleva un id aleatorio de 128 bits (`crypto.getRandomValues`). Tener el enlace es el permiso para mirar; como no se puede adivinar, no hace falta usuario. Solo la cuenta que la creó puede actualizarla.
-- **Código QR:** lo genero en el celular con `qrcode-generator`, una librería chica sin dependencias, y lo dibujo como SVG. No hace falta ningún servicio externo.
+- **Código QR:** se genera en el celular con `qrcode-generator`, una librería chica sin dependencias, y se dibuja como SVG. No hace falta ningún servicio externo.
 - **Cliente de la API** (`src/lib/api.ts`): un solo lugar para todos los pedidos, con límite de tiempo, token de sesión y errores uniformes.
 
 ## Cuentas y seguridad
@@ -179,16 +181,16 @@ docs/           requisitos, este diario y pendientes
   - Al iniciar sesión, el servidor entrega un código aleatorio largo. La app lo manda en cada pedido (`Authorization: Bearer ...`).
   - En la base solo se guarda su hash: leer la base no permite usar sesiones.
   - Los enlaces por correo funcionan igual: son de un solo uso, vencen y se guarda solo su hash.
-- **Autenticación vs. autorización:** "¿quién eres?" (401 si no hay sesión válida) vs. "¿puedes hacer esto?" (403). Un 401 a una sesión guardada significa que venció; por eso, cuando la sesión es válida pero un dato está mal (la contraseña actual al cambiarla), respondo 403.
+- **Autenticación vs. autorización:** "¿quién eres?" (401 si no hay sesión válida) vs. "¿puedes hacer esto?" (403). Un 401 a una sesión guardada significa que venció; por eso, cuando la sesión es válida pero un dato está mal (la contraseña actual al cambiarla), se responde 403.
 - **No revelar quién tiene cuenta:**
   - El mismo error para "no existe" y "contraseña incorrecta".
   - La misma respuesta al pedir recuperar la contraseña, exista o no la cuenta.
   - **Comparación en tiempo constante:** no cortar en la primera diferencia, para no filtrar información por el tiempo de respuesta.
 - **Enlaces seguros:** el enlace del correo usa una dirección fija (`APP_URL`), no la del pedido, para que nadie pueda hacer que apunte a otro sitio. Máximo 3 correos por hora por cuenta.
-- **Sin cuentas invitadas:** al principio, quien entraba por un enlace sin cuenta recibía una identidad sin datos guardada solo en su celular. Su lugar en el grupo quedaba "tomado" por alguien que no podía volver a entrar desde otro celular. Preferí exigir cuenta para unirse: cada lugar es de una persona real.
+- **Sin cuentas invitadas:** al principio, quien entraba por un enlace sin cuenta recibía una identidad sin datos guardada solo en su celular. Su lugar en el grupo quedaba "tomado" por alguien que no podía volver a entrar desde otro celular. Por eso se exige cuenta para unirse: cada lugar es de una persona real.
 - **Permisos por fila:** la app muestra una acción solo si la persona puede usarla, y el servidor lo vuelve a comprobar. La app nunca es la única barrera.
 - **Código de invitación:** 32 caracteres aleatorios (128 bits) que no se pueden adivinar. Funciona como contraseña del grupo.
-- **Límite de intentos (contra la fuerza bruta):** sin límite, un programa puede probar miles de contraseñas por minuto contra un usuario. Cuento los fallos en una tabla (`attempts`): 10 contraseñas incorrectas en 15 minutos bloquean ese usuario 15 minutos (429), y 30 desde una misma IP bloquean la IP. Vale también al cambiar la contraseña y al eliminar la cuenta. Además, como máximo 10 cuentas nuevas por hora desde una misma IP, contra los bots que crean cuentas en masa. La IP la da Cloudflare (`CF-Connecting-IP`).
+- **Límite de intentos (contra la fuerza bruta):** sin límite, un programa puede probar miles de contraseñas por minuto contra un usuario. Los fallos se cuentan en una tabla (`attempts`): 10 contraseñas incorrectas en 15 minutos bloquean ese usuario 15 minutos (429), y 30 desde una misma IP bloquean la IP. Vale también al cambiar la contraseña y al eliminar la cuenta. Además, como máximo 10 cuentas nuevas por hora desde una misma IP, contra los bots que crean cuentas en masa. La IP la da Cloudflare (`CF-Connecting-IP`).
 - **Cabeceras de seguridad:** instrucciones que el servidor manda al navegador.
   - **CSP (Content-Security-Policy):** la app solo puede cargar código, estilos, imágenes y datos de su propio sitio. Si alguien lograra colar código ajeno (XSS), el navegador no lo ejecuta. Es lo que protege la sesión guardada en el celular.
   - **`frame-ancestors 'none'`:** ningún sitio puede mostrar la app dentro de un marco para hacer tocar botones con engaño (*clickjacking*).
@@ -197,18 +199,18 @@ docs/           requisitos, este diario y pendientes
   - Las de la app van en `public/_headers` (Cloudflare las aplica a cada archivo); las de la API, en el Worker.
 - **Validar lo que se guarda:** una foto se acepta solo si es una imagen JPEG, PNG o WebP (`data:image/...`). Nada de texto suelto, SVG ni enlaces.
 - **Devolver solo lo necesario:** quien tiene el enlace de invitación ve los nombres y fotos para elegir quién es, pero no los apodos.
-- **Secretos:** las claves (Brevo) van como *secretos* del Worker, nunca en el código ni en Git. Una clave que se mostró en algún lado (un chat, una captura) se **rota**: se crea una nueva y se borra la vieja.
+- **Secretos:** las claves (Brevo) van como *secretos* del Worker, nunca en el código ni en Git. Una clave que se mostró en algún lado (un chat, una captura, el historial de la terminal) se **rota**: se crea una nueva, con los permisos mínimos que necesita, y se borra la vieja.
 - **Dependencias:** `npm audit` revisa vulnerabilidades conocidas en las librerías. Dependabot (de GitHub) lo hace solo cada semana y abre un PR con la actualización.
 - **Row level security no aplica:** en Supabase o Firebase el celular habla directo con la base, y por eso las reglas van en la base. Acá el celular nunca toca D1: todo pasa por el Worker, que hace ese control en código.
 - **Decisiones:**
-  - Preferí cuentas con usuario y contraseña, con correo opcional (solo para recuperarla).
+  - Cuentas con usuario y contraseña, con correo opcional (solo para recuperarla).
   - Hace falta cuenta para crear grupos y para unirse a uno; el contador y la partida rápida funcionan sin cuenta.
-  - Al eliminar una cuenta no se borran sus partidas, porque también son de los demás: su integrante queda libre en el grupo.
+  - Al eliminar una cuenta no se borran sus partidas de grupo, porque también son de los demás: su integrante queda libre en el grupo.
   - Apple exige que una app con cuentas permita eliminarlas.
 
 ## Sincronización
 
-- **Primero subir, después bajar:** al abrir un grupo, la app envía lo pendiente y después trae lo de los demás. Así no pierdo partidas propias.
+- **Primero subir, después bajar:** al abrir un grupo, la app envía lo pendiente y después trae lo de los demás. Así no se pierden partidas propias.
 - **Estado pendiente:** cada partida guarda cuándo la confirmó el servidor (`syncedAt`); si falta, está pendiente y se reintenta al abrir el grupo, al volver la conexión (evento `online`) o cada 5 s.
 - **El servidor manda** en lo que ya confirmó; lo propio que todavía no se envió nunca se pisa. **Fusionar** (merge) en vez de reemplazar.
 - **Reintentar con criterio:**
@@ -218,6 +220,7 @@ docs/           requisitos, este diario y pendientes
 - **`Promise.allSettled`:** espera todas las promesas, salgan bien o mal, y deja decidir con cada resultado. `Promise.all` se rinde con la primera que falla.
 - **Orden entre servidor y celular:** para salir de un grupo, primero confirma el servidor y después se cambia lo local. Así los dos lados no quedan contradiciéndose si falla la conexión.
 - **Operaciones en dos pasos:** una partida cancelada sin conexión se envía y después se cancela en el servidor. Como enviar es idempotente, si falla el segundo paso se reintenta todo sin riesgo.
+- **Borrados pendientes:** una partida rápida eliminada sin conexión se borra del celular enseguida y queda anotada para borrarla del servidor cuando vuelva la conexión; mientras tanto, al traer las de la cuenta no reaparece.
 - **Fuente de verdad:** con sesión iniciada, el servidor dice qué integrante es cada cuenta. Lo que quedó guardado en el celular de otra sesión no vale.
 - **Los fallos se muestran:** una operación que falla en silencio es peor que una que avisa. El grupo muestra por qué no se enviaron las partidas, con "Reintentar".
 
@@ -234,30 +237,31 @@ docs/           requisitos, este diario y pendientes
 - Todos empiezan en 0. Cada integrante suma o resta según **sus propios puntos**: con pocos, ganar suma mucho y perder casi nada; en 1500 ganar y perder valen lo mismo; arriba de 2250 perder pesa hasta el doble que ganar.
 - Así cada jugador se acomoda en una **meseta** que depende de cuánto gana (un jugador parejo, cerca de 1500). Los puntos no tienen que sumar cero entre los dos equipos.
 - Ajustes por el objetivo de la partida (a 30 es la referencia), por la diferencia del resultado y por los puntos del rival. Los invitados no suman ni restan.
-- Definí cada regla por separado y simulé miles de partidas con el código real antes de fijar los números. Detalle y ejemplos en `requisitos.md` §6.4.
+- Cada regla se definió por separado y se simularon miles de partidas con el código real antes de fijar los números. Detalle y ejemplos en `requisitos.md` §6.4.
 
 ## Pruebas
 
 - **Vitest** ejecuta las pruebas; **Testing Library** prueba los componentes como los usaría una persona; **jsdom** simula el navegador. `waitFor` y `act` esperan los cambios asíncronos.
-- **Servidor sin Cloudflare:** `worker/testDb.ts` simula D1 con el SQLite de Node, así pruebo la API y las migraciones reales en segundos.
+- **Servidor sin Cloudflare:** `worker/testDb.ts` simula D1 con el SQLite de Node, así se prueban la API y las migraciones reales en segundos.
 - **Probar a quien no debería poder:** sin sesión, de afuera del grupo, otro integrante.
 - **Una prueba que reproduce un error tiene que fallar antes del arreglo** y pasar después.
 - **Chrome sin ventana manejado por código** (protocolo DevTools):
   - Dos perfiles simulan dos celulares contra el servidor local.
-  - Saco capturas de cada pantalla para revisar el diseño.
-  - Simulo las zonas de un iPhone (`setSafeAreaInsetsOverride`).
-  - Mido tiempos reales.
-- **Medir en producción:** pedidos reales con una cuenta de prueba, antes y después de cada cambio de rendimiento.
+  - Capturas de cada pantalla para revisar el diseño.
+  - Simulación de las zonas de un iPhone (`setSafeAreaInsetsOverride`).
+  - Medición de tiempos reales.
+  - Escucha de bloqueos de la CSP (`securitypolicyviolation`) para comprobar que las cabeceras no rompen ninguna pantalla.
+- **Medir en producción:** pedidos reales con una cuenta de prueba, antes y después de cada cambio de rendimiento o de seguridad.
 
 ## Decisiones importantes
 
-- Preferí **offline-first**: contar una partida nunca depende de la conexión.
-- Preferí **Cloudflare** (Workers + D1) por ser gratis, rápido y tener servidor y base en el mismo lugar.
-- Preferí **polling** en vez de conexiones abiertas para las partidas en vivo: más simple y alcanza.
-- Preferí que los **apodos se apliquen al leer** las partidas y no al guardarlas: quitar un apodo deja todo como estaba.
-- Preferí **cancelar en vez de borrar** partidas, con historial de cambios, para que nadie pueda ocultar resultados.
-- Preferí **disparadores** para la versión del grupo, para que ningún cambio se escape.
-- Descarté el **dibujo con gestos** en el contador: los botones alcanzan.
+- **Offline-first:** contar una partida nunca depende de la conexión.
+- **Cloudflare** (Workers + D1): gratis, rápido y con servidor y base en el mismo lugar.
+- **Polling** en vez de conexiones abiertas para las partidas en vivo: más simple y alcanza.
+- **Los apodos se aplican al leer** las partidas y no al guardarlas: quitar un apodo deja todo como estaba.
+- **Cancelar en vez de borrar** partidas de grupo, con historial de cambios, para que nadie pueda ocultar resultados. Las partidas rápidas, en cambio, se borran del todo: son de una sola persona.
+- **Disparadores** para la versión del grupo, para que ningún cambio se escape.
+- Se descartó el **dibujo con gestos** en el contador: los botones alcanzan.
 
 ## Lecciones
 
@@ -265,7 +269,7 @@ docs/           requisitos, este diario y pendientes
 - **Medir antes de optimizar.** La lentitud no era el código sino la distancia entre el servidor y la base.
 - **Probar como lo usa la gente.** Instalada a pantalla completa, la app se comportaba distinto que en Safari.
 
-## Cómo publico
+## Cómo publicar
 
 1. Si hay migraciones nuevas: `npx wrangler d1 migrations apply trucostats-db --remote`.
 2. `npm run deploy`.
