@@ -1,0 +1,12 @@
+# Cabeceras de seguridad de la app (Cloudflare las agrega a cada archivo de dist).
+# - CSP: la app solo puede cargar código, estilos, imágenes y datos de su propio
+#   sitio (las fotos son data:). frame-ancestors 'none' impide que otro sitio la
+#   muestre dentro de un marco para engañar (clickjacking).
+# - HSTS: el navegador usa siempre https, durante un año.
+# - nosniff, no-referrer y Permissions-Policy: ver docs/desarrollo.md.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+  Strict-Transport-Security: max-age=31536000
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  Permissions-Policy: camera=(), microphone=(), geolocation=()

@@ -1,10 +1,5 @@
 import { membershipOf, type Membership } from './access'
-import {
-  isNonEmptyString,
-  MAX_AVATAR_LENGTH,
-  MAX_NAME_LENGTH,
-  type Env,
-} from './groups'
+import { isNonEmptyString, isAvatar, MAX_NAME_LENGTH, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { findGroupIdByCode } from './matches'
 import { authenticate } from './users'
@@ -122,10 +117,7 @@ export async function addMember(
       400,
     )
   }
-  if (
-    fields.avatar !== undefined &&
-    !isNonEmptyString(fields.avatar, MAX_AVATAR_LENGTH)
-  ) {
+  if (fields.avatar !== undefined && !isAvatar(fields.avatar)) {
     return errorResponse('La foto no es válida', 400)
   }
   if ((await activeMemberCount(context.groupId, env)) >= MAX_MEMBERS) {

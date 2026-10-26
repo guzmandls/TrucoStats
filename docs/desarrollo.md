@@ -137,7 +137,7 @@ docs/           requisitos, este diario y pendientes
 
 - **D1:** la base de datos SQL de Cloudflare, basada en **SQLite**. Guarda lo que comparten los celulares. `--local` usa una copia en la PC; `--remote`, la real.
 - **Migraciones:** archivos SQL numerados en `migrations/`, que cambian el esquema en orden y una sola vez, igual en la PC y en producción. En producción se aplican **antes** de publicar el código que las necesita. Una migración ya aplicada no se edita: se agrega otra.
-  - `0001` grupos, integrantes, partidas y jugadores · `0002` código de invitación · `0003` cuentas y sesiones · `0004` cancelación e historial de cambios · `0005` varios administradores · `0006` invitados y apodos · `0007` y `0008` partidas en vivo · `0009` enlaces por correo · `0010` versión del grupo · `0011` usuario sin distinguir mayúsculas · `0012` sin cuentas invitadas en grupos · `0013` partidas rápidas compartidas · `0014` foto de la cuenta · `0015` partidas rápidas en la cuenta.
+  - `0001` grupos, integrantes, partidas y jugadores · `0002` código de invitación · `0003` cuentas y sesiones · `0004` cancelación e historial de cambios · `0005` varios administradores · `0006` invitados y apodos · `0007` y `0008` partidas en vivo · `0009` enlaces por correo · `0010` versión del grupo · `0011` usuario sin distinguir mayúsculas · `0012` sin cuentas invitadas en grupos · `0013` partidas rápidas compartidas · `0014` foto de la cuenta · `0015` partidas rápidas en la cuenta · `0016` límite de intentos.
 - **Conceptos de SQL:**
   - **Clave primaria** (identifica cada fila) y **clave foránea** (la enlaza con otra tabla).
   - **`ON DELETE CASCADE`:** al borrar un grupo se borran sus integrantes. Las partidas no tienen esa regla a propósito: se conservan.
@@ -188,6 +188,18 @@ docs/           requisitos, este diario y pendientes
 - **Sin cuentas invitadas:** al principio, quien entraba por un enlace sin cuenta recibía una identidad sin datos guardada solo en su celular. Su lugar en el grupo quedaba "tomado" por alguien que no podía volver a entrar desde otro celular. Preferí exigir cuenta para unirse: cada lugar es de una persona real.
 - **Permisos por fila:** la app muestra una acción solo si la persona puede usarla, y el servidor lo vuelve a comprobar. La app nunca es la única barrera.
 - **Código de invitación:** 32 caracteres aleatorios (128 bits) que no se pueden adivinar. Funciona como contraseña del grupo.
+- **Límite de intentos (contra la fuerza bruta):** sin límite, un programa puede probar miles de contraseñas por minuto contra un usuario. Cuento los fallos en una tabla (`attempts`): 10 contraseñas incorrectas en 15 minutos bloquean ese usuario 15 minutos (429), y 30 desde una misma IP bloquean la IP. Vale también al cambiar la contraseña y al eliminar la cuenta. Además, como máximo 10 cuentas nuevas por hora desde una misma IP, contra los bots que crean cuentas en masa. La IP la da Cloudflare (`CF-Connecting-IP`).
+- **Cabeceras de seguridad:** instrucciones que el servidor manda al navegador.
+  - **CSP (Content-Security-Policy):** la app solo puede cargar código, estilos, imágenes y datos de su propio sitio. Si alguien lograra colar código ajeno (XSS), el navegador no lo ejecuta. Es lo que protege la sesión guardada en el celular.
+  - **`frame-ancestors 'none'`:** ningún sitio puede mostrar la app dentro de un marco para hacer tocar botones con engaño (*clickjacking*).
+  - **HSTS:** el navegador usa siempre https para este sitio. Además, el Worker redirige a https cualquier pedido por http, y la app se pasa sola a https si se abrió sin cifrar.
+  - **`nosniff`** (no tratar como código lo que no lo es) y **`no-referrer`** (no mandar la dirección a otros sitios, porque puede llevar un enlace secreto).
+  - Las de la app van en `public/_headers` (Cloudflare las aplica a cada archivo); las de la API, en el Worker.
+- **Validar lo que se guarda:** una foto se acepta solo si es una imagen JPEG, PNG o WebP (`data:image/...`). Nada de texto suelto, SVG ni enlaces.
+- **Devolver solo lo necesario:** quien tiene el enlace de invitación ve los nombres y fotos para elegir quién es, pero no los apodos.
+- **Secretos:** las claves (Brevo) van como *secretos* del Worker, nunca en el código ni en Git. Una clave que se mostró en algún lado (un chat, una captura) se **rota**: se crea una nueva y se borra la vieja.
+- **Dependencias:** `npm audit` revisa vulnerabilidades conocidas en las librerías. Dependabot (de GitHub) lo hace solo cada semana y abre un PR con la actualización.
+- **Row level security no aplica:** en Supabase o Firebase el celular habla directo con la base, y por eso las reglas van en la base. Acá el celular nunca toca D1: todo pasa por el Worker, que hace ese control en código.
 - **Decisiones:**
   - Preferí cuentas con usuario y contraseña, con correo opcional (solo para recuperarla).
   - Hace falta cuenta para crear grupos y para unirse a uno; el contador y la partida rápida funcionan sin cuenta.

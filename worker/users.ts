@@ -1,4 +1,15 @@
 import type { Env } from './groups'
+import {
+  anyLocked,
+  clearFailures,
+  clientIp,
+  isLocked,
+  passwordKeys,
+  recordFailure,
+  recordFailures,
+  SIGNUP_LIMIT,
+  tooMany,
+} from './attempts'
 import { errorResponse, json } from './http'
 
 export const MIN_PASSWORD_LENGTH = 8
@@ -158,6 +169,15 @@ export async function authenticate(
 }
 
 export async function register(request: Request, env: Env): Promise<Response> {
+  // Cuentas nuevas desde una misma IP: hay un máximo por hora (frena a quien
+  // crea cuentas en masa con un programa).
+  const ip = clientIp(request)
+  const signupKey = ip ? `signup-ip:${ip}` : null
+  if (signupKey && (await isLocked(signupKey, env))) {
+    return tooMany(
+      'Se crearon demasiadas cuentas desde esta conexión. Inténtalo de nuevo en una hora.',
+    )
+  }
   const body = await readBody(request)
   if (!body) {
     return errorResponse('El cuerpo no es un JSON válido', 400)
@@ -226,6 +246,9 @@ export async function register(request: Request, env: Env): Promise<Response> {
   } catch {
     return errorResponse('Ese usuario o correo ya existe', 409)
   }
+  if (signupKey) {
+    await recordFailure(signupKey, SIGNUP_LIMIT, env)
+  }
   return json({ token: await openSession(id, env), user }, 201)
 }
 
@@ -244,6 +267,13 @@ export async function login(request: Request, env: Env): Promise<Response> {
   if (identifier === '' || typeof password !== 'string') {
     return rejected
   }
+  // Límite de intentos: muchas contraseñas incorrectas seguidas para el mismo
+  // usuario (o desde la misma IP) bloquean un rato. Frena a quien prueba
+  // contraseñas sin parar.
+  const keys = passwordKeys(request, `user:${identifier.toLowerCase()}`)
+  if (await anyLocked(keys, env)) {
+    return tooMany()
+  }
   // Los correos se guardan en minúsculas; el usuario se compara sin distinguir
   // mayúsculas.
   const byEmail = identifier.includes('@')
@@ -255,12 +285,15 @@ export async function login(request: Request, env: Env): Promise<Response> {
     .bind(byEmail ? identifier.toLowerCase() : identifier)
     .first<UserRow>()
   if (!row || !row.password_hash || !row.password_salt) {
+    await recordFailures(keys, env)
     return rejected
   }
   const hash = await hashPassword(password, row.password_salt)
   if (!sameText(hash, row.password_hash)) {
+    await recordFailures(keys, env)
     return rejected
   }
+  await clearFailures(keys[0].key, env)
   const user: User = {
     id: row.id,
     username: row.username,

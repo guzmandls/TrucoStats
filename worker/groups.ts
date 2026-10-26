@@ -32,6 +32,17 @@ interface GroupInput {
 export const MAX_NAME_LENGTH = 20
 const MAX_MEMBERS = 50
 export const MAX_AVATAR_LENGTH = 200_000
+const AVATAR_FORMAT = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/
+
+// Una foto válida: una imagen JPEG, PNG o WebP como texto (data URL), de tamaño
+// acotado. Cualquier otra cosa (texto suelto, SVG, enlaces) se rechaza.
+export function isAvatar(value: unknown): value is string {
+  return (
+    typeof value === 'string' &&
+    value.length <= MAX_AVATAR_LENGTH &&
+    AVATAR_FORMAT.test(value)
+  )
+}
 const MAX_ID_LENGTH = 100
 
 export function isNonEmptyString(
@@ -59,7 +70,7 @@ function parseMember(value: unknown): MemberInput | null {
   if (member.avatar === undefined) {
     return { id: member.id, name: member.name.trim() }
   }
-  if (!isNonEmptyString(member.avatar, MAX_AVATAR_LENGTH)) {
+  if (!isAvatar(member.avatar)) {
     return null
   }
   return { id: member.id, name: member.name.trim(), avatar: member.avatar }
@@ -297,8 +308,15 @@ export async function getGroupByInviteCode(
   }
 
   const membership = user ? await membershipOf(user.id, group.id, env) : null
+  // Los apodos son solo para quienes ya son del grupo: para unirse no hacen
+  // falta, y quien tiene solo el enlace no necesita verlos.
   return json(
-    groupResponse(group, results, membership?.memberId ?? null, aliases),
+    groupResponse(
+      group,
+      results,
+      membership?.memberId ?? null,
+      membership ? aliases : new Map(),
+    ),
     200,
     { etag: tag },
   )

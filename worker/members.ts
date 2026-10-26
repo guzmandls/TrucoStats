@@ -1,9 +1,4 @@
-import {
-  isNonEmptyString,
-  MAX_AVATAR_LENGTH,
-  MAX_NAME_LENGTH,
-  type Env,
-} from './groups'
+import { isNonEmptyString, isAvatar, MAX_NAME_LENGTH, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { membershipOf } from './access'
 import { findGroupIdByCode } from './matches'
@@ -57,11 +52,7 @@ export async function updateMember(
       400,
     )
   }
-  if (
-    hasAvatar &&
-    fields.avatar !== null &&
-    !isNonEmptyString(fields.avatar, MAX_AVATAR_LENGTH)
-  ) {
+  if (hasAvatar && fields.avatar !== null && !isAvatar(fields.avatar)) {
     return errorResponse('La foto no es válida', 400)
   }
 

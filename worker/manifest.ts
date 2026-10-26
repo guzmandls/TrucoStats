@@ -1,3 +1,5 @@
+import { SECURITY_HEADERS } from './http'
+
 // El manifiesto de la app instalada (nombre, íconos, colores y dónde arranca).
 // Lo sirve el Worker para poder entregar uno propio por invitación: instalada
 // desde un enlace de invitación, la app arranca en esa invitación (si no, la
@@ -35,6 +37,7 @@ function manifest(startUrl: string) {
 function manifestResponse(startUrl: string): Response {
   return new Response(JSON.stringify(manifest(startUrl)), {
     headers: {
+      ...SECURITY_HEADERS,
       'content-type': 'application/manifest+json; charset=utf-8',
       'cache-control': 'no-store',
     },
