@@ -1,0 +1,10 @@
+# Dependabot (de GitHub, gratis) revisa cada semana las dependencias de npm y
+# abre un pull request cuando hay una actualización de seguridad o una versión
+# nueva. Cada PR pasa por las mismas pruebas antes de mergearlo.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

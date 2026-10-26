@@ -5,6 +5,16 @@ import App from './App.tsx'
 import { migrateLegacyGame } from './features/counter/gameStorage'
 import { listenForInstall } from './features/install/install'
 
+// Si se abrió por http (sin cifrar), se pasa a https. En la computadora
+// (localhost o una IP de la red local) se deja en http.
+if (
+  location.protocol === 'http:' &&
+  location.hostname !== 'localhost' &&
+  !/^\d+\.\d+\.\d+\.\d+$/.test(location.hostname)
+) {
+  location.replace(`https:${location.href.slice('http:'.length)}`)
+}
+
 // Antes de dibujar la app: el aviso de Android para instalar llega apenas carga.
 listenForInstall()
 

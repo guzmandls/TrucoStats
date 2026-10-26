@@ -61,9 +61,21 @@ const INVITE_MANIFEST = /^\/api\/manifiesto\/([^/]{1,100})$/
 const SHARED_LIVE = /^\/api\/en-vivo\/([0-9a-f]{32})$/
 const QUICK_MATCH = /^\/api\/partidas-rapidas\/([^/]{1,100})$/
 
+function isLocalHost(hostname: string): boolean {
+  return hostname === 'localhost' || hostname === '127.0.0.1'
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const { pathname } = new URL(request.url)
+    const url = new URL(request.url)
+    // Siempre por https: un pedido por http (sin cifrar) se manda a la misma
+    // dirección con https antes de leer nada, así la sesión nunca viaja sin
+    // cifrar. En la computadora (localhost) se usa http y se deja pasar.
+    if (url.protocol === 'http:' && !isLocalHost(url.hostname)) {
+      url.protocol = 'https:'
+      return Response.redirect(url.toString(), 308)
+    }
+    const { pathname } = url
 
     if (pathname === '/api/salud') {
       return json({ estado: 'ok' })

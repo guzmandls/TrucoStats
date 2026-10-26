@@ -1,4 +1,4 @@
-import { isNonEmptyString, MAX_AVATAR_LENGTH, type Env } from './groups'
+import { isAvatar, type Env } from './groups'
 import { errorResponse, json } from './http'
 import { authenticate } from './users'
 
@@ -62,7 +62,7 @@ export async function updateMyAvatar(
       ? (body as { avatar?: unknown }).avatar
       : undefined
   ) as unknown
-  if (avatar !== null && !isNonEmptyString(avatar, MAX_AVATAR_LENGTH)) {
+  if (avatar !== null && !isAvatar(avatar)) {
     return errorResponse('La foto no es válida', 400)
   }
   await env.DB.batch(

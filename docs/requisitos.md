@@ -481,6 +481,9 @@ Cada partida tendrá un único anotador responsable para evitar modificaciones s
 - Los usuarios no podrán modificar directamente los resultados almacenados en la base de datos.
 - Los datos de cada grupo solamente estarán disponibles para sus integrantes, salvo las funciones de administración que requieran permisos especiales.
 - Las estadísticas globales (perfil personal) serán visibles para los integrantes de los grupos en los que participa el usuario.
+- Límite de intentos: 10 contraseñas incorrectas en 15 minutos (al iniciar sesión, cambiar la contraseña o eliminar la cuenta) bloquean ese usuario 15 minutos; 30 desde una misma conexión bloquean esa conexión. Mensaje: "Demasiados intentos. Inténtalo de nuevo en 15 minutos." Como máximo 10 cuentas nuevas por hora desde una misma conexión ("Se crearon demasiadas cuentas desde esta conexión. Inténtalo de nuevo en una hora.").
+- La app y la API se usan siempre por https (http redirige a https) y mandan cabeceras de seguridad (CSP, HSTS, nosniff, sin referrer, sin marcos de otros sitios).
+- Las fotos solo se aceptan como imágenes JPEG, PNG o WebP. Los apodos solo los reciben los integrantes del grupo.
 
 ## 9. Tecnologías previstas
 

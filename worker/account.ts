@@ -1,4 +1,11 @@
 import type { Env } from './groups'
+import {
+  anyLocked,
+  clearFailures,
+  passwordKeys,
+  recordFailures,
+  tooMany,
+} from './attempts'
 import { errorResponse, json } from './http'
 import { leaveAs } from './leave'
 import {
@@ -16,8 +23,28 @@ import {
   USERNAME_RULES,
 } from './users'
 
-// Comprueba la contraseña de una cuenta registrada.
+// Comprueba la contraseña de una cuenta registrada. Como al iniciar sesión,
+// muchos intentos incorrectos bloquean un rato ("locked").
 async function checkPassword(
+  request: Request,
+  userId: string,
+  password: unknown,
+  env: Env,
+): Promise<'ok' | 'wrong' | 'locked'> {
+  const keys = passwordKeys(request, `account:${userId}`)
+  if (await anyLocked(keys, env)) {
+    return 'locked'
+  }
+  const right = await passwordMatches(userId, password, env)
+  if (!right) {
+    await recordFailures(keys, env)
+    return 'wrong'
+  }
+  await clearFailures(keys[0].key, env)
+  return 'ok'
+}
+
+async function passwordMatches(
   userId: string,
   password: unknown,
   env: Env,
@@ -73,7 +100,11 @@ export async function changePassword(
       400,
     )
   }
-  if (!(await checkPassword(user.id, body?.current, env))) {
+  const check = await checkPassword(request, user.id, body?.current, env)
+  if (check === 'locked') {
+    return tooMany()
+  }
+  if (check === 'wrong') {
     return errorResponse('La contraseña actual no es correcta', 403)
   }
 
@@ -107,7 +138,11 @@ export async function deleteAccount(
     return user
   }
   const body = await readBody(request)
-  if (!(await checkPassword(user.id, body?.password, env))) {
+  const check = await checkPassword(request, user.id, body?.password, env)
+  if (check === 'locked') {
+    return tooMany()
+  }
+  if (check === 'wrong') {
     return errorResponse('La contraseña no es correcta', 403)
   }
 
