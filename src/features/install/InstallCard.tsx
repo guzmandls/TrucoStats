@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CloseIcon } from '../../components/Icons'
+import { CloseIcon, DownloadIcon } from '../../components/Icons'
 import { closeInstallCard, isInstallCardClosed, useInstall } from './install'
 import styles from './Install.module.css'
 
@@ -14,10 +14,15 @@ export function InstallCard({ onInstall }: { onInstall: () => void }) {
     return null
   }
   return (
-    <section className={styles.bar} aria-label="Instalar trucoStats">
-      <span className={styles.barText}>Instala trucoStats</span>
-      <button type="button" className={styles.barInstall} onClick={onInstall}>
-        Instalar
+    <section className={styles.bar} aria-label="Instalar app">
+      <span className={styles.barText}>Instalar app</span>
+      <button
+        type="button"
+        className={styles.barInstall}
+        aria-label="Instalar"
+        onClick={onInstall}
+      >
+        <DownloadIcon size={22} />
       </button>
       <button
         type="button"

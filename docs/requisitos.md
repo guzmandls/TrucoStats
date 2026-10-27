@@ -14,7 +14,7 @@ La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla 
 
 **Instalar la app**
 
-- Abierta en el navegador (sin instalar), el inicio muestra una fila "Instala trucoStats" con un botón Instalar y una X para cerrarla; cerrada, no vuelve a aparecer. El menú del inicio tiene además la opción "Instalar app". Instalada, no se muestra ninguna de las dos.
+- Abierta en el navegador (sin instalar), el inicio muestra una fila "Instalar app" con un botón con el ícono de descarga y una X para cerrarla; cerrada, no vuelve a aparecer. El menú del inicio tiene además la opción "Instalar app". Instalada, no se muestra ninguna de las dos.
 - En Android, si el navegador lo permite, Instalar abre la instalación del sistema. Si no (o en iPhone, donde Apple no lo permite), muestra los pasos numerados: en iPhone, Compartir → "Agregar a Inicio" (dentro de "Ver más" si no aparece) → dejar activado "Abrir como app web"; en Android, menú ⋮ → "Instalar app". Siempre se aclara que, si el enlace se abrió desde WhatsApp u otra app, hay que abrirlo primero en Safari o Chrome.
 - La página `/instalar` es el enlace para compartir: muestra lo que corresponde al teléfono de quien la abre.
 - Quien entra por un enlace de invitación a un grupo ve la tarjeta al llegar al inicio.
