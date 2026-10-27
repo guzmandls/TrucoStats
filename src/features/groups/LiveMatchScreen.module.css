@@ -4,11 +4,13 @@
   gap: var(--space-2);
   font-size: var(--text-xl);
   font-weight: 700;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
 /* Barra inferior: dice qué se está mirando (en vivo, pausada o quién ganó). */
 .status {
+  font-family: var(--font-display);
   flex: 0 0 auto;
   padding: var(--space-4) var(--space-4)
     max(var(--space-4), env(safe-area-inset-bottom, 0px));

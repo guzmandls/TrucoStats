@@ -64,6 +64,10 @@
   );
   --shadow-raised: 0 10px 24px color-mix(in srgb, var(--ink) 35%, transparent);
 
+  /* Letra con carácter (condensada, de marcador) para títulos y números; el
+     texto común usa la del sistema. Va dentro de la app (@fontsource). */
+  --font-display: 'Barlow Condensed', system-ui, sans-serif;
+
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   font-size: 16px;
   line-height: 1.4;
@@ -76,6 +80,20 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* En el celular: sin el destello gris de Android al tocar (cada botón tiene su
+   propio estado al apretar) y sin la demora del doble toque para hacer zoom. */
+html {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Títulos de varias líneas, repartidos parejo (sin una palabra sola abajo). */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
 }
 
 /* Instalada como app, la página llega hasta arriba de todo (detrás de la hora,

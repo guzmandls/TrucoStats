@@ -56,20 +56,20 @@ describe('detectPlatform', () => {
 describe('InstallCard', () => {
   it('se puede cerrar y no vuelve a aparecer', () => {
     const first = render(<InstallCard onInstall={() => undefined} />)
-    expect(screen.getByText('Instala la app')).toBeInTheDocument()
+    expect(screen.getByText('Instalar app')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Cerrar' }))
-    expect(screen.queryByText('Instala la app')).toBeNull()
+    expect(screen.queryByText('Instalar app')).toBeNull()
     first.unmount()
 
     render(<InstallCard onInstall={() => undefined} />)
-    expect(screen.queryByText('Instala la app')).toBeNull()
+    expect(screen.queryByText('Instalar app')).toBeNull()
   })
 
   it('no aparece si la app ya está instalada', () => {
     asInstalledApp()
     render(<InstallCard onInstall={() => undefined} />)
-    expect(screen.queryByText('Instala la app')).toBeNull()
+    expect(screen.queryByText('Instalar app')).toBeNull()
   })
 })
 

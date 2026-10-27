@@ -39,6 +39,7 @@
 .podiumRate {
   font-size: var(--text-md);
   font-weight: 600;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -46,6 +47,7 @@
   margin-top: var(--space-1);
   font-size: var(--text-lg);
   font-weight: 700;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -72,6 +74,7 @@
 .podiumPlace {
   font-size: var(--text-xl);
   font-weight: 700;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -109,6 +112,7 @@
   font-weight: 800;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -120,8 +124,9 @@
 }
 
 .recordMeta {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   color: var(--ink-muted);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -195,6 +200,7 @@ a.recordMember:hover {
   font-size: var(--text-xl);
   font-weight: 700;
   line-height: 1;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -252,6 +258,7 @@ a.recordMember:hover {
   color: var(--paper);
   font-size: var(--text-sm);
   font-weight: 800;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -273,12 +280,14 @@ a.recordMember:hover {
   text-align: right;
   font-size: var(--text-sm);
   font-weight: 700;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
 .rankDetail {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   color: var(--ink-muted);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -288,6 +297,7 @@ a.recordMember:hover {
   text-align: right;
   font-size: var(--text-md);
   font-weight: 700;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -325,6 +335,7 @@ a.recordMember:hover {
   border-spacing: 0;
   width: 100%;
   table-layout: fixed;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 

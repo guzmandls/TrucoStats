@@ -90,7 +90,7 @@ describe('GroupStatsScreen', () => {
     expect(await screen.findByText('Más larga')).toBeInTheDocument()
     expect(screen.getAllByText('Juan - Pedro').length).toBe(4)
     expect(screen.getAllByText('Luis - Ana').length).toBe(4)
-    expect(screen.getAllByText('5/3/2026').length).toBe(4)
+    expect(screen.getAllByText(/^5 mar( 2026)?$/).length).toBe(4)
     // La tarjeta no repite la modalidad ni el objetivo.
     expect(screen.queryByText('2v2')).not.toBeInTheDocument()
     expect(screen.queryByText('30 pts')).not.toBeInTheDocument()

@@ -1,11 +1,12 @@
 /* Encabezado de cada día, igual que en el historial del grupo. */
 .day {
+  font-family: var(--font-display);
   margin: 0;
   padding: var(--space-3) var(--space-4);
   background: var(--ink);
   color: var(--paper);
   border-bottom: var(--rule-width) solid var(--paper);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);

@@ -1,3 +1,4 @@
+import { shortDate } from './dayLabel'
 import type { Match, Participant } from './types'
 
 export function joinNames(names: string[]): string {
@@ -21,7 +22,7 @@ export function matchScore(match: Match): string {
 }
 
 export function matchDate(match: Match): string {
-  return new Date(match.playedAt).toLocaleDateString('es-UY')
+  return shortDate(match.playedAt)
 }
 
 // Datos de la partida en líneas cortas para el bloque lateral del historial:

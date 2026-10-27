@@ -19,6 +19,7 @@ function searchText(match: Match): string {
     [
       ...names,
       matchDate(match),
+      new Date(match.playedAt).toLocaleDateString('es-UY'),
       month,
       `${match.scores.nos} ${match.scores.ellos}`,
       `${match.scores.nos}-${match.scores.ellos}`,

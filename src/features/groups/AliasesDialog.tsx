@@ -49,6 +49,7 @@ export function AliasesDialog({
     <Dialog title={`Apodos de ${memberName}`} onClose={onClose} closeButton>
       <TextInput
         aria-label="Apodos"
+        autoComplete="off"
         placeholder="Juan, Juancho, Juanito"
         autoFocus
         value={text}

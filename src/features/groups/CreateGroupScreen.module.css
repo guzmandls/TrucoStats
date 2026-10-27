@@ -43,6 +43,7 @@
   border-right: var(--rule-width) solid var(--paper);
   font-size: var(--text-lg);
   font-weight: 700;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 

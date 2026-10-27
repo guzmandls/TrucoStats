@@ -38,6 +38,7 @@
 }
 
 .headerPoints {
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
 }

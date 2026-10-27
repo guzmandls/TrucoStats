@@ -578,6 +578,7 @@ export function GroupScreen() {
               className={styles.searchInput}
               type="search"
               aria-label="Buscar en el historial"
+              autoComplete="off"
               placeholder="Jugador, fecha o resultado"
               autoFocus
               value={query}
@@ -713,6 +714,7 @@ export function GroupScreen() {
         >
           <TextInput
             aria-label="Motivo (opcional)"
+            autoComplete="off"
             placeholder="Motivo (opcional)"
             value={reason}
             maxLength={200}
