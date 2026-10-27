@@ -344,6 +344,7 @@ export function StartGroupGameScreen() {
         <Dialog title="Agregar jugador" onClose={closeGuestDialog} closeButton>
           <TextInput
             aria-label="Nombre del jugador"
+            autoComplete="off"
             placeholder="Nombre"
             autoFocus
             value={guestName}

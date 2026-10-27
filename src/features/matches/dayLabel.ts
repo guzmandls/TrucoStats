@@ -19,10 +19,18 @@ export function dayKey(iso: string): string {
   return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`
 }
 
-// "Hoy", "Ayer", después la fecha corta ("18 oct") y, si es de otro año,
-// con el año ("18 oct 2025").
-export function dayLabel(iso: string, now: Date = new Date()): string {
+// Fecha corta, igual en toda la app: "18 oct" y, si es de otro año,
+// "18 oct 2025".
+export function shortDate(iso: string, now: Date = new Date()): string {
   const date = new Date(iso)
+  const short = `${date.getDate()} ${MONTHS[date.getMonth()]}`
+  return date.getFullYear() === now.getFullYear()
+    ? short
+    : `${short} ${date.getFullYear()}`
+}
+
+// "Hoy", "Ayer" y, si no, la fecha corta.
+export function dayLabel(iso: string, now: Date = new Date()): string {
   const yesterday = new Date(now)
   yesterday.setDate(now.getDate() - 1)
   if (dayKey(iso) === dayKey(now.toISOString())) {
@@ -31,8 +39,5 @@ export function dayLabel(iso: string, now: Date = new Date()): string {
   if (dayKey(iso) === dayKey(yesterday.toISOString())) {
     return 'Ayer'
   }
-  const short = `${date.getDate()} ${MONTHS[date.getMonth()]}`
-  return date.getFullYear() === now.getFullYear()
-    ? short
-    : `${short} ${date.getFullYear()}`
+  return shortDate(iso, now)
 }

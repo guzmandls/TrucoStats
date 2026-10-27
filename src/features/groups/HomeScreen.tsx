@@ -224,7 +224,14 @@ export function HomeScreen() {
         )}
         <InstallCard onInstall={installAction.install} />
         {groups.length === 0 ? (
-          <EmptyNote>Aún no hay grupos</EmptyNote>
+          <div className={styles.empty}>
+            <EmptyNote>Aún no hay grupos</EmptyNote>
+            {loggedIn && (
+              <ButtonLink to="/crear-grupo" variant="secondary">
+                Crear grupo
+              </ButtonLink>
+            )}
+          </div>
         ) : (
           <div className={styles.groups}>
             {groups.map((group) => (

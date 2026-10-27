@@ -192,6 +192,7 @@ export function CounterScreen() {
           {inGroup && (
             <TextInput
               aria-label="Motivo (opcional)"
+              autoComplete="off"
               placeholder="Motivo (opcional)"
               value={reason}
               maxLength={200}

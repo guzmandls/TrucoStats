@@ -153,3 +153,7 @@ vite.config.ts.timestamp-*
 
 # Variables locales de wrangler (claves y ajustes de desarrollo)
 .dev.vars
+
+# Skills instaladas con "npx skills" en el proyecto (son del asistente, no de la app)
+.agents/
+skills-lock.json

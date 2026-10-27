@@ -1,46 +1,60 @@
-/* Tarjeta del inicio: igual que una sección (banda negra con el título y
-   contenido sobre crema), con una X para cerrarla. */
-.card {
+/* Fila del inicio para instalar: el nombre, el botón y la X para cerrarla. */
+.bar {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
   border: var(--border-width) solid var(--ink);
   border-radius: var(--radius);
-  overflow: hidden;
 }
 
-.cardHead {
-  display: flex;
-  align-items: stretch;
+.barText {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+}
+
+.barInstall {
+  min-height: var(--tap-min);
+  padding: 0 var(--space-4);
+  border: var(--border-width) solid var(--ink);
+  border-radius: var(--radius-pill);
   background: var(--ink);
   color: var(--paper);
-  border-bottom: var(--rule-width) solid var(--paper);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.cardTitle {
-  flex: 1;
-  margin: 0;
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-xs);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-caps);
+.barInstall:active {
+  transform: scale(0.97);
 }
 
-.cardClose {
+.barClose {
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: var(--tap-min);
+  min-height: var(--tap-min);
   padding: 0;
   border: 0;
+  border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--paper);
+  color: var(--ink);
   cursor: pointer;
 }
 
-.cardClose:focus-visible {
-  outline: var(--border-width) solid var(--paper);
-  outline-offset: calc(var(--border-width) * -1);
+.barClose:active {
+  background: var(--line);
+}
+
+.barInstall:focus-visible,
+.barClose:focus-visible {
+  outline: var(--border-width) solid var(--ink);
+  outline-offset: 2px;
 }
 
 .cardBody {

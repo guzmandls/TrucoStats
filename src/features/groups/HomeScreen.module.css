@@ -12,8 +12,17 @@
 }
 
 /* Fecha de la versión instalada: sirve para saber si la app se actualizó. */
+/* Sin grupos: el aviso y, debajo, el botón para crear uno. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* La versión, al pie del contenido. */
 .version {
-  margin: var(--space-4) 0 0;
+  margin: auto 0 0;
+  padding-top: var(--space-4);
   text-align: center;
   font-size: 0.75rem;
   opacity: 0.55;

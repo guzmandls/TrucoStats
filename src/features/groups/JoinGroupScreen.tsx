@@ -294,6 +294,7 @@ export function JoinGroupScreen() {
                 <div className={styles.nameField}>
                   <TextInput
                     aria-label="Tu nombre"
+                    autoComplete="off"
                     value={name}
                     maxLength={MAX_NAME_LENGTH}
                     onChange={(event) => setName(event.target.value)}
@@ -307,6 +308,7 @@ export function JoinGroupScreen() {
                 <div className={styles.nameField}>
                   <TextInput
                     aria-label="Apodos"
+                    autoComplete="off"
                     placeholder="Juan, Juancho, Juanito"
                     value={aliasText}
                     onChange={(event) => setAliasText(event.target.value)}

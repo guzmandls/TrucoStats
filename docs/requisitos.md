@@ -14,7 +14,7 @@ La app se usa instalada en la pantalla de inicio (iPhone y Android), a pantalla 
 
 **Instalar la app**
 
-- Abierta en el navegador (sin instalar), el inicio muestra una tarjeta "Instala la app" con un botón Instalar y una X para cerrarla; cerrada, no vuelve a aparecer. El menú del inicio tiene además la opción "Instalar app". Instalada, no se muestra ninguna de las dos.
+- Abierta en el navegador (sin instalar), el inicio muestra una fila "Instala trucoStats" con un botón Instalar y una X para cerrarla; cerrada, no vuelve a aparecer. El menú del inicio tiene además la opción "Instalar app". Instalada, no se muestra ninguna de las dos.
 - En Android, si el navegador lo permite, Instalar abre la instalación del sistema. Si no (o en iPhone, donde Apple no lo permite), muestra los pasos numerados: en iPhone, Compartir → "Agregar a Inicio" (dentro de "Ver más" si no aparece) → dejar activado "Abrir como app web"; en Android, menú ⋮ → "Instalar app". Siempre se aclara que, si el enlace se abrió desde WhatsApp u otra app, hay que abrirlo primero en Safari o Chrome.
 - La página `/instalar` es el enlace para compartir: muestra lo que corresponde al teléfono de quien la abre.
 - Quien entra por un enlace de invitación a un grupo ve la tarjeta al llegar al inicio.
@@ -66,7 +66,9 @@ La app está pensada para grupos de amigos donde no todos usan el contador. Por 
 - Al cerrar sesión se quitan del celular los grupos y las partidas de grupo de esa cuenta (la partida rápida se conserva); si hay partidas de grupo sin enviar, antes se avisa que se perderían. Al iniciar sesión o registrarse, los grupos de la cuenta se recuperan desde el servidor.
 - Si la app quedó abierta en segundo plano con una versión vieja, al volver a verla se recarga sola cuando hay una versión nueva.
 - Con la sesión iniciada, quién es la persona en cada grupo lo decide el servidor: si dice que la cuenta no es ningún integrante, se olvida el integrante que había quedado guardado en el celular y se pregunta quién es.
-- La pantalla principal muestra, al final y en chico, la fecha y hora de la versión instalada de la app ("Versión …"), para poder comprobar que se actualizó.
+- La pantalla principal muestra, al pie y en chico, la fecha y hora de la versión instalada de la app ("Versión …"), para poder comprobar que se actualizó.
+- Sin grupos, el inicio dice "Aún no hay grupos" y, con la sesión iniciada, ofrece el botón "Crear grupo".
+- Las fechas se muestran igual en toda la app: "23 oct" y, si son de otro año, "23 oct 2025" (en el historial, "Hoy" y "Ayer" para los dos últimos días).
 - Al elegir integrante (enlace de invitación o vínculo de la cuenta), si algún lugar figura como "Ya elegido" se indica que hay que iniciar sesión con la cuenta que lo eligió o pedir al administrador que lo libere.
 - Mientras no exista el sistema de cuentas, cada dispositivo tendrá un perfil local único al que se atribuirán las partidas rápidas y la creación de grupos.
 
@@ -598,7 +600,7 @@ Todos los `padding`, `gap` y `margin` de bloques provienen de una escala de múl
 
 ### 12.7. Tipografía
 
-Todo `font-size` proviene de la escala de tokens `--text-xs` a `--text-3xl` de `src/index.css`, y todo `letter-spacing` de `--tracking-tight`, `--tracking-wide` o `--tracking-caps`. No se escriben tamaños literales en los `*.module.css`.
+Los títulos (barra superior, bandas, encabezados de sección, días, nombres de grupos e integrantes) y todos los números (puntajes, Pts, porcentajes, cifras, cronómetro) usan Barlow Condensed (`--font-display`), una letra condensada de marcador, incluida en la app (`@fontsource/barlow-condensed`, pesos 600 y 700). El resto del texto usa la letra del sistema. Todo `font-size` proviene de la escala de tokens `--text-xs` a `--text-3xl` de `src/index.css`, y todo `letter-spacing` de `--tracking-tight`, `--tracking-wide` o `--tracking-caps`. No se escriben tamaños literales en los `*.module.css`.
 
 ### 12.8. Zonas táctiles
 

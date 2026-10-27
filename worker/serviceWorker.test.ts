@@ -6,7 +6,10 @@ import { runInNewContext } from 'node:vm'
 import { describe, expect, it, vi } from 'vitest'
 
 // Carga public/sw.js en un entorno falso y devuelve sus listeners.
-function loadServiceWorker(existingCaches: string[] = []) {
+function loadServiceWorker(
+  existingCaches: string[] = [],
+  { brokenCache = false } = {},
+) {
   const listeners: Record<string, (event: unknown) => void> = {}
   const deleted: string[] = []
   const navigated: string[] = []
@@ -31,11 +34,19 @@ function loadServiceWorker(existingCaches: string[] = []) {
   const caches = {
     keys: async () => existingCaches,
     delete: async (key: string) => deleted.push(key),
-    open: async () => ({
-      match: async () => undefined,
-      put: async (key: string) => put.push(key),
-      addAll: async (paths: string[]) => added.push(paths),
-    }),
+    open: async () => {
+      // Como en algunos celulares (almacenamiento lleno, modo privado): abrir la
+      // caché falla.
+      if (brokenCache) {
+        throw new Error('UnknownError: Unexpected internal error')
+      }
+      return cacheApi
+    },
+  }
+  const cacheApi = {
+    match: async () => undefined,
+    put: async (key: string) => put.push(key),
+    addAll: async (paths: string[]) => added.push(paths),
   }
   const page =
     '<html><head><link rel="icon" href="/favicon.ico" /><link rel="stylesheet" crossorigin href="/assets/index-b.css"></head>' +
@@ -140,5 +151,22 @@ describe('service worker', () => {
     })
     await done
     expect(added[0]).toEqual(['/index.html', '/manifest.webmanifest'])
+  })
+
+  it('con la caché rota, igual muestra la página que mandó el servidor', async () => {
+    const { listeners } = loadServiceWorker([], { brokenCache: true })
+    const event = fetchEvent('/iniciar-sesion', { mode: 'navigate' })
+    listeners.fetch(event)
+    const response = (await event.respondWith.mock.calls[0][0]) as Response
+    expect(response.status).toBe(200)
+    expect(await response.text()).toContain('<html>')
+  })
+
+  it('con la caché rota, igual entrega los archivos de la app', async () => {
+    const { listeners } = loadServiceWorker([], { brokenCache: true })
+    const event = fetchEvent('/assets/fuente.woff2')
+    listeners.fetch(event)
+    const response = (await event.respondWith.mock.calls[0][0]) as Response
+    expect(response.status).toBe(200)
   })
 })

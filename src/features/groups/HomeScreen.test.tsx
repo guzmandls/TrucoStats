@@ -1,5 +1,11 @@
 import 'fake-indexeddb/auto'
-import { fireEvent, render, screen } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { clearSession, saveSession } from '../../lib/session'
@@ -82,12 +88,32 @@ describe('HomeScreen', () => {
     renderHome()
     fireEvent.click(await screen.findByRole('button', { name: 'Menú' }))
 
-    const create = screen.getByRole('link', { name: 'Crear grupo' })
+    // Sin grupos, el inicio también ofrece "Crear grupo": acá se mira el del menú.
+    const create = within(screen.getByRole('banner')).getByRole('link', {
+      name: 'Crear grupo',
+    })
     const profile = screen.getByRole('link', { name: 'juan' })
     expect(screen.queryByRole('link', { name: 'Ver perfil' })).toBeNull()
     expect(create).toHaveAttribute('href', '/crear-grupo')
     expect(profile).toHaveAttribute('href', '/perfil')
     expect(screen.getByRole('banner')).toContainElement(create)
+  })
+
+  it('sin grupos ofrece crear uno, solo con la sesión iniciada', async () => {
+    renderHome()
+    expect(await screen.findByText('Aún no hay grupos')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Crear grupo' })).toBeNull()
+    cleanup()
+
+    saveSession({
+      token: 'a'.repeat(64),
+      user: { id: 'u1', username: 'juan', email: null, name: 'juan' },
+    })
+    renderHome()
+    expect(
+      await screen.findByRole('link', { name: 'Crear grupo' }),
+    ).toHaveAttribute('href', '/crear-grupo')
+    clearSession()
   })
 
   it('cierra el menú al elegir una opción', async () => {

@@ -52,6 +52,7 @@ export function RenameMemberDialog({
     <Dialog title="Cambiar nombre" onClose={onClose} closeButton>
       <TextInput
         aria-label="Nombre"
+        autoComplete="off"
         autoFocus
         value={name}
         maxLength={MAX_NAME_LENGTH}

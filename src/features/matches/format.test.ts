@@ -64,7 +64,7 @@ describe('matchMeta', () => {
     const meta = matchMeta(groupMatch)
     expect(meta).toContain('2v2')
     expect(meta).toContain('30 puntos')
-    expect(meta).toContain('2026')
+    expect(meta).toContain('5 mar')
   })
 
   it('incluye la duración cuando existe', () => {

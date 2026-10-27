@@ -48,6 +48,7 @@ export function AddMemberDialog({
     <Dialog title="Agregar integrante" onClose={onClose} closeButton>
       <TextInput
         aria-label="Nombre"
+        autoComplete="off"
         placeholder="Nombre"
         autoFocus
         value={name}

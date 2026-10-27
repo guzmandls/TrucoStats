@@ -125,6 +125,7 @@ export function CreateGroupScreen() {
             <div className={styles.groupName}>
               <TextInput
                 aria-label="Nombre del grupo"
+                autoComplete="off"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 maxLength={20}
@@ -153,6 +154,7 @@ export function CreateGroupScreen() {
                   <input
                     className={styles.memberInput}
                     aria-label={`Integrante ${index + 1}`}
+                    autoComplete="off"
                     placeholder={
                       index === 0 ? 'Tu nombre' : 'Nombre del integrante'
                     }

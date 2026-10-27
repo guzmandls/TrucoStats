@@ -27,6 +27,11 @@
   text-decoration: none;
 }
 
+.main:active,
+.go:active {
+  opacity: 0.75;
+}
+
 .main:focus-visible,
 .go:focus-visible {
   outline: var(--border-width) solid var(--ink);
@@ -42,6 +47,7 @@
 }
 
 .memberName {
+  font-family: var(--font-display);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

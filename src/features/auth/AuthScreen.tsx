@@ -122,6 +122,7 @@ export function AuthScreen({ mode }: AuthScreenProps) {
                 <TextInput
                   type="email"
                   aria-label="Correo (opcional)"
+                  spellCheck={false}
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   autoComplete="email"

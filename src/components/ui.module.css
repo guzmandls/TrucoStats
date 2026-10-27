@@ -281,11 +281,11 @@
   border: 0;
   background: transparent;
   color: var(--paper);
-  font-family: inherit;
-  font-size: var(--text-xs);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: var(--tracking-tight);
+  letter-spacing: var(--tracking-wide);
   cursor: pointer;
 }
 
@@ -312,6 +312,7 @@
 }
 
 .headerTitle {
+  font-family: var(--font-display);
   flex: 1;
   min-width: 0;
   margin: 0;
@@ -397,8 +398,9 @@
 /* ---------- Título de sección ---------- */
 
 .sectionTitle {
+  font-family: var(--font-display);
   margin: var(--space-5) 0 var(--space-2);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -439,7 +441,8 @@
 }
 
 .fieldLabel {
-  font-size: var(--text-xs);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -458,6 +461,7 @@
 }
 
 .panelHeader {
+  font-family: var(--font-display);
   margin: 0;
   padding: var(--space-3) var(--space-4);
   background: var(--ink);
@@ -499,6 +503,7 @@
   min-height: var(--tap-height);
   padding: 0 var(--space-3);
   font-size: var(--text-sm);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -562,6 +567,7 @@
 .statValue {
   font-size: var(--text-sm);
   font-weight: 600;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -592,12 +598,13 @@
 }
 
 .sectionHead {
+  font-family: var(--font-display);
   margin: 0;
   padding: var(--space-3) var(--space-4);
   background: var(--ink);
   color: var(--paper);
   border-bottom: var(--rule-width) solid var(--paper);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: var(--tracking-caps);
@@ -700,11 +707,13 @@
   font-size: var(--text-2xl);
   font-weight: 800;
   line-height: 1;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
 .figureLabel {
-  font-size: var(--text-xs);
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
   font-weight: 700;
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
@@ -785,6 +794,7 @@
   justify-self: center;
   font-size: var(--text-lg);
   font-weight: 700;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -870,6 +880,7 @@
   color: var(--ink);
   font-size: var(--text-md);
   font-weight: 600;
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 
@@ -892,7 +903,8 @@
   cursor: pointer;
   transition:
     background-color 120ms ease,
-    opacity 120ms ease;
+    opacity 120ms ease,
+    transform 80ms ease;
 }
 
 .primary {
@@ -939,6 +951,36 @@
   cursor: default;
 }
 
+/* Al apretar (en el celular no hay "hover"): el botón se hunde un poco y los
+   elementos de lista se oscurecen, para que el toque se note. */
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.secondary:active:not(:disabled),
+.card:active,
+.statLink:active,
+.panelLink:active .panel {
+  background: var(--line-thin);
+}
+
+.headerIconLink:active,
+.headerMenuItem:active,
+.overflowItem:active,
+.dialogClose:active {
+  background: color-mix(in srgb, var(--paper) 14%, transparent);
+}
+
+.overflowButton:active {
+  background: var(--line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
 /* ---------- Tarjeta ---------- */
 
 .card {
@@ -980,6 +1022,7 @@
 .cardMeta {
   font-size: var(--text-sm);
   color: var(--ink-muted);
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
 }
 

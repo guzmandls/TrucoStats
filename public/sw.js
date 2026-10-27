@@ -3,6 +3,7 @@
 // v4: íconos nuevos (los archivos sin huella en el nombre, como los íconos,
 // quedan guardados hasta que cambia este nombre). v5: deja de guardar "/" (la
 // app comparaba su versión con esa copia vieja y se recargaba sin motivo).
+// Además, si la caché falla, la app se carga igual desde el servidor.
 const CACHE = 'trucostats-v5'
 const APP_SHELL = ['/index.html', '/manifest.webmanifest']
 
@@ -19,6 +20,18 @@ async function saveIndex(cache, response) {
   const html = await response.clone().text()
   await cache.addAll(assetsOf(html)).catch(() => undefined)
   await cache.put('/index.html', response)
+}
+
+// Lo guardado para ese pedido, o undefined. Si la caché no se puede usar (pasa en
+// algunos celulares: almacenamiento lleno, modo privado), sigue como si no
+// hubiera nada guardado: la app nunca deja de cargar por un problema de la caché.
+async function fromCache(request) {
+  try {
+    const cache = await caches.open(CACHE)
+    return await cache.match(request)
+  } catch {
+    return undefined
+  }
 }
 
 self.addEventListener('install', (event) => {
@@ -65,18 +78,23 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     event.respondWith(
       (async () => {
+        let fresh
         try {
-          const fresh = await fetch(request)
-          if (fresh.ok) {
-            const cache = await caches.open(CACHE)
-            event.waitUntil(saveIndex(cache, fresh.clone()))
-          }
-          return fresh
+          fresh = await fetch(request)
         } catch {
-          const cache = await caches.open(CACHE)
-          const cached = await cache.match('/index.html')
+          // Sin conexión: la página guardada (si se puede leer la caché).
+          const cached = await fromCache('/index.html')
           return cached ?? Response.error()
         }
+        if (fresh.ok) {
+          event.waitUntil(
+            caches
+              .open(CACHE)
+              .then((cache) => saveIndex(cache, fresh.clone()))
+              .catch(() => undefined),
+          )
+        }
+        return fresh
       })(),
     )
     return
@@ -84,20 +102,20 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     (async () => {
-      const cache = await caches.open(CACHE)
-      const cached = await cache.match(request)
+      const cached = await fromCache(request)
       if (cached) {
         return cached
       }
-      try {
-        const fresh = await fetch(request)
-        if (fresh.ok) {
-          cache.put(request, fresh.clone())
-        }
-        return fresh
-      } catch {
-        return Response.error()
+      const fresh = await fetch(request)
+      if (fresh.ok) {
+        event.waitUntil(
+          caches
+            .open(CACHE)
+            .then((cache) => cache.put(request, fresh.clone()))
+            .catch(() => undefined),
+        )
       }
+      return fresh
     })(),
   )
 })

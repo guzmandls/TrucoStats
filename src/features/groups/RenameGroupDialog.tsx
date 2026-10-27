@@ -57,6 +57,7 @@ export function RenameGroupDialog({
     <Dialog title="Cambiar nombre del grupo" onClose={onClose} closeButton>
       <TextInput
         aria-label="Nombre del grupo"
+        autoComplete="off"
         autoFocus
         value={name}
         maxLength={MAX_NAME_LENGTH}

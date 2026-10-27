@@ -74,6 +74,7 @@ export function EmailSection() {
           onChange={(event) => setEmail(event.target.value)}
           autoComplete="email"
           autoCapitalize="none"
+          spellCheck={false}
           maxLength={100}
         />
         <Button
